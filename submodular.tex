@@ -1,0 +1,608 @@
+\section{Submodularity and ML: Theory and Applications, Stefanie Jegelka and Andreas Krause}
+
+Consider a ground set $V$; let $F:2^V\to \R$ be a function on the power set. Assume $F(\phi)=0$ and we have a black-box oracle to evaluate $F$. 
+
+What does this  have to do with ML?
+
+%max information
+\begin{itemize}
+\item
+$V$ are variables to observe, $F(S)$ is information obtained from observing them
+\item
+$V$ is the seed nodes in a network, $F(S)$ is the spread of information
+\item
+$V$ is collection of images, sentences, etc. $F(S)$ is a measure of representation (ex. how well they describe/summarize the data). This includes dictionary learning, matrix approximation, object detection...
+\end{itemize}•
+
+%We want to maximize 
+In these examples, we want $\max_S F(S)$, where $F$ could be coverage, spread, diversity, etc. 
+
+We could also want to do the opposite, maximize coherence, smoothness, $\min_S F(S)$.
+\begin{itemize}
+\item
+$V$ are data points and $F(S)$ is coherence/separation.
+\item
+$V$ is pixels in an image and $F(S)$ is coherence/matching (for picking out an object from an image)
+\item
+$V$ are coordinates (variables) and $F(S)$ is coherence.
+\end{itemize}
+
+Many functions can be represented as optimizing a set function. We need some additional structure that makes this doable.
+
+Convex functions 
+\begin{itemize}
+\item
+occur  in many models, and are often the only nontrivial property that can be stated in general.
+\item
+is preserved under many operations and transformations
+\item
+have sufficient structure for theory
+\item
+allow efficient minimization.
+\end{itemize}•
+In the discrete world, submodular set-functions share the above four properties.
+
+We'll define submodularity, and talk about minimization, maximization, and advanced topics.
+\subsection{What is submodularity?}
+
+%examples, connections
+
+Submodularity is defined by marginal/diminishing gains.
+\begin{df}
+$F:2^V\to \R$ is \vocab{submodular} if for all $A\subeq B$ and $s\nin B$,
+$$F(A\cup s) - F(A) \ge F(B\cup s) -  F(B).$$
+\end{df}
+For example, the more sensors I have, the less information I gain from adding another one. Here we view $F$ as a utility function; we can also view consider $F$ as a cost function, in which it represents economies of scale. Ex. The more you buy, the less an extra item costs.
+
+Another way to represent the submodular property is by the union-intersection property: for all $S,T\subeq V$,
+$$
+F(S)+F(T) \ge F(S\cup T) + F(S\cap T).
+$$
+%upper bound more intuitive, lower bound may be easier to show.
+
+Where does this submodularity property actually come up?
+
+\begin{enumerate}
+\item
+A modular function is one such that $F(S) = \sum_{e\in S} w(e)$ for some weight function $w$ on $V$. Here, for $e\nin A$, 
+$$
+F(A\cup e) - F(A) = w(e).
+$$
+$F$ is both submodular and supermodular.
+\item
+Coverage function: For example, for $V$ all possible sensor locations, $F$ is the area covered by all sensors,
+$$
+F(S)=\ab{
+\bigcup_{v\in S} \text{area}(S)
+}.
+$$
+
+Networks coverage is a stochastic version of coverage.
+\item
+Mutual information: 
+There is a random variable  (ex. temperature) $X_i$ at all locations. Observations at adjacent locations are not independent. We can observe $Y_i$, which are the  variables $X_i$ plus noise. Select some of these observations. How much do I reduce uncertainty about latent variables $Y$ by observing some of the $X$'s?
+
+The objective is the difference between the uncertainty about $Y$ before sensing and the uncertainty about $Y$ after sensing, which is the mutual information.
+$$F(A) = H(Y) - H(Y|X_A) = I(Y;X_A).$$
+\item
+Entropy: Consider rv's $X_1,\ldots, X_n$,  $F(S) = H(X_S)$ the joint entropy of variables indexed by $S$.
+Entropy only shrinks if you condition on more variables, 
+$$H(A\cup e) - H(A) = 
+H(X_e|X_A)\le H(X_e|X_B) = H(B\cup e) - H(B)$$ 
+if $A\subeq B$.
+
+If $X_i,i\in S$ are statistically independent, $H$ is modular/linear on $S$. Submodular allows some degree of dependence.
+
+\item
+Linear independence: %Another dependence modeled by a submodular function is linear independence, ex.
+$V$ is a set of column vectors and $F(S)= \rank $ of the matrix formed by columns in $S$.
+\item
+Graph cuts $F(S) = \sum_{u\in S,v\nin S}w_{uv}$. 
+The minimum cut problem tries to minimize this.
+
+Consider the cut function on the graph of 2 nodes $u,v$ with an edge between them. Consider the union-intersection property. The only nontrivial inequality is the inequality
+$$
+F(\{u\}) + F(\{v\}) \ge F(\{u,v\}) + F(\phi).
+$$
+This is true because $2w_{u,v}\ge 0$.
+
+For an arbitrary graph we get a sum of functions like this, so graph cut is submodular.
+\item
+Distributions can be log-submodular or log-supermodular, sub/supermodular function that is exponentiated.
+\begin{enumerate}
+\item A log-supermodular distribution satisfies
+ $P(S)\propto \exp(-F(S))$. 
+Equivalently,
+$$
+P(S)P(T) \le P(S\cup T)P(S\cap T).
+$$
+This means positive associations are allowed. For example, ferromagnetic Ising model/conditional random field.
+
+An application is image segmentation. A set of pixels are more likely to be an object if they are positively correlated. Adjacent functions are more likely to take the same label than different labels; there is a penalty when there is a difference.
+
+What is the benefit of submodular functions here? Finding the mode of a supermodular distribution corresponds to minimizing a submodular function. We can approximate partition functions. %\fixme{check}
+\item
+%Every set can be written as a binary indicator vector. 
+%We can represent subsets as binary indicator vectors. %We want a distribution
+Log-submodular distributions have
+$$P(S)P(T)\ge P(S\cup T)P(S\cap T).$$
+Examples are determinantal point processes and volume sampling $P(S)\propto \Vol(\{v_i\}_{i\in S})$, which prefers more linearly independent vectors. A determinantal point process has $P(S)\propto \det(L_S)$, the submatrix formed by rows and columns with indices in $S$.
+\end{enumerate}•
+\end{enumerate}
+
+Submodular functions arise in graph, game, matroid, information theory, stochastic processes, machine learning, information theory, and electrical networks.
+
+Does submodularity correspond to discrete convexity or concavity? A bit of both. 
+\begin{itemize}
+\item
+They are like convex functions because you can make it into a convex function (convex relaxation) and optimize that . There is a duality theory. 
+\item
+On the other hand, diminishing returns corresponds to shrinking derivatives which corresponds to a concave function.
+
+For example, consider $F(S)=g(|S|)$. This is submodular iff $g$ is concave.
+Taking this further, I could take $g (\sum_{i\in S} w_i) = g(\sum_{i} w_ix_i)$ where $x$ is the indicator for $S$.
+\end{itemize}
+
+
+Stacking submodular functions we get a deep submodular function. It looks like a deep net!  The function $F(x)$ defined by
+\begin{align}
+z_l^1 &=g_l^1 (\sum_{i} w_{l,i}^1x_i)
+\\
+z_l^k &= g_l^k (\sum_j w_{l,j}^k z_j^{k-1})\\
+F(S) &= \sum_l z_l^K.
+\end{align}
+is submodular if the  $g_l^k$ are concave and increasing and weights are nonnegative.
+(Unlike in a neural net we are not optimizing over the $w$'s but over the $x$'s.)
+
+More generally we can define submodular functions on lattices.
+\begin{df}
+A \vocab{submodular function} on a lattice satisfies
+$$
+f(x)+f(y) \ge f(x\vee y) + f(x\wedge y).
+$$
+\end{df}
+On a lattice, diminishing returns is stronger than submodularity.
+
+Many optimization results generalize to this setting.
+%monot and concave
+
+ %convexity: min, max coherence
+ %dim returns max, max diversity
+ 
+ Let's look at computational problems.
+ \subsection{Submodular minimization}
+ 
+ How can we find $\min_{S\subeq V}F(S)$? We use a relaxation, 
+ $$
+ \min_{x\in \{0,1\}^n} F(x) \to \min_{x\in [0,1]^n} f(x).
+ $$
+How do we do this? What function $f$ interpolates $F$?
+
+One natural thing to do is to define $f$ as the expectation of a rv. 
+How do do this in a way such that $f$ has nice properties?
+Do threshold rounding. %NOT take Bernoulli random variables
+\begin{df}
+The \vocab{Lov\'asz extension} of $F$ is 
+$$
+f(x):=\EE_{\te\sim x} [F(S_\te)].
+$$
+where $\te\in [0,1]$ is sampled uniformly, and $S_\te = \set{e}{x_e\ge \te}$.
+\end{df}
+
+For example, for $x=[0.5, 0.8]$,
+\begin{align}
+\Pj(\{a,b\}) &= 0.5\\
+\Pj(\{b\}) &=0.3\\
+\Pj(\phi) &=0.2,
+\end{align}
+then $f(x) = 0.5F(\{a,b\})+ 0.3F(\{b\})$.
+
+\fixme{(???) Two examples:
+\begin{enumerate}
+\item
+$F(S) = \max\{|S|,1\}$. Then $f(x) = 0.8 \max_i x_i=\ve{x}_\iy$. This is the $l^{\iy}$ norm of the vector.
+\item
+For $F(S)=\text{cut}(S)$, $f(x) = |x_a-x_b|$. This is the total variation function.
+\end{enumerate}}
+\begin{thm}
+The Lov\'asz extension is convex iff $F$ is submodular.
+\end{thm}
+We prove that if $F$ is submodular, than the Lov\'asz extension is convex. %one direction.
+\begin{proof}[Proof sketch.]
+If $F$ is submodular, we can write it as a pointwise max of convex functions.
+$$ f(x) = \max_{y\in B_F} y^Tx.$$
+Here
+$B_F$ is the base polytope. 
+\begin{df}
+ The \vocab{submodular polyhedron} is
+$$
+P_F := \set{y\in \R^n}{\sum_{a\in A} y_a\le F(A)\text{ for all }A\subeq V}.
+$$
+The \vocab{base polytope} is
+$$
+B_F = \set{y\in B_F}{\sum_{a\in V}y_a=F(V)}.
+$$
+\end{df}
+Note that there are an exponential number of inequalities defining $P_F$.
+\end{proof}
+Examples are 
+\begin{itemize}
+\item
+probability simplex
+\item
+spanning tree polytope (convex hull of spanning tree indicator variables)
+\item
+permutahedron 
+(convex hull of permutation matrices)
+\end{itemize}•
+How can we do linear optimization over the base polytope? There are exponentially many constraints one for each subset.
+
+But these polytopes are so nice that greedy algorithm works (Edmonds 1971). 
+\begin{alg}[Greedy algorithm for linear optimization over base polytope]
+$\,$
+\begin{enumerate}
+\item
+Sort cost vector $x_{\pi(1)}\ge x_{\pi(2)}\ge \cdots$.
+\item
+This gives sets $S_i=\{\pi(1),\ldots, \pi(i)\}$.
+\item
+Set $y_{\pi(i)} = F(S_i)-F(S_{i-1})$ (marginal gains).
+\end{enumerate}
+\end{alg}
+We can do this optimization in $n\ln n$ time, the time to sort.
+
+This implies we can compute Lovasz extension and subgradients of Lovasz extension.
+
+A piecewise linear function is not differentiable at corner points, but there are many linear functions that lower bounds and touch at the point of discontinuity. These slopes are the subgradients. We can do gradient descent with subgradients instead. We have to be more careful with step sizes but it works.
+%argmax is the thing that max
+%$\max_{y\in B_F}y^Tx = \max_{y\in B_F}\sum y_ix_i$
+
+Now we put things together. How do we go back to the discrete solution? (The solution could be fractional.)
+\begin{alg}[Submodular optimization]
+\begin{enumerate}
+\item
+Relax to a convex optimization problem. Solve it using e.g. the ellipsoid algorithm.
+\item
+The relaxation is exact. Pick elements with positive coordinates $S^*=\set{e}{x_e^*>0}$.
+\end{enumerate}•
+\end{alg}
+This solves submodular minimization in polynomial time.
+
+There are different optimization algorithms we can apply.
+\begin{itemize}
+\item
+Ellipsoid method
+\item
+Subgradient method
+\item
+minimum-norm point/Fujishige-Wolfe algorithm
+\end{itemize}
+Another approach is combinatorial methods. Ex. Min-cut has a polytime combinatorial algorithm. Solve the dual of the minimization problem and use network flow algorithms.
+
+
+%The latest bounds are 
+
+The minimum-norm point/Fujishige-Wolfe algorithm uses a different relaxation,
+$$
+\min_x f(x) + \rc 2\ve{x}^2.
+$$
+where $f$ is the Lov\'asz extension.
+This solves a parametric series of problems
+$$\min_{S\subeq V}F(S)+\al|S|$$ for all $\al$, in particular $\al=1$. 
+Thresholding at $\al$ gives the optimal solution $x^*$ at $\al$.
+
+The dual problem is the minimum norm point of the base polytope
+$$
+\min_{y\in B_F}\ve{y}^2.
+$$
+%(Find the point closest to 0.)
+It suffices to solve this.
+
+Computing whether we are inside or outside the polytope, and hence projecting to it, is difficult. Instead, rely on the fact that we can do efficient linear optimization. Use %a modified 
+the Frank-Wolfe algorithm.
+
+%For the minimum norm point, instead do linear optimization and 
+At each step, find the best point along the segment joining the current point to the point that solves a linear program, %that is parallel to the segment joining the curre
+%the origin to the optimal point.
+%joining the origin (not the current point) to the optimal point.
+$$
+s^t\in \amax_{s\in B_f}\an{-\nb g(y^t), s}.
+$$
+%Find a point along this line, repeat.
+%min norm over base polytope.
+
+The min-norm point algorithm converges the fastest.
+
+%close conn to convexity
+%exact via conv opt
+%duality results
+There are applications to structured sparsity, decomposition and parallel algorithms, variational inference...
+
+For sparsity: Relax the subset selection problem using the Lov\'asz extension. This is like going from $l^0$ to $l^1$. 
+
+%Special cases: graph-representable (reducible to min-cut).
+
+\subsection{Submodular maximization}
+
+%Andreas Krause
+
+%don't suffer too much from dim returns
+
+This exploits concavity-like properties.
+
+Now we want $\max F(S)$, often subject to some constraints.
+
+Many such problems are motivated by optimal information gathering, like telling robots where to go to collect measurements, choosing a subset of variables to do experiments on,... Here $F(S)$ represents information.
+
+Another application is data summarization. Select a subset of images that are a representative sample. This could be for exploratory data analysis. To train deep learning model on a large data set, what if we could just select a representative subset and train it on that subset.
+%Maximize notions of utility that capture diminishing returns.
+
+\begin{df}
+A set function $f$ is monotone 
+if whenever $S\subeq T$ then $F(S)\le F(T)$.
+\end{df}
+A non-example is the graph-cut function.
+
+Unconstrained maximization of monotone submodular functions is trivial: take the entire set. It makes sense to consider constraints like cardinality $|S|\le k$.
+
+This is NP-hard so we look for approximation algorithms. The simplest algorithm is greedy.
+\begin{alg}[Greedy algorithm]
+Let $S_0=\phi$. For $i=0,\ldots, k-1$,
+\begin{align}
+e^* &= \amax_{e\in V\bs S_i} F(S_i\cup \{e\})\\
+S_{i+1} &= S_i\cup \{e^*\}.
+\end{align}
+\end{alg}
+This looks like  a discrete analogue of gradient descent.
+ %b&b
+ 
+ In practice the greedy algorithm does close to optimal.
+ One can prove the following.
+ 
+%parametric properties; curvature, get sharper guarantees
+%work on mutual information
+%gaussian processes
+\begin{thm}[Nemhauser, Wolsey, Fisher 78]
+Let $F$ be (nonnegative) monotone submodular, $S_k$ be the solution of the greedy algorithm. Then
+$$
+F(S_k) \ge \pa{1-\rc e} F(S^*).
+$$
+\end{thm}
+In general, no polytime algorithm can do better.
+\begin{proof}
+Consider $F(S_l)$ as a function of $l$. (Side note: this is concave from submodularity.)
+Look at the gaps at each step of the algorithm $\De_i = OPT_k - F(S_i)$. The key lemma is the rate equation.
+\begin{lem}[Rate equation] 
+$$
+\max_e F(S_i\cup \{e\}) - F(S_i) \ge \rc k \De_i.
+$$
+\end{lem}
+This relates the marginal gain at the $i$th step to the gap.
+
+This implies $\De_{i+1} \le \pa{1-\rc k}\De_i$. Recursively, 
+$$
+\De_l \le \pa{1-\rc k}^l OPT_k.
+$$
+and so
+$$
+F(S_l) \ge (1-e^{-l/k}) OPT_k.
+$$
+%recvoer set cover
+\end{proof}
+This is tight: You can match this with cover functions.
+
+\subsubsection{Greedy++ algorithms}
+
+Now we talk about ``greedy++'' algorithms.
+\begin{enumerate}
+\item
+What if I have more complex constraints?
+\item
+Greedy algorithms take time $O(nk)$. What if $n,k$ are large?
+\item What if the function is not monotone?
+\end{enumerate}
+
+\subsubsection{Complex constraints}
+
+A more complex constraint is a budget,
+$$
+\sum_{e\in S} c(e)\le B.
+$$
+For example, it's more expensive to place sensors at certain locations, we have to summarize in 140 characters...
+
+We can 
+\begin{enumerate}
+\item
+run the greedy algorithm, or
+\item
+run a modified greedy algorithm using the benefit-cost ratio. 
+$$
+e^* = \amax_e \fc{F(S_i\cup \{e\}) - F(S_i)}{c(e)}.
+$$
+\end{enumerate}•
+We can construct instances where either does arbitrarily badly, but if we pick the better of the two outputs, we  can always get an  approximation factor of $1-\rc{\sqrt e}$.
+
+There are algorithms that are more general and achieve $1-\rc e$.
+ 
+ We relax from a discrete to a continuous function.
+ 
+$$\max_{S\in I}F(S) \to \max_{x\in \conv(I)} f_M(x).$$
+ We will round to get back the discrete solution.
+ 
+ The first attempt is to use the Lov\'asz extension: But it is convex, and we can't maximize it.
+ 
+ Instead, use the multilinear extension: sample an item $e$ with probability $x_e$ (each is Bernoulli random variable)
+ \begin{align}
+ f_M(x) &= \EE_{S\sim x} [F(S)]
+ %\\
+% &=\sum_{S\subeq V} F(S) 
+ \end{align}
+ 
+This is neither convex nor concave (it is convex in some directions, and concave in others). 
+
+Unlike the Lov\'asz extension, the multilinear extension can in general only be approximated by sampling so is slower unless you have special structure.
+
+Use the continuous greedy algorithm on $f_M$. 
+
+The feasible set is some polytope.  Do a Frank-Wolfe-like algorithm. 
+\begin{alg}[Continuous greedy algorithm]
+Start at 0. Look at the gradient of the multilinear extension at that point. Solve the linear program in the direction of the gradient. Increment by a step side in that direction.
+\begin{align}
+v_{t+1}&=\amax_{x\in P} x^Tg_t\\
+x_{t+1}&= x_t+\ga v_{t+1}.
+\end{align}
+Take $\ga = \rc T$.
+\end{alg}
+(N.B. it is $v_{t+1}$, not $v_{t+1}-x_t$: move along the segment parallel to the segment joining the origin to $v_{t+1}$.)
+
+This requires the polytope to be a downward closed polytope: for $x\in P$, $[0,x_1]\times \cdots \times [0,x_n]\subeq P$.
+
+The continuous greedy algorithm always exploits concave directions.
+
+This also works for the more general class of monotone continuous DR-submodular functions, which could be nonconvex functions!
+%o%ptimization with guarantees!
+
+We need to do rounding (omitted).
+%recent work scaling up greedy algorithm.
+
+\subsubsection{Faster algorithms}
+
+How can we leverage parallelism? A natural idea is to parallelize the greedy selection. This requires communication after every element has been selected. 
+
+An idea is to partition the dataset, find the solution for each, and then merge the solutions together, and run greedy again.
+Each could pick $\fc km$. This doesn't work well.
+
+A simple modification: each selects a feasible solution of size $k$, merge to get a solution of size $km$, and then run the greedy algorithm on that set.
+Without more assumptions, this doesn't do well, giving $\rc{\min\{\sqrt k,m\}}$ approximation.
+
+Instead consider the best among the $m+1$ sets: the final greedy solution and one of the sets chosen in the first step. Then if the partition is random,  in expectation we get a $\rc 2\pa{1-\rc e}$ approximation.
+
+%Empirical perform
+%Vary aggregation
+There is also work on accelerating the sequential algorithm, filtering/streaming/multi-stage algorithms, and distributed algorithms.
+
+\subsubsection{Non-monotone maximization}
+
+Non-monotone maximization is generally inapproximable unless $F$ is nonnegative---it is NP-hard even to know  the sign of the optimal solution.
+
+For unconstrained maximization, %use the algorithms:
+%local search, 
+the double greedy algorithm gives the optimal $\rc2$ approximation.
+
+For constrained maximization: for cardinality constraints, use the randomized greedy algorithm.  %works when there are cardinality constraints. 
+
+%apps, np-hard...
+
+%(In summary unconstrained minimization is the only case that is tractable exactly.) 
+%unconstrained min tractable, constrained hard; max hard, distinguish mon, non-mon
+%comb and cont, greedy and cont
+
+\subsection{Advanced topics}
+
+\subsubsection{Semigradient methods}
+We want to optimize $F(S)$ with some constraints. In some cases, this is very hard for submodular $F$, but easy or well approximable for modular $F(S) = \sum_{a\in S} w_a$.
+
+Examples: solving modular optimization problems over trees, matchings, cuts, paths  is tractable. %These can be optimally solved, but 
+Replacing by submodular functions, the resulting problem is difficult.
+So we approximate the submodular function by a  modular function.
+
+Start with initial guess $S$, and repeat: approximate $F$ by modular function $F$, and optimize that.
+
+Similar to convex functions, submodular functions have subdifferentials (Fujishige). A subdifferential at $X$ satisfies
+$$
+m(S) \le F(S) \text{ for all }S\subeq V\text{ and }m(X)=F(X).
+$$
+They also have superdifferentials (Iyer, Jegelka, Bilmes).
+
+The semigradients (sub/superdifferentials) have a polyhedral structure.
+%subdifferential picture
+
+You can recover results for SFMax (submodular function maximization) if you choose the subgradients suitably. However, this generalization allows us to handle more complex constraints. Guarantees depend on the \vocab{curvature} $\ka$, which measures how far the function is from modular:
+$$\ka = 
+1-\min_{j\in V}\fc{F(V)-F(V\bs\{j\})}{F(\{j\})}.
+%smallest possible gain, set containing everything but element
+$$
+(Compare the smallest possible gain from adding $j$, with the value of $j$ alone.) Guarantees are on the order of $\rc{1-\ka}$.
+
+There are nice applications in computer vision: segmentation, informative path planning.
+
+%For distributions, we want t
+Can we do inference in the resulting distributions $P(S) = \rc{Z} \exp(\pm F(S))?$
+(For log-sub/supermodular distributions the signs are $+/-$, respectively.)
+%$+$ for logsub and $-$ for logsuper.
+The key challenge is to compute the normalizing constant $Z=\sum_S\exp(\pm F(S))$. This is $\#$P-hard. 
+
+The gradient perspective is useful here. The idea is variational inference. 
+Elements from the sub/superdifferentials bound $F$,
+$$
+x(A)\le F(A) \le y(A).
+$$
+Compute the partition function for the upper and lower bounds,
+$$
+\sum_{A\subeq V} \exp(x(A))\le \sum_{A\subeq V} \exp(F(A)) \le \sum_{A\subeq V}\exp(y(A))
+$$
+with the inequalities reversed if we replace $F$ by $-F$, $y$ by $-y$.
+The upper and lower bounds break into products. We can optimize over these upper and lower bounds by exploiting structure of the sub/superdifferentials.
+
+An application is semantic segmentation. Solving submodular optimization finds the mode, the MAP. We can also compute the marginal entropy for each pixel.
+
+\subsubsection{Interactive optimization}
+
+%optimal info gathering, active learning.
+We generalize subset selection problems to adaptive problems. Suppose we are a vet treating a puppie. Depending on the heart rate, we might take a ECG, where we might take a blood sample or take a fMRI, etc.
+
+The setting: Pick an element, observe something about that element, and then depending on that element, decide which next one to pick. Is there a notion of submodularity for sequential decision tasks?
+
+Given
+\begin{itemize}
+\item
+items $V=[n]$
+\item
+random variables $X_i$, $i\in V$ taking values in $O$.
+\item
+objective $f:2^V\times O^V\to \R$.
+\end{itemize}•
+We want a policy $\pi$ that maps observation $x_A$ to next item. The value is
+$$
+F(\pi) = \sum_{x_V} P(x_V) f(\pi(x_V), x_V).
+$$
+The policy could take exponential space to write, so we can restrict to e.g.  trees of size $k$. Are there sufficient conditions for greedy algorithm to work?
+Generalize the notion of marginal gain, the conditional expected benefit of adding item $s$,
+$$
+\De(s|x_A) = \E\ba{
+f(A\cup \{s\}, x_V) - f(A,x_V)|x_A
+}.
+$$
+What's the natural greedy algorithm? %Use the
+The adaptive greedy policy. %include it!
+
+\begin{df}
+The value function satisfies 
+\vocab{adaptive monotonicity} and \vocab{adaptive submodularity} if
+$$
+\De(s|x_A)\ge 0$$ and $$\De(s|x_A) \ge \De(s|x_B)\text{ for }x_A\preceq x_B,$$
+respectively.
+\end{df}
+Submodularity says it's always better to take an action earlier than later.
+%The adaptive greedy policy: start with $A=\phi$. For 
+%\begin{thm}
+%If $f$ is adaptive submodular
+%\end{thm}
+
+We also get $1-\rc e$ approximation.
+
+%Other sequential decision making problems 
+%learning submod fun. game theory
+%prob modeling, deep learning, sparsity, interactive ML.
+
+People also try to use submodular optimization to solve non-submodular problems, like applying convex methods to nonconvex problems.
+
+%projected gradient.
+%local opt. $1-\rc e$ a statement about landscape?
+%similar rate equation for continuous greedy algorithm. make statements about amount of gain.
+
+%analysis results depends on start at 0, else go on arbitrary nonconcave directions.
+
+%seq decision making. since set function, decision is same set but with different order?
+
+%online submod programming.

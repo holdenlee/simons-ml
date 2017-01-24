@@ -1,0 +1,585 @@
+\section{Optimization for Machine Learning, Elad Hazan}
+
+\url{http://www.cs.princeton.edu/~ehazan/tutorial/SimonsTutorial.htm}
+
+The paradigm is as follows: we have a machine we want to train on inputs, like images to classify. The distribution is over vectors in $\R^n$, and the output is a label $b=f_{\te}(a)$ where $\te$ are the parameters. 
+The behavior of the function is set by the parameters.
+
+We care about training the machine \emph{efficiently} and so that it \emph{generalizes}.
+
+We will cover
+\begin{enumerate}
+\item
+Learning as mathematical optimization
+\item
+Regularization
+\item
+Gradient descent++ (Frank-Wolfe, acceleration, variance reduction...)
+\end{enumerate}
+
+\subsection{Math optimization}
+
+The input is a function $f:K\to \R$ for $K\subeq \R^d$.
+The output is a minimizer $x\in K$ such that $f(x)\le f(y)$ for all $y\in K$.
+
+How can we access $f$? We assume we can access values and derivatives. We don't have to work in the oracle model; sometimes we know the function (e.g., a polynomial). Even in the non-oracle model, %for quadratic functions, 
+the problem can easily be NP-hard.
+
+Learning is the same as optimization over data (a.k.a. empirical risk minimization) of the function
+$$
+\amin_{x\in \R^d} \rc m \sumo im \ell_i(x,a_i,b_i) + R(x)
+$$
+where $m$ is the number of examples, $(a,b)$ are pairs of (feature, label), $d$ is the dimension, and $x$ is the parameter. Training means fitting the parameters of the model.
+
+For example, in linear classification, we try to find a hyperplane which separates points of one class %(red points) 
+from points of another class. %(blue points). 
+Given a sample $S=\{(a_1,b_1),\ldots, (a_m,b_m)\}$ where $b_i\in \{\pm 1\}$, find a hyperplane (WLOG through the origin) minimizing the number of mistakes:
+$$
+\amin_{\ve{x}\le 1} |\set{i}{\sgn(x^Ta_i)\ne b_i}|.
+$$
+We can put it in the form we had before
+$$
+\amin_{\ve{x}\le 1}\rc m \sumo im \ell(x,a,b),\quad 
+\ell(x,a_i,b_i) = \begin{cases}
+1,&x^Ta\ne b\\
+0,&x^Ta=b.
+\end{cases}
+$$
+This is an example of how to convert a learning problem to an optimization problem. This simple problem is already NP-hard.
+
+Why? 
+The sum of sign functions can be any piecewise constant function (with finitely many pieces), which can be complicated.
+
+Is there a local property that ensures global optimality? Yes, convexity. 
+\begin{df}
+A continuous function $f:\R^d\to \R$ is \vocab{convex} iff
+$$
+f\pa{\rc2 (x+y)} \le \rc 2 f(x) + \rc 2f(y),
+$$
+or equivalently (for differentiable functions),
+$$
+f(y) \ge f(x) + \nb f(x)^T(y-x).
+$$
+\end{df}
+Informally the function looks like a smiley.
+
+Similarly we can define convex sets.
+\begin{df}
+A closed set $K$ is \vocab{convex} iff $\rc2(x+y)\in K$ whenever $x,y\in K$.
+\end{df}
+
+%Consider the loss function $\ell(x,a_i,b_i) = \ell(x^Ta_i\cdot b_i)$. 
+
+To make the linear (or kernel) classification problem tractable, we consider  convex relaxations such as the following loss functions $\ell(x,a_i,b_i)$.
+\begin{enumerate}
+\item
+Ridge/linear regression $(x^Ta_i-b_i)^2$
+\item
+SVM (the most popular method a decade ago) $\max\{0,1-b_ix^Ta_i\}$.
+\item
+Logistic $\ln(1+e^{-b_i x^Ta_i})$.
+\end{enumerate}
+
+We have cast learning as mathematical optimization and argued convexity is algorithmically important. Next we cover algorithms.
+
+\subsubsection{Gradient descent}
+
+The most naive method is gradient descent. It is a local algorithm where we move in the direction of steepest descent. 
+\begin{alg}[Gradient descent]
+\begin{align}
+-[\nb f(x)]_i :&= -\pdd{x_i} f(x)\\
+y_{t+1} &\leftarrow x_t-\eta \nb f(x_t)\\
+x_{t+1} &=\amin_{x\in K}|y_{t+1}-x|.
+\end{align}
+\end{alg}
+Note the second step is necessary if we are optimizing over a subset $K$ of $\R^n$; we have to project back to the set.
+
+\begin{thm}
+For %some 
+step size $\eta=\fc{D}{G\sqrt T}$
+$$f\pa{\rc T\sum_t x_t}\le \min_{x^*\in K} f(x^*)+ \fc{DG}{\sqrt T}$$
+where $G$ is upper bound on norm of gradients and $D$ is the diameter of the constraint set:
+\begin{align}
+\forall t, \quad \ve{\nb f(x_t)}&\le G\\
+\forall x,y\in K, \quad \ve{x-y}&\le D.
+\end{align}•
+\end{thm}
+
+\begin{proof}
+We make 2 observations.
+\begin{align}
+|x^*-y_{t+1}|^2 &=|x^*-x_t|^2 - 2\eta \nb f(x_t) (x_t-x^*) + \eta^2|\nb f(x_t)|^2
+\label{eq:gd-obs1}
+\\
+|x^*-x_{t+1}|^2&\le |x^* -y_{t+1}|^2
+\label{eq:gd-obs2}
+\end{align}
+The second follows from the Pythagorean theorem because the angle made at $x_{t+1}$ is obtuse.
+
+Combining these results and telescoping.
+\begin{align}
+|x^*-x_{t+1}|^2 &\le |x^*-x_t|^2 - 2\eta \nb f(x_t) (x_t-x^*)  + G^2\\
+f\pa{\rc T \sum_t x_t} - f(x^*) &\le 
+\rc T\sum_t \ba{f\pa{\sum_t x_t} - f(x^*)}&\text{convexity}\\
+&\le \rc T \sum_t \nb f(x_t)(x_t-x^*)\\
+&\le \rc T\sum_t \rc{2\eta} (\ab{x^*-x_{t+1}}^2-\ab{x^*-x_t}^2)+\fc\eta 2 G^2\\
+&\le \rc{T2\eta} D^2 + \fc{\eta}2G^2 \le \fc{DG}{\sqrt T}
+\end{align}
+with our choice of $\eta$.
+\end{proof}
+Note we showed that the average of the points converges. Under more conditions we can show the last point converges. There are examples in the stochastic setting where the average but not the last point converges.
+
+Thus, to get $\ep$-approximate solution, apply GD $O\prc{\ep^2}$ times.
+
+\subsubsection{Online/stochastic gradient descent and ERM}
+
+This is not suited to what we are looking for. For ERM problems we want
+$$
+\amin_{x\in \R^d} \rc m \sumo im \ell_i(x,a_i,b_i) + R(x)
+$$
+The gradient depends on \emph{all} data, which is inefficient, and we haven't considered generalization.
+
+We consider simultaneous optimization and generalization. We have to recall that our data came from a distribution.
+We use the statistical (PAC) learning model. 
+\begin{itemize}
+\item
+Nature chooses iid from a distribution $D$ over $A\times B=\{(a,b)\}$. 
+\item
+The learner chooses a hypothesis $h\in H$.
+\item
+There is a loss function $\ell$, such as $\ell(h,(a,b))=(h(a)-b)^2$.
+\item
+The error is $err(h) = \E_{a,b\sim D}[\ell(h,(a,b))]$.
+\end{itemize}
+\begin{df}
+We say that the hypothesis class $H$ of functions $X\to Y$ if \vocab{learnable} if for all $\ep,\de>0$ there exists an algorithm such that after seeing $m$ examples, for $m=\poly(\de,\ep,\dim(H))$, it finds $h$ such that w.p. $1-\de$,
+$$
+err(h) \le \min_{h^*\in H}err(h^*)+\ep.
+$$\end{df}
+
+
+A more powerful setting is online learning in games.
+\begin{enumerate}
+\item
+Player picks $h_t\in H$.
+\item
+Adversary chooses $(a_t,b_t)\in A$.
+\item
+Loss function is $\ell$.
+\end{enumerate}
+There is no distribution. The aim is to minimize 
+$$
+\rc T \ba{\sum_t \ell(h_t,(a_t,b_t)) - \min_{h^*\in \cal H} \sum_t \ell(h^*, (a_t,b_t))}.
+$$
+We say that $H$ is \vocab{learnable} in this setting if this quantity (the regret) approaches 0 as $T\to \iy$.
+This is not a priori clear that it can be done. Note your algorithm is allowed to change, and you compare to a fixed $h^*$. Vanishing regret in this setting implies generalization in the PAC setting; it is strictly more general.%regret to gen error bound
+
+From this point onwards, we consider $f_t(x) = \ell(x,a_t,b_t)$, the loss for one example.
+
+Can we minimize regret efficiently?
+
+There is a natural analogue of gradient descent, online gradient descent. The only difference is that we take a step with respect to the gradient of the \emph{current} (possibly adversarially chosen!) function $f_t$.
+\begin{alg}[Online/stochastic gradient descent]
+\begin{align}
+y_{t+1} &=x_t - \eta\nb f_t(x_t)\\
+x_{t+1} &=\amin_{x\in K}|y_{t+1}-x|.
+\end{align}
+\end{alg}
+This may look strange at first glance: we take a step using $f_t$ even though we may never see this function again!
+
+(Notes: We assume we can always see the gradient. There are extensions that work even if you only see the loss, the bandit optimization problem.)
+.
+%examples change, not loss function.
+%loss is governed by example.
+\begin{thm}[Zinkevich]
+The regret of online gradient descent is
+$$
+\sum_tf_t(x_t) - \sum_t f_t(x^*) =O(\sqrt T).
+$$
+\end{thm}
+The proof is similar to the previous proof.
+The only difference is that the gradient function is different at each step.
+\begin{proof}
+We make the same 2 observations.
+\begin{align}
+|x^*-y_{t+1}|^2 &=|x^*-x_t|^2 - 2\eta \ub{\nb f_t(x_t)}{:=\nb_t} (x_t-x^*) + \eta^2|\nb f_t(x_t)|^2\\
+|x^*-x_{t+1}|^2&\le |x^* -y_{t+1}|^2
+\end{align}
+%The second follows from the Pythagorean theorem; the angle made at $x_{t+1}$ is obtuse.
+
+Combining these results and telescoping,
+\begin{align}
+|x^*-x_{t+1}|^2 &\le |x^*-x_t|^2 - 2\eta \blu{\nb_t} (x_t-x^*)  +\eta^2 \ve{\blu{\nb_t}}^2\\
+%f\pa{\rc T \sum_t x_t} - f(x^*) &\le 
+%\rc T
+%\sum_t \ba{
+f\pa{\sum_t x_t} - f(x^*)
+%}
+&\le %\rc T 
+\sum_t \blu{\nb_t} (x_t-x^*)\\
+&\le %\rc T
+\sum_t \rc{2\eta} (|x^*-x_{t+1}|^2-|x^*-x_t|^2)+\fc\eta 2 \sum_t \ve{\blu{\nb_t}}^2\\
+&\le \rc{\eta} \ab{x_1-x^*}^2 + \eta TG
+%\rc{T2\eta} D^2 + \fc{\eta}2G^2 
+\le DG\sqrt T%{DG}{\sqrt T}.
+%\rc{\eta} \ve{x_1-x^*}^2 + \eta TG
+\end{align}
+\end{proof}
+This is tight. For the lower bound, take $K=[-1,1]$, $f_1(x)=x$, $f_2(x)=-x$. The expected loss is 0, and the regret compared to either $-1,1$ is on the order of the variance.
+$$
+\E|\#1's - \#-1's|=\Om(\sqrt T).
+$$
+
+This gives rise to the most important problem in optimization for ML, stochastic gradient descent.
+The learning problem is 
+$$\amin_{x\in \R^d}F(x)$$ where 
+$$F(x) = \EE_{(a_i,b_i)}[\ell(x,a_i,b_i)].$$
+Use online gradient descent where at each step we take a random example $f_t(x) = \ell_i(x,a_i,b_i)$.
+
+We have proved that 
+$$
+\rc T\sum_t \nb_t^T x_t \le \min_{x^*\in K}\rc T \sum_t \nb_t^T x^* + \fc{DG}{\sqrt T}.
+$$
+Taking expectation we achieve the same bound as in gradient descent. If $m$ is the number of examples, we've moved from $O\pf{d}{\ep^2}$ rather than $O\pf{md}{\ep^2}$ steps for $\ep$ generalization error with slight degradation because we only get a result in expectation.
+$$
+\E\ba{
+F\pa{\rc T\sum_t x_t} - \min_{x^*\in K} F(x^*)
+} \le \E\pa{\rc T \sum_t \nb_t^T (x_t-x^*)}\le \fc{DG}{\sqrt T}.
+$$
+
+(This is easier than the perceptron algorithm which requires finding a misclassified point at each step.)
+
+%hard to diverge.
+\subsection{Regularization}
+%generic name for anything that's more complicated.
+
+What is regularization and why do it? 
+Statistical learning theory (Occam's razor) says that the number of examples needed to learn a hypothesis depends on the ``dimension'' which depending on the setting, could be
+\begin{itemize}
+\item
+VC dimension
+\item
+fat-shattering dimension
+\item
+Rademacher width
+\item
+margin/norm of linear/kernel classifier.
+\end{itemize}
+
+An expressing hypothesis class can overfit. 
+
+In PAC theory, regularization reduces complexity of the hypothessis.
+
+In the regret minimization framework, regularization helps stability.
+
+(Regularization also helps for the purpose of optimization---adding a convex function can distort the function to become convex. We don't consider this here. Note this may hurt generalization.)
+
+%interpret between expressibility and optimization.
+%necessary from learning theory pov
+%structural risk minimization. collection of classes, one bigger than other, optimize over union.
+
+We are trying to minimize regret (loss compared to best in hindsight). The most natural is to take
+$$
+x_t = \amin_{x\in K} \sumo i{t-1}f_i(x).
+%\sum_tf_t(x_t) - \sum_t f_t(x^*)
+$$
+This doesn't work: consider the $\pm x$ example, when the adversary always chooses the opposite.
+This is called fictitious play in economics.
+This fails because of instability, the loss function can vary wildly each step.
+
+This modification provably works (Kalai-Vempala 2005):
+$$x_t' = \amin_{x\in K}\sumo it f_i(x) = x_{t+1}.$$
+If $x_t\approx x_{t+1}$ we get a regret bound. However, the instability $|x_t-x_{t+1}|$ can be large.
+
+We alter this further: pick the best point in hindsight, but add a term to make it stable. 
+\begin{alg}[Follow The Regularized Leader]
+$$
+x_t = \amin_{x\in K} \sumo i{t-1}\nb_t^Tx + \rc \eta R(x)
+$$
+where 
+$R(x)$ is a strongly convex function.
+\end{alg}
+Adding $R$ ensures stability.
+\begin{thm}
+FTRL achieves regret
+$$
+\nb_t^T(x_t-x_{t+1}) = O(\eta).
+$$
+\end{thm}
+In economics this is called smooth fictitious play.
+There is a ``center of mass'' effect that pulls you towards a solution.
+
+What to choose for $R$? The most obvious is $R(x) = \rc 2\ve{x}^2$. For linear cost functions we recover gradient descent ($\pi_K$ is projection to $K$)
+$$
+x_t=\amin_{x\in K} \sumo i{t-1} \nb f_i(x)^T x + \rc \eta R(x) = \pi_K (-\eta\sumo i{t-1}\nb f_i(x_i)).
+$$
+There are many interesting algorithms you can recover by this paradigm, for example multiplicative weights. Take
+$f_t(x)=c_t^Tx$ where $c_t$ is vector of losses, $R(x) = \sum_i x_i\ln x_i$ the negative entropy. Then
+$$
+x_t=\exp(-\eta \sumo i{t-1}c_i)/Z_t
+$$
+where $Z_t$ is a normalization constant.
+
+%FTRL 
+%not strongly convex but define Bregman divergence prove regret bounds.
+
+
+\subsection{Gradient descent++}
+
+We cover AdaGrad, variance reduction, ande acceleration/momentum.
+\subsubsection{AdaGrad}
+
+What regularization should we choose? 
+If we have a generalized linear model, then OGD update is inefficient if we have sparse data because it treats all coordinates the same way. Sparse data is common. 
+Adaptive regularization copes with sparse data.
+
+Which regularization to pick? The idea of AdaGrad is to treat choosing the $R$ as a learning problem itself. Consider the family of regularizations
+$$
+R(x) = \ve{x}_A^2, \quad A\succeq 0, \quad \Tr(A)=d.
+$$
+This is finding the best regret in hindsight for a matrix optimization problem.
+
+\begin{alg}[AdaGrad]
+\begin{align}
+G_t&=\diag\pa{\sumo it \nb f_i(x)\nb f_i(x_i)^T}\\
+y_{t+1} &= x_t - \eta G_t^{-\rc 2} \nb f_t(x_t)\\
+x_{t+1} &= \amin_{x\in K} (y_{t+1}-x)^T G_t(y_{t+1}-x).
+\end{align}•
+\end{alg}
+\begin{thm}
+AdaGrad gives regret bound
+$$
+O\pa{\sum_i \sqrt{\sum_t \nb_{t,i}^2}}.
+$$
+\end{thm}
+This regret bound can be $\sqrt d$ better than SGD.
+The $\rc{\sqrt T}$ in SGD was tight, but the constants can be improved by AdaGrad.
+
+
+\subsubsection{Variance reduction}
+
+Variance reduction uses special ERM structure and is very effective for smooth and convex functions.
+
+Acceleration/momentum works for smooth convex functions only; it is used in general purpose optimization since the 80's.
+
+\begin{df}
+If $0\prec \al I \preceq \nb^2 f(x) \preceq \be I$, then
+the condition number if $\ga = \fc{\be}{\al}$.
+We say that $f$ is $\al$-strongly convex if the first inequality holds, $\be$-smooth if the second inequality holds.
+\end{df}
+A convex function always satisfies this with some $\al\ge 0$.
+We can also talk about smoothness for non-convex functions:
+$$
+-\be I \preceq \nb^2 f(x) \preceq \be I.
+$$
+
+Why do we care?
+Well-conditioned functions exhibit faster optimization; they can be optimized in polynomial time. Gradient descent is not polytime per se. Polytime means a bound logarithmical in approximation.
+
+Smoothness is important in second-order methods
+
+The loss function in ridge and logistic regression are strongly convex and smooth.
+
+For smooth functions, a gradient step causes decrease in function value proportional to the value of the gradient. Taking $\eta=\rc{2\be}$,
+\begin{align}
+f(x_{t+1})-f(x_t)
+&\le 
+-\nb_t (x_{t+1}-x_t) + %\fc
+{\be }%2
+|x_t-x_{t+1}|^2\\
+&=-(\eta +\be \eta^2) |\nb_t|^2 = -\rc{4\be} |\nb_t|^2.
+\end{align}
+\begin{lem}[Gradient descent lemma]
+For $\be$-smooth functions, $f(x_{t+1})-f(x_t)\le -\rc{4\be}|\nb_t|$.
+\end{lem}
+%smooth: big constant step sizes
+For $M$-bounded functions, what happens when we take many steps?
+$$
+-2M \le f(x_T)-f(x_1)\le \sum_t [f(x_{t+1})-f(x_t)]\le -\rc{4\be} \sum_i |\nb_i|^2.
+$$
+%\begin{thm}
+%For gradient descent for $\be$-smooth convex functions, 
+There exists $t$ for which 
+$$
+|\nb_t|^2 \le \fc{8M\be}{T}.
+$$
+
+\begin{enumerate}
+\item
+Note we didn't use convexity. This is pretty much the only thing we can say for nonconvex functions.
+\item
+Note for convex functions, we get a quadratic improvement: for $T=\Om\prc{\ep}$ we get $|\nb_t|^2\le \ep$. 
+\end{enumerate}•
+
+For nonconvex optimization, we can't hope for global optimality, but we can hope for local optimality (gradient vanishes).
+
+This is nice but not practical for ML. We're taking full gradient steps; we need to go over the entire data set.
+
+Let's look at the stochastic version. Take a step in direction $\wt \nb_t$ where $\E \wt\nb_t=\nb_t$.
+\begin{align}
+\E[f(x_{t+1})-f(x_t)] 
+&\le \E[-\nb_t(x_{t+1}-x_t) + \be |x_t-x_{t+1}|^2]\\
+&\le \E[-\wt\nb_t\cdot \eta\nb_t + \be |\wt \nb_t|^2]\\
+&=- \eta\nb_t^2 + \eta^2 \be \E|\wt\nb_t|^2\\
+&=-\eta\nb_t^2 + \eta^2\be (\nb_t^2 + \Var(\wt\nb_t)).
+\end{align}
+\begin{thm}
+For gradient descent for $\be$-smooth, $M$-bounded functions, for $T=O\pf{M\be}{\ep^2}$,  there exists $t\le T$, $|\nb_t|^2 \le \ep$.
+\end{thm}
+
+In practice, we take minibatches: take 10 or 100 examples instead of 1. This decreases variance, and is amenable to computer architecture.
+%Averaging 100 examples, variance goes down by 100. 
+%Use minibatches because of architecture.
+
+In theory, tune step size according to these parameters. 
+In practice, take a logarithmic scale, and test those step sizes.
+
+%In a way This is a more intuitive proof than the one without the smoothness assumption, but requires
+%\subsubsection{Variance reduction}
+Consider a hybrid model: sometimes compute the full gradient and % every once in a while
+sometimes take only the gradient of 1 example. This interpolates between GD and SGD.
+
+Estimator combines both to create a random variable with lower variance. 
+\begin{alg}[SVRG]
+%Variance reduction]
+$$
+x_{t+1} = x_t - \eta [\wt\nb f(x_t) - \wt\nb f(x_0)+\nb f(x_0)].
+$$
+\end{alg}
+Every so often, compute the full gradient and restart at new $x_0$.
+\begin{thm}[Schmidt, LeRoux, Bach 12; Johnson, Zhang 13, Mahdavi, Zhang, Jin 13]
+Variance reduction for $\ga$-well-conditioned functions produces an $\ep$-approximate solution in 
+$$
+O\pa{(m+\ga)d\ln \prc{\ep}}
+$$
+\end{thm}
+$\ga$ should be interpreted in $\rc{\ep}$ beacuse a naturally occuring function is not strongly convex (ex. hinge loss), but we can artificially add one with $\ga$ behaving like $\rc{\ep}$---this reduces the problem of optimizing a general convex function to optimizing a well-conditioned function.
+%well-conditioned function scenario to a 
+
+There is a decoupling of $m$ and $\rc{\ep}$ as compared to SGD. 
+
+%m and number of steps. each step see new example.
+
+\subsubsection{Acceleration/momentum}
+This is a breakthrough by Nesterov, 1983. 
+For certain optimization problems this gives the optimal number of steps. In practice it helps but not by much. Combining everything gives in theory the best known running time for first order methods,
+$$
+O\pa{(m+\sqrt{\ga m}) d\ln \prc{\ep}}.
+$$
+This is tight (Woodworth, Srebro, 2015).
+
+SVRG is in practice very effective for convex optimization.
+%every 2 years, easy explanation of momentum.
+%centralize path. 
+
+Now we move from first-order to second order methods.
+
+%recht: async grad descent.
+
+
+\subsubsection{Second-order methods}
+Gradient descient moves in direction of steepest descent.
+It doesn't take into account the curvature of the function. One way to correct is to use local curvature; normalize the gradient according to the local norm. 
+
+Take a second-order approximation and optimize that. Think of GD as taking first-order Taylor approximation.
+\begin{alg}[Newton method]
+$$
+x_{t+1} = x_t - \eta[\nb^2f(x)]^{-1}\nb f(x).
+$$
+\end{alg}
+This is solving linear equations corresponding to the Taylor approximation of the function.
+
+For non-convex function this can move to $\iy$. The solution is to solve a quadratic approximation in a local area (the trust region).
+
+This is not used in practice because inversion takes $d^3$ time per iteration, but recently there have been advances.
+
+To try to speed up the Newton direction computation:
+\begin{itemize}
+\item
+Spielman-Teng 2004: solve diagonally dominant systems of equations in linear time.
+\item
+Approximate by low-rank matrices and invert by Sherman-Morrison, etc. This is still $d^2$ time.
+\item
+Stochastic Newton (Linear-time second-order stochastic algorithm, LiSSA): Let $\wt n= [\nb^2f(x)]^{-1}\nb f(x)$ be the Newton direction.
+
+Use the structure of the ML problem. For simplicity, suppose the loss is rank-1.
+$$
+\amin_x \EE_{i}[\ell(x^Ta_i,b_i) + \rc 2|x|^2].
+$$
+This is an unbiased estimator of the Hessian,
+$$
+\wt{\nb^2} = a_ia_i^T \cdot \ell'(x^Ta_i,b_i) + l,\quad i\sim U[1,\ldots, m].
+$$
+Clearly $E[\wt{\nb^2}] = \nb^2f$, but $\E[\wt{\nb^2}^{-1}]\ne (\nb^2 f)^{-1}$. It's not clear how to get an unbiased estimator of the Newton direction!
+
+We circumvent the Hessian estimation. 3 steps:
+\begin{enumerate}
+\item
+Represent Hessian inverse as infinite series $\nb^{-2} = \sumz i{\iy} (l-\nb^2)^i$.
+\item
+Sample from the infinite series (Hessian-gradient product), once:
+$$
+[\nb^2f]^{-1}\nb  f = \E_{i\sim \N} (1-\nb^2f)^i \nb f\rc{\Pj(i)}
+$$
+(The distribution depends on the condition number, ex. take the uniform distribution up to the condition number.)
+\item
+Estimate the Hessian power by taking examples,
+$$
+\EE_{i\in \N, k\sim [i]} \ba{\prodo ki (1-\nb^2 f_k) \nb f\rc{\Pj(i)}}.
+$$
+This only uses vector-vector products.
+%const time const many examples
+\end{enumerate}
+We get unbiased estimate in linear time.
+\begin{alg}[LiSSA]
+Use estimator $\wt{\nb^{-2}f}\nb f$ as above, where we compute full (or large batch) gradient $\nb f$. Move in the direction $\wt{\nb^{-2}f}\nb f$. 
+\end{alg}
+
+%distribution on $\N$ independent of rv.
+
+\begin{thm}[Agarwal, Bullins, Hazan 15]
+The running time is
+$$
+O\pa{dm \ln \prc{\ep} + \sqrt{\ga d} d \ln \prc{\ep}}.
+$$
+\end{thm}
+This is faster than first-order methods %var red
+and seems to be tight (Arjevani, Shamir 16).
+%var red with Hessia
+
+Can you do variance reduction with the Hessian estimator? This is an open question people are working on.
+
+LiSSA works better BFGS methods. %L-BFGS is heuristic.
+\end{itemize}
+For ML we cannot tolerate anything with running time superlinear.
+
+\subsubsection{Optimization with constraints}
+
+We talk about constrained optimization. One example is matrix completion. The $(i,j)$ entry in the table is the rating of user $i$ for movie $j$; we want to complete missing entries. Assume the true matrix is low-rank. The convex relaxation is bounded trace.
+
+The trace norm is sum of singular values. The projection step is difficult, cubic time. %Nuclear norm still requires
+%For matroids,
+Optimizing a linear function over this set is easy though. %why
+%Linear projection Eigenvalue in linear time using power method. 
+
+Thus we do not want to project. To solve $\min_{x\in K} f(x)$, $f$ smooth, convex, assuming linear optimization over $K$ is easy, use
+\begin{alg}[Franke-Wolfe]
+\begin{align}
+v_t&=\amin_{x\in K} \nb f(x_t)^T x\\
+x_{t+1} &=x_t + \eta_t (v_t-x_t).
+\end{align}
+\end{alg}
+This is same spirit as GD but different.
+This has been used a lot in stochastic optimization.
+
+
+
+%\subsection{State of the art}
+%iterative, lower 
+
+%For non-convex optimization,
+%\begin{itemize}
+%\item
+%Global optimization is NP-hard even for degree 4 polys. Even local minimization up to 4th order optimality is NP-hard.
+%\end{itemize}
+
