@@ -1,0 +1,307 @@
+\section{Interactive Learning of Classifiers and Other Structures}
+
+\subsection{What is interactive learning?}
+
+Labeled data is expensive. Interactive learning hopes to reduce the amount of labeling necessary. Some examples:
+\begin{enumerate}
+\item
+Active learning: machine queries a few labels adaptively.
+\item
+Explanation-based learning. In addition to lables the human gives an explanation in the form of relevant features.
+
+Ex. highlight words that are predictive of the label in document classification.
+
+ex. click on a part of the picture that explains the difference between the prediction and the actual label.
+
+what is the benefit these interactions give in addition to the labels?
+there's inherent ambiguity in the feedback
+\item
+Interactions for unsupervised learning.
+
+For high dimensional datasets there are so many ways you can cluster it. There's no way an unsupervised algorithm knows which clustering you want.
+
+Show a random snapshot of the clustering of a few points; a human gives feedback, ex. which 2 points should be together that aren't.
+
+Machine has a clustering $C$ of data $X$ and wants feedback. Show human the restriction of $C$ to $O(1)$ points from $X$.
+\item
+Teaching: a human chooses maximally informative examples. 
+
+In the other settings, a machine has to choose the informative examples.
+\end{enumerate}•
+
+
+Questions: 
+\begin{enumerate}
+\item
+Efficient interaction algorithms: how much interaction is needed to learn?
+\item
+Interaction versus computational complexity: situations where interaction circumvents computational hardness.
+\item
+Modes of interaction: what kinds of interactions are easy and pleasant for human and provide reliable feedback?> Does it help to have a don't know option?
+\item
+Communication gap between human and machine: How to bridge this?
+\end{enumerate}•
+
+
+\subsection{Query learning of classifiers}
+
+Typical heuristics for active learning:
+\begin{itemize}
+\item
+Start with a pool of unlabeled data.
+\item
+Pick a few points at random and get their labels.
+\item
+Repeat: fix a classifier to the labels so far. Query the unlabelled point that is closest to the boundary, or most uncertain, or most likely to decrease overall uncertainty.
+\end{itemize}•
+This seems sensible, how to analyze?
+The statistical learning model: there is an unknown, underlying distribution $\Pj$ on the (data, label) space, a hypothesis class $H$ of candidate classifiers, and the target is $h^*$ making fewest errors. Choose $h_n$ after seeing $n$ examples. We'd like $h_n\to h^*$ as rapidly as possible.
+
+%Pick a few random 
+You get a distribution which looks less and less like the underlying distribution though: there is underlying bias going on.
+
+Consider the data lying on a line. We're looking for a threshold classifier. 
+%agnostic
+
+%R45, G5, RG5, G45.
+Even with infinitely many labels you could converge to the wrong thing, a classifier with greater error than the best achievable, which is not consistent.
+
+The main problem is biased sampling: how can you ensure consistence? We have to be careful of misplaced confidence. We have to be aware of confidence, do some exploration. 
+
+Is there a generic fix to uncertainty-based heuristics?
+
+What kind of benefits do we expect to get over random sampling?
+
+Suppose the ground truth classifier is a threshold functions on the real line. 
+In supervised learning, for error $\le \ep$, we need $\approx \rc \ep$ labeled points.
+In unsupervised learning, binary search just needs $\lg\prc{\ep}$ labels, giving an exponential improvement in label complexity. What about other hypothesis classes?
+
+For supervised learning of a hypothesis class of VC dimension $d$, we need about $\fc{d}{\ep}$ labeled points. Then there are $\le \pf{d}{\ep}^d$ ways to classify these using $H$ (Sauer's lemma). If we ask queries that cut this space in half each time, then just $d\ln \pf{d}{\ep}$ are needed. This is the dream situation. 
+%grows log with size of class
+%
+\footnote{In teaching, you just need 2 examples: choose examples that are just to the left and right of the threshold.}
+
+%Problems:
+%\begin{enumerate}
+%\item
+But halving queries might not exist: there are examples where each query could be highly biased. We can pick whatever comes closest (greedy approach). Many variants have been investigated. Query by committee: do something similar with Bayesian prior.
+%\end{enumerate}•
+
+Three types of active learning:
+\begin{enumerate}
+\item
+Mellow active learning
+\item
+Margin-based active learning
+\item
+
+\end{enumerate}•
+\subsubsection{Mellow active learning}
+Cohn, Atlas, Ladner 90's.
+
+Separable data streams in. 
+\begin{alg}[Mellow active learner]
+Let $H_1$ be the hypothesis class.
+Repeat for $t=1,2,\ldots$, 
+\begin{itemize}
+\item
+receive unlabeled $x_t\in X$
+\item
+If there is \emph{any} disagreement within $H$ about $x_t$'s lable query label $y_t$ and set $H_{t+1}=\set{h\in H_t}{h(x_t)=y_t}$.
+Else $H_{t+1}=H_t$.
+\end{itemize}
+\end{alg}
+Only ask for labels for points in region of disagreement.
+This is the most conservative learner.
+
+
+There is no need to explicitly maintain $H$.
+
+This ends up with a label for everything: either the machine asked for the label, or was 100$\%$ sure and labeled it itself. There is no sampling bias.
+
+The label complexity can be upper-bounded in terms of the VC dimension $d$ of $H$ and the disagreement coefficient $\te$ which depends on $H$ and on the distribution $\Pj$. 
+To achieve misclassification error $\ep$ with constant probability, suffices to have number of labels
+$$
+O\pa{\te d\ln \pf{d}{\ep}}.
+$$
+
+The intuition: Let $\Pj$ be the underlying distribution on the input space $X$. 
+
+After $t$ points are seen, $H_t$ consists of classifiers with error at most $\approx \De_t:=\fc dt$. Let $DIS(H_t)\subeq  X$ be the part of the input space on which there is disagreement within $H_t$ Any point outside $DIS(H_t)$ is not queried.
+
+The disagreement coefficient $\te$ satisfies $\Pj(DIS(H_t))\le \te \De_t$.
+
+%dependence on \ep? Rechoosing ep?
+The expected number of queries is
+$$
+\sumo tT \Pj (DIS(H_t))\le \te\sumo tT = \te \sumo tT\fc dt\le \De_t \approx \te d \ln T.
+$$
+Defining the disagreement coefficient requires us to get into the geometry of the hypothesis class.
+The induced pseudo-metric on hypotheses is 
+$$
+d(h,h') = \Pj[h(X)\ne h'(X)].
+$$
+The ball is $B(h,r)=\set{h'\in H}{d(h,h')<\ep}$.
+%For example, for $X=\R$, $H$ the set of thresholds, $B(h^*,r)$ consiste of 
+
+%points at which disagreement.
+
+%We only need to consider $V
+The disagreement region of anyu set of candidate hyp $V\subeq H$ is $DIS(V) = \set{x\in X}{\exists h,h'\in V \text{ s.t. }h(x)\ne h'(x)}$. Need only consider $V=B(h^*,r)$, $h^*$ target hypothesis,
+$$
+\te = \sup_r\fc{\Pj[DIS(B(h^*,r))]}{r}.
+$$
+For thresholds for $\R$, $\te =2$.
+
+For linear separators, $\te\le \sqrt d$.
+%look impressive, but in practice not impressive enough.
+\subsubsection{Margin-based active learning}
+
+(Balcan-Long)
+
+Consider algorithms based on actual heuristics, like  querying points lying close to the boundary. Query points that are within an $\ep$ margin of the boundary, and reduce $\ep$ over time.
+
+\begin{alg}[Margin-based active learning]
+For example, say all $\ve{x}=1$, $t=1,2,\ldots$, let $w_t$ be the classifier based on data so far. Randomly choose points with $|x\cdot w_t|\le m_t$, and query their labels. $\{m_t\}$ is a schedule of margins that decreases to 0.
+\end{alg}
+%need just d, 1/2 to 1/4, dish
+
+Later on, you need more examples because most of the examples are useless. Never get to the point where you need $\fc d{\ep}$ examples to halve the error. Cut out the regions you're sure about. Operate in the region where the error rate is constant.
+
+
+
+\subsubsection{Active annotation}
+
+The schemes we covered before are fine-tuned to the classifier. %data not looking linear to me. quadratic 
+If you decide to change the classifier, you have to get a different set of examples each time.
+
+Input:
+\begin{itemize}
+\item
+finite set of data points $\{x_1,\ldots, x_n\}$ each of which has an associated label $y_i$ that is initially missing.
+\item
+parameters $0<\de,\ep<1$.
+\item
+access to oracle that can supply any label $y_i$.
+\end{itemize}
+
+Output $\wh y_i$ such that w.p. $\ge1-\de$,
+at most $\ep$ fraction of these labels are incorrect
+$$\sum_i \one(y_i\ne \wh y_i)\le \ep n.
+$$
+The goal is to minimize calls to the oracle.
+
+%nonparam, no assumptions
+
+For example, the input is a neighborhood graph $G$ whose nodes are the data points $x$. Each node has an unknown label. The goal is to find the cut-edges in this graph that separate two labels.
+
+%scheme scales with that number. 
+%binary search along path. log # queries.
+%number of cut edges times log diam
+
+\begin{alg}[$S^2$ algorithm, Dasarthy-Nowak-Zhu]
+Keep going until budget runs out.
+\begin{itemize}
+\item
+If there exist labeled nodes of opposite polarity that are connected in $G$, find the shortest path connecting nodes of opposite labels, and query its midpoint. Else Choose a random point and query.
+\item
+Remove any newly -revealed cut edges from the graph $G$.
+%Query its midpoint.
+\end{itemize}
+%battleship
+\end{alg}
+%suppose 1/100 +'s. Allowed to screw up $\ep$.
+%random search that can't be overcome.
+
+%raw unlabeled -> human label -> ML -> adaptive alg -> human labeling. ML -> predictive model
+
+Reduce amount of effort required by human to train a machine. Also applies to minimize experimental budget.
+
+Often adaptive sampling leads to complicating complexity, including scalability, computation, fragility to modeling assumptions. %computational burden of active learning, implementation challenges, fragility to noise, mis-modeling (Theory can be over-conservative.) Overly consrvative adaptation limits benefits over passive learning.
+This is why we haven't seen active learning used so much in practice.
+
+Does interactivity always help? Not always, but it has promise in many applications. 
+
+Solution: identify specific ML models and apps that have demonstrated real-world successes. We go back to multi-armed bandits.
+
+We focus on theoretical foundations of basic and linear bandit algorithms with human-machine interaction applications.
+
+Why? The analysis and bounds are very tight (even in terms of constant factors), so we have theoretically-sound algorithms that are as aggressive as possible.
+
+In the stochastic bandit problem, there are $n$ arms, the reward distributions $p_i$ are unknown. Each step select arm $i_t\in [n]$ and draw $x_{i_t,t}\sim p_{i_t}$ independently from past.
+
+Examples: arms are ads, action is display an add, reward is clicks.
+%13000 fruit fly
+%strain of cell is arm 
+%virus replif
+%infect, wait.
+Help scientists adapt select exper to det which genes involved in disease. Arms are genes/proteins. %, infext
+
+Let $\mu_1>\cdots \ge \mu_n$ be the expected rewards of each arm, $\De_i = \mu_1-\mu_i$ the ``gaps'', $x_{it}\sim p_i$ indepedent random reward from arm $i$ at tie $t$.
+$$
+\wh \mu_{i,t} = \rc{t_i}\sumo j{t_i}x_{ij}
+$$
+Assume bounded, subgaussian rewards. Then for all $i$ and all $t$, we get a confidence bound on $\mu_i$.
+%$$
+%\mu_i \le \wh \mu_i
+%$$
+
+The regret is 
+$$
+R_T = T\max_i\mu_i - \E\sumo tT x_{i_t, t} = \sumo in \De_i \E T_i.
+$$
+%max number of clocks, total virus repliaction.d\
+Sample arms to minimize $\Pj(\mu_{\wh i} \ne \max_i\mu_i)$. %identify arm that maximizes expected cclicks or virus replicatoi
+
+%sample arm with largest upper confidence bound. This tends to equalize the 
+%manages E and E together.
+
+Eventually stop sampling suboptimal arms as long as there is some gap between the top and second best action.
+
+Regret is $R_T = O(\sum_{i\ge 2} \fc{\ln T}{\De_i})$. Select top few. %
+
+%are in $T=O(
+For any $i$ and all $t$ w.p. $\ge 1-\de$,
+$$ \wh \mu_{i,t} - 2\sqrt{\fc{\ln \ln \pf{t}{\de}}t}\le \mu_i \le \wh \mu_{i,t} + 2\sqrt{\fc{\ln \ln \pf{t}{\de}}t}.$$
+%eventually we stop sampling suboptimal arms.
+%UFCS samples
+%sharper than Hoeffding in dependence on $t$.
+%try to control confidence interval for top arm, random stopping time based on number of times...
+%largest arms accidentally looks lower and you stayed there forever.
+
+%successive elimination
+
+This is an adaptive algorithm. How does it compare to the best non-adaptive algorithm?
+
+We have to sample every arm as many times as the second arm, $\sum_i T_i = \wt O(n\De_2^{-2})$. We could be a factor of $n$ off.
+
+Every week $n\approx 5000$ captions are submitted to the New Yorker. Crowdsource contest to volunteers who rate captions. The goal is to identify funniest caption. 
+
+Over time, focus on the better captions. Little gap between theory and practice. There is a 5x improvement in sample size.
+
+%linear, combo, Lipschitz, contextual.
+%Structured bandits: the mapping from 
+There is a feature vector associated with each arm $x_i\in \R^d$. The reward model is $y_i = \an{x_i, \te^*}+\ep_t$. %The optimal arm is $x^*=\amax_{\te\in C_t} \an{x_i, \te}.$
+Try to construct a confidence set so $\te^*$ is always in that confidence set. Form the least-squares/ridge regression estimate of $\te$.
+$$
+\wh \te_t \approx \te^* + (x_t^TX_t+\la I)^{-1} X_t^T\ep_t
+$$
+Using martingale techniques get a confidence ellipsoid.
+
+To select the arm to sample
+$$
+x_{i_t} = \amax_{x_{1:n}} \an{x_i,\wh \te_t} + \sqrt{\be_t}\sqrt{x_t^TVx_t}...
+$$
+The first term is the exploit term; the second is the explore term.
+
+Interactive image search problem: User gives feedback on images from the  Zappos50K datset (shoes). From deep learning, shoes are represented by $\R^{1000}$ feature vectors.  Linear bandits retrieve 2-3 times as many relevant items.
+
+Now we talk about systems and apps. It's difficult to even do an experiment!
+There are many practical challenges. 
+Researchers are not easily able to test, theoreticians may be unaware of real-world challenges with interesting math solutions; practitioners are not able to apply interactive learning methods.
+
+Two groups working on this are Microsoft's Multiworld Testing Decision Service, and NEXT at UW-Madison.
+
+%Alex Agarwal
+
+%KL bounds. minimal assumptions on noise.

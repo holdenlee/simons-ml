@@ -1,0 +1,317 @@
+\section{Deep learning for robotics, Sergey Levine}
+
+%assistant professor at Berkeley. 
+%robotics
+In my work, I design an algorithm and take it from the  foundations to a real-life application. Robots include arms, mobile robots, drones...
+
+Deep learning allowed end-to-end learning for computer vision.
+
+5--10 years ago, the image pipeline was the following.
+\begin{itemize}
+\item
+Extract features, e.g. HOG
+\item
+Extract mid-level features (DPM)
+\item
+Apply a classifier, e.g. SVM.
+\end{itemize}
+Deep learning still does these things, but feature selection is automated. The kind of features we learn are somewhat generic and particular suited to the classification task.
+
+How do we use this output to make a decision about what to do next? Note the decisions will affect what it sees next, so there is a loop (RL). 
+There are two parts to robotics, perception and action. We can close this loop, the sensorimotor loop: train the entire model together.
+
+
+Richard Dawkins ``When a man throws a ball high in the air and catches it again. he behaves as if he had solved a set of differential equations in predicting the trajectory of the ball... at some subconscious level, something functionally equivalent to the mathematical calculations is going on.''
+
+McLeod and Dienes: But if we couple perception and control, we can shortcut the pipeline and do better.
+
+(Ex. for pilots: Look for a spot of dust, and see if it's stationary with respect to the other airplane; if it is you are on a collision course.)
+
+%CV professor. doing blind
+A person opens a door better than a robot now with less sensory information.
+
+Standard robotic control involves observations, state estimation (vision), modeling and prediction, motion planning, low-level controller (PD), motor torques... We want to do this end-to-end.
+
+Inputs from sensors are input into learned model, and it directly outputs the actuator commands. In reality there are many challenges that makes it more difficult than the $n+1$th application of deep learning. Often the supervision is indirect (though for self-driving cars you can have more direct supervision), and actions have consequences! Data is not iid, and actions will affect what you observe.
+
+Why should we care? It allows us to make robots that do useful things in the real world, and understand intelligence. We can build other interactive systems like interactive personal assistants, smart power systems...
+
+\subsection{Formalisms}
+
+Let $o$ be the observation and output be $u$. We want to learn the policy $\pi_\te(u_t|o_t)$.
+
+Let $x$ be the state. In the probabilistic graphical model, the state obeys the Markov property. The observation in general does not.
+%The state is the actual 
+
+\subsection{Imitation learning}
+
+Consider $o$ is the view from a camera on the windshield and $u$ is the steering command.
+The simplest thing is to get a human to drive around to collect data, train with supervised learning to get $\pi_\te(u_t|o_t)$.
+
+Does this work? No. The intuitive explanation: 
+%state$\times$ time.
+Because of error, the expected trajectory will be different from the training trajectory, and once it is off the trajectory it can make bigger mistakes. Mistakes can accumulate quadratically.
+
+Why did that self-driving car work? There are 3 cameras, not 1. Their network only processes 1 image at a time. There is a camera facing foward, labeled with steering command, and cameras facing left/right labeled with the steering command with small offset to right/left. This ensures stability: the algorithm can now cope with deviations.
+
+Take the optimal controller, ask the controller to compensate for small perturbations to the states, and use those to augment the dataset. This tends to work better.
+
+Can we make this work more often? Analyze this from a probabilistic standpoint. Why does the training diverge from the expected trajectory? Consider $p_{data}(o_t)$. $\pi_\te(u_t|o_t)$ sees data from $p_{\pi_\te}(o_t)$. The test distribution is different from the training distribution. 
+
+Instead of being clever about $p_{\pi_\te}(o_t)$ be clever about $p_{data}(o_t)$.
+
+Use DAgger: dataset aggregation. 
+
+Collect training data from $p_{\pi_\te}(o_t)$ instead of $p_{data}(o_t)$, by running $\pi_\te(u_t|o_t)$.
+
+\begin{enumerate}
+\item
+Train $\pi_\te(u_t|o_t)$.
+\item
+Run $\pi_\te(u_t|o_t)$ to get dataset $D_\pi = \{o_1,\ldots, o_M\}$.
+\item
+Ask human to label $D_\pi$ with actions $u_t$.
+\item
+Aggregate $D\leftarrow D\cup D_\pi$.
+\end{enumerate}
+This will converge.
+
+%DNN.
+
+What are the problems?
+
+We have ask a human for the labels. Can we get a computer to supply those labels.
+
+Summary: Imitation learning is often insufficient by itself because of distribution mismatch. It sometimes works well with hacks (ex. left/right views from car).
+
+%NVidia result
+
+Distribution mismatch does not seem to be the whole story. Imitation often works without Dagger. Can we think about how stability factors in?
+
+%If the expert generating the data ... stability
+%human expert is stable
+%imitation working. Additional assumptions about the expert, such as they're following a human expert.
+%if you don't have anything in policy class matching, you can have arbitrarily large error.
+%get more samples.
+%baby humans, imitations. no labels for unforseen situations.
+
+
+Imitation is more than copying an action someone took. It can be more high-level---copying someone's intentions. When you infer intention and attempt to find a behavior that satisfies it, you are combining your observation of someone else and your own experience. Then you don't have to rely on the demonstration giving you all the data. This is a crucial ingredient of true imitation learning!
+
+\subsection{Imitation without a human}
+
+%If we see a tiger, we want $\min_{u_{1:T}}
+We want $\min_{u_{1:T}} \sumo tT c(x_t,u_t) $
+such that $x_t=f(x_{t-1},u_{t-1})$. 
+
+A classical method is to use trajectory optimization. Keep substituting to get a single optimization problem, or use sequential quadratic programming, etc. You can differentiate through via backpropagation and optimize.
+In practice it helps to use a 2nd order method because $f$ is applied many times. 
+
+We can write a probabilistic version, $x_{t+1} = f(x_t,u_t)$, $x_{t+1}\sim p(x_{t+1}|x_t,u_t)$ 
+such as $N(f(x_t,u_t),\Si)$. We can build a simple stochastic policy such as $p(u_t|x_t) = N(K_tx_t+k_t,\Si_{u_t})$. There is an $\E$ in the optimization problem now.
+
+Can we use something like this in the context of an algorithm like DAgger? 
+
+Another problem with DAgger: you also need to run $\pi_\te$. If you have a bad policy, results can be bad (car driving unsafely). 
+
+PLATO (policy learning with adaptive trajectory optimization):
+
+\begin{enumerate}
+\item
+Train $\pi_\te(u_t|o_t)$ from human data.
+\item
+Run $\blu{\wh \pi(u_t|o_t)}$ to get dataset $D_\pi = \{o_1,\ldots, o_M\}$.
+\item
+Ask human to label $D_\pi$ with actions $u_t$.
+\item
+Aggregate $D\leftarrow D\cup D_\pi$.
+\end{enumerate}
+
+Here 
+$$
+\wh\pi(u_t|x_t) = \amin_{\wh \pi} \sum_{t'=t}^T \EE_{\wh \pi} [c(x_{t'}, u_{t'})] +\la D_{KL} (\wh \pi(u_t|x_t)||\pi_\te(u_t|o_t)).
+$$
+%expec under pihat... exp of cost... add to cost... augment cost function: actions which have high log probability under $\pi_\te$.
+Replan at each step. Replanning is model predictive control (MPC). $\pi_\te$ is control from images, while $\wh\pi$ is control from state. We need some way to obtain the state at training time to solve this optimal control problem with respect to states. (This is a strong assumption.) We assume $p(x_{t+1}|x_t,u_t)$ is known but $p(o_t|x_t)$ is unknown. This is realistic for e.g. autonomous cars: physics are relatively simple; images are complicated.
+
+Safety comes from: You're not ever running $\pi_\te$ until it's fully trained.
+
+%solving mismatch
+%learn most from extreme situations?
+%don't need to see extreme stuff your policy won't put you in.
+%see really scary stuff that your policy would put you in.
+There is also the rare events problem which this says nothing about.
+
+Example: flying quadrucopter. %force to take good using raw sensory measurements.
+If the policy is not very good (has high cost, ex. leads you towards an obstacle), the cost function becomes large.
+
+This assumes knowing the true state. In the future we want to relax that assumption.
+% the obstacle even though 
+
+It would be nice to not require knowledge of dynamics. We can do trajectory optimization with unknown dynamics. 
+%$$\min_{u_{1:T}} c(x_1,u_1) + c(f(x_1,u_1),u_2) + \cdots + c(f(f(\cdots)\cdopts), u_T)$$
+We need derivatives $\dd f{x_t}, \dd f{u_t}$ (linearization of system). 
+
+Fit a plane to data and hope it's close enough.  There's a trick to make this work. If dynamics are $p(x_{t+1}|x_t,u_t) = N(f(x_t,u_t),\Si)$, fit  (after each time step) $f(x_t,u_t) \approx A_tx_t + B_t u_t$, $A_t = \dd f{x_t}, B_t=\dd f{u_t} $. 
+we may go into region where linearization is wrong.
+We can add the constraint $D_{KL}(p(\tau), \wt p(\tau))\le \ep$. We have a heuristic that adjusts $\ep$.
+%$\tau$ is trajectory
+
+How to combine with policy learning? 
+%We generated dynamics by 
+
+%can't iteratively replan, don't need to because have observations along trajectory
+
+Guided policy search. $\min_\te \EE_{\pi_\te}[c(\tau)]$ is equivalent to $\min_{\te,p(\tau)} \EE_p c(\tau)$ such that $\pi_\te(u_t|o(x_t)) = p(u_t|x_t)$ for all $t,x_t,u_t$. This constraint is equivalent to $D_t(\pi_\te,p)=0$ for all $t$.
+
+Write the Lagrangian and use dual gradient descent.
+$$\cal L(\te,p,\la) = \EE_p[c(\tau)] + \sumo tT \la_t D_t(\pi_\te,p).$$ Optimize $\cal L$ wrt $p$, wrt $\te$, update $\la$ with subgradient descent, and repeat.
+
+%Pick out 
+%optimize different traj
+%different initial states...
+%come closer...
+Combine trajectory-centric RL with 
+supervised learning, which tries to generalize.
+
+The data is used to fit dynamics and used to train the NN.
+
+For imitating optimal control, is there any difference from standard imitation learning? We can change the behavior of the ``teacher'' programmatically.
+
+Can the policy help optimal control rather than the other way around?
+
+\subsection{Reinforcement learning}
+
+We consider model-free algorithms; directly optimize policies.
+
+First we cover policy gradient, then make it practical with function approximators like deep NN.
+
+We want
+$$
+\min_\te\ub{\EE_{\tau \sim p_\te(\tau)} [c(\tau)]}{J(\te)},
+$$
+where
+$$p_\te(\tau) = p_\te(x_1,u_1,\ldots, x_T,u_T) = p(x_1) \prodo tT p(x_{t+1}|x,u)\pi_\te(u_t|x_t).$$
+
+Compute the gradient $\nb_\te J(\te) = \int[\nb_\te p_\te(\tau)] c(\tau)\,d\tau$. Use the trick $\nb_\te p_\te (\tau) = p_\te(\tau) \nb_\te \ln p_\te(\tau)$. Get
+$$
+\nb_\te\ln p_\te(\tau) = \sumo tT \nb_\te \ln \pi_\te(u_t|x_t).
+$$
+The dynamics go away! (Williams 1992)
+
+For example, $\pi_\te(u_t,x_t) = N(f_{NN}(x_t),\Si)$.
+In the REINFORCE algorithm, sample $\{r^i\}$ from $\pi_\te(u_t|x_t)$, estimate $$\nb_\te J(\te) = \E\ba{\pa{\sumo tT \nb_\te \ln \pi_\te(u_t|x_t)}\pa{\sumo tT c(x_t,u_t)-b}},$$ made gradient step. % weight by total cose of sample, 
+
+Here $b$ is a baseline. 
+We use the identity
+$$
+\E [\nb \ln p(y)b ] = \int p(y) \nb \ln p(y)b = \int \nb p(y) b = b \nb \int p(y) = 0
+$$
+
+$b$ doesn't change the mean but reduces variance. A good, not optimal choice is $b=\E\ba{\sum_t c(x_t,u_t)}$.
+
+Using the average cost baseline, a good/bad policy becomes more/less likely.
+
+This is often not good enough with large policy classes like NN,  because of high variance. (Make  $b$ depend on state and even action.) There is poor conditioning (so use higher order methods, natural gradient), it is very hard to choose step size (trust region policy optimization, TRPO).
+
+We can rewrite
+$$
+\nb_\te J(\te) = \sumo tT 
+\E\ba{\nb_\te \ln \pi_\te(u_t|x_t)\pa{\sumo tT c(x_t,u_t)-b}}
+$$
+Using knowledge of causality (action at later times don't affect previous rewards) we get
+$$
+\nb_\te J(\te) = \sumo tT 
+\E\ba{\nb_\te \ln \pi_\te(u_t|x_t) \E\ub{\pa{\sum_{t'=t}^T c(x_t,u_t)-b}}{Q^{\pi_\te}}}
+$$
+Consider the toal remaining cost of executing $\pi_\te(u_t|x_t)$.
+
+We can fit a function approximator to $Q$.
+We want
+$$
+\wh Q_\phi^\pi (x_t, u_t)\approx \E\ba{\sum_{t'=t}^T c(x_{t'},u_{t'})},
+$$
+fit by regression:
+%$$
+%\phi\mapsfrom \amin_\phi\sumo iN \sumo tT \ve{\wh Q_\phi^\pi(x_t^i,u_t^i
+%$$
+This gives the actor-critic method.
+
+Challenges include usual problems with policy gradient, bias/variance tradeoff. FA has lower variance but higher bias. We can combine Monte Carlo and function approximation: generalized advantage estimtion. %For instability/...
+
+
+This can solve bipedal running.
+
+There are also online actor-critic methods. 
+Make one decision, add to duffer, sample minibatch from buffer, estimate $\nb_\te J(\te)$, update $\te$. 
+
+Deep deterministic policy gradient (DDPG) is effective.
+
+You can also just directly use the $Q$-algorithm to make decisions. Instead of estimating the $Q$-function of the current policy, you can take the best action ($Q$-learning). $\pi$ could be $\propto \exp(-\wh Q_\phi(x_t,u_t))$ or $\ep$-greedy.
+
+Q-learning for deep RL: make one decision with $u\sim \pi_\te(u|x)$, add to buffer $D$. Sample minibatch from $D$ to fit $\wh Q_\phi$. Choose $\pi(u|x)$ based on $\wh Q_\phi$, e.g. $\pi(u|x) \propto \exp(-\wh Q_\phi(x,u))$. 
+%min cost, max entropy.
+
+%Discrete Q-learning
+For continuous Q-learning,  you can choose a representation for your $Q$ function that makes the minimization easier. Output a Q-function quadratic in the action.
+$$\wh Q_\phi(x,u) = \rc 2(u-\mu(x))^TP(x)(u-\mu(x)) + V(x).$$
+%
+
+%2.5 hours with 2 robots
+%deep rl with policy gradients.
+
+Tradeoffs between imitation learning and RL:
+%\begin{itemize}
+%\item
+
+Sample complexity: FA like NN tend to be data-hungry; this is a major challenge. Training on Atari (DQN) would take 100 hours if real-time; for the bipedal task it would be 50 hours (GAE). DDPG/NAF take 4-5 hours to learn basic manipulation.
+
+Model based methods are more efficient: time-varying linear models take 3 minutes for real world manipulation, GPS with vision takes 30-40 minutes for real-world visuomotor policies. 
+%A big
+%opt NN?
+%predict next state, allow uncert, relax uncert? 
+%\end{itemize}•
+
+%One thing that make a big impact
+
+What do we need to get the same degree of generalization?
+For supervised learning, we need computation, algorithms, data. For learning sensorimotor skills, we have computations, sort-of algorithms, but where do we get data? 
+
+We can scale up via parallel operating robots training together.
+
+%\subsection{Research frontiers}
+%\subsection{Recent research}
+%
+%\subsection{Outstanding challenges}
+
+Emergent behavior for grasper: 
+When the object is soft, it's more effective to just puncture it in the middle, if it's heavy, grasp in middle, if it's flat, estimate prob of success, until find one with good probability of success.
+
+
+Can we learn the cost via visual features? (``learn what success means'')
+
+Challenges include sample complexity, safety, scalability, supervision.
+
+%exploration
+
+Exploration is an important question. Part of why in door-opening, we used Q-learning is because it does better in exploration than model-fitting approach. Random exploration comes from using Boltzmann-style policy. A model-based approach depends on how good the model is. More explicit exploration can do a long way. One family that's effective are generative models. Use some measure of the surprise of model. Add exploration bonus to encourage visiting those more. 
+%add noise
+%some ex
+
+Adding noise can help: learn to correct mistakes.
+
+%Curvature of Q-function: choose where to go while avoiding the bad stuff.
+
+What's a good place to do theory? %Some notion of 
+In imitation learning, we want some set of assumption for which was can say something concrete. We can use that as guidance for data collection.
+
+What is the ideal theorem you would like to see? In imitation learning, if your expret behaves according to some policy which satisfies some properties (stay in constrained region, etc.) then imitation learning has bounded loss, regret.
+
+Imitation learning is a class of techniques. There are different properties it can have. DAgger requires more data.
+
+Why are robots acting slowly? If you are using a control algorithm that assumes some model of system dynamics and it's not good, if you move slowly it will be less wrong.
+
+Model-based, free seem different fundamentally. How to close the gap?
+One classical approach is the Dyna algorithm: fit a model of dynamics to the data, generate artificial rollouts from the model. 
+
+

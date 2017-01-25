@@ -1,0 +1,460 @@
+\section{Reinforcement learning, Emma Brunskill}
+
+%:)
+
+In reinforcement learning, an agent interacts with the environment, and gets back a reward and next state which is uses to determine what the next action it takes will be. It learns to maximize expected reward.
+
+How the world (stochastic environment) works is initially unknown.
+
+Why care about RL? 
+\begin{itemize}
+\item
+Learning to make good sequences of decisions under uncertainty is a critical part of autonomy and intelligence.
+\item
+There are many applications: robotics, consumer modeling, education (tutoring)...
+\end{itemize}
+
+Why is RL different from ML/AI planning? Standard AI planning assumes we know how the world works. We also think about sequences of actions, but because we don't know how the world works, there are more issues we have to tackle.
+
+We have to deal with 
+\begin{enumerate}
+\item
+generalization: The number of states could be enormous. \item
+exploration: how to gather data.
+\item
+delayed consequences: the decisions we make now could have consequences a lot later.
+\end{enumerate}
+RL has been separate from the active learningn community, but I think there's a lot of overlap.
+\subsection{Standard RL setting}
+
+Most work has focused on Markov decision processes
+\begin{df}
+A \vocab{Markov decision process (MDP)} has
+\begin{itemize}
+\item
+set of states $S$
+\item
+set of actions $A$
+\item
+stochastic transition/dynamics model $T(s,a,s')$, the  probability of reaching $s'$ after action $a$ in state $s$
+\item
+reward model $R(s,a)$ (or $R(s)$ or $R(s,a,s')$)---random variable depending on state and action
+\item
+$\ga$ discount factor: how much to value immediate reward vs. future reward
+\end{itemize}
+A policy for a MDP is a function $\pi:S\to A$.
+\end{df}
+
+The $\ga$-discounted reward is $R=\sumz t{\iy} \ga^t R_t$ where $R_t$ is the reward at the next step. The $Q$-function $Q:S\times A\to \R$ for a policy $\pi$ is 
+\begin{align}
+Q^{\pi}(x,a) &= \E [R | s_0=x, a_0=a, \pi\text{ is followed after the first step}]\\
+Q^*(x,a) &= \max_\pi(Q^\pi(x,a))
+\end{align}
+
+The Bellman equation is
+$$
+Q^*(s,a) = R(s,a) + \ga \sum_{s'} T(s,a,s') \max_{a'} Q^*(s',a').
+$$
+The current state is sufficient to make the next decision.
+
+MDPs may sound like a restricted model but you can always cheat by putting the whole history into the state space.
+
+We can use the Bellman equation as an iterative algorithm.
+\begin{alg}[Value iteration]
+\begin{align}
+Q_0(s,a) &= 0\\
+Q_{i+1}(s,a) &= R(s,a) + \ga \sum_{s'} T(s,a,s') \max_{a'} Q_t(s',a')
+\end{align}•
+\end{alg}
+The update is a contraction so it converges in the tabular case (where we keep track of every value $Q(s,a)$). We can recover the best policy from the $Q$-function by taking $\amax_a Q(s,a)$.
+
+\begin{alg}[Policy iteration]
+\begin{align}
+Q_0(s,a)&=0\\
+\pi_t(s) &= \amax_a Q_t(s,a)\\
+Q_{t+1}(s,a) &= Q^{\pi_t}(s,a).
+\end{align}
+\end{alg}
+
+We can break all of RL into 3 different camps: value function, policy, model. There are algorithms combine these different approaches.
+
+%image from David Silver
+
+In model-based RL, use the experience to estimate model $T$ and $R$, ex. with ML estimate of model parameters given observed $(s_t,a_t,r_t,s_{t+1})$ tuples. Use estimated models to estimate $Q$ and $Q$ to estimate $\pi$.
+
+This uses data efficiently but is computationally expensive.
+
+(Is this robust? If the models are close the Q-values are close. Do the errors compound? Yes.)
+
+An alternative, more feasible approach is Q-learning, which is model free.
+
+\begin{alg}[Q-learning]
+Initialize $Q(s,a)$ for all $(s,a)$ pairs.
+On observing $(s_t,a_t,r_t,s_{t+1})$, 
+\begin{itemize}
+\item
+Calculate TD-error
+$$
+\de(s_t,a_t) = r_t + \ga \max_{a'} Q(s_{t+1},a') - Q(s_t,a_t).
+$$
+\item Update
+$$
+Q(s_t,a_t) \leftarrow (1-\al) Q(s_t,a_t) + \al \de(s_t,a_t).
+$$
+\end{itemize}
+\end{alg}
+%doesn't need or estimate T.
+Here we're not picking the action.
+
+This is computationally cheap. This only propagates experience one step, but this can be fixed by e.g. replay.
+
+We can use all our information and recompute from scratch or just do local updates. Local updates are more computationally efficient but less sample efficient.
+
+In policy search, directly search the policy space for $\amax_\pi V^\pi$. Parameterize policy and do stochastic gradient descent.
+
+\subsection{Exploration}
+
+We start off not knowing how the (stochastic) world works. Given some experience (data), we can estimate how the world works, or the Q-values or policies.
+
+But the information that we've seen so far can be misleading, or we haven't seen everything. In particular, we may want to explore: try things that aren't seen to be optimal yet. Eventually, though, we want to exploit: gather high reward.
+
+The agent is responsible for gathering data to learn how the world works.
+
+Key ideas in exploration vs. exploitation algorithms are:
+\begin{enumerate}
+\item
+Act greedily mostly, sometimes randomly.
+\item
+Be optimistic in the face of uncertainty.
+\item
+Maintain a distribution over worlds.
+\begin{enumerate}
+\item
+Sample a world and act if the sample was the real world, or
+\item
+Choose action reasoning about full distribution
+\end{enumerate}•
+\end{enumerate}•
+Each gives a different algorithm.
+
+\subsection{Multi-arm bandit}
+
+Let's first cover a simpler model, the multi-arm bandit. There is no state.
+
+\begin{df}
+The \vocab{multi-arm bandit} problem consists of the following.
+\begin{itemize}
+\item
+$A$ is a set of arms
+\item
+$R_a$ is unknown probability distribution of reward $r$ if you pull arm $a$
+\item
+At each step $t$, the agent selects an arm $a$ and gets $r_t\sim R_a$.
+\item
+The goal is to maximize cumulative reward over $t$ pulls.
+\end{itemize}
+\end{df}
+If we knew the best arm we could just choose that---but we don't.
+
+\begin{alg}[$\ep$-greedy exploration]
+$\,$
+\begin{itemize}
+\item
+Given $t$ observations so far, estimate the mean reward for each action $\wt\mu_a$.
+\item
+W.p. $1-\ep$ select $\amax_a\wt{\mu}_a$.
+\item
+W.p. $\ep$ select random arm.
+\end{itemize}
+\end{alg}
+
+This only assumes rewards are bounded.
+
+The second idea is optimism under uncertainty.
+\begin{alg}[UCB]
+Estimate upper confidence bound on value (using concentration inequalities). Using Hoeffding, 
+$$
+\ol\mu_a = \wt\mu_a + \sfc{2\ln t}{N_t(a)}.
+$$
+where $N_t(a)$ is the number of times $a$ was pulled.
+Select $\amax_a\ol\mu_a$.
+\end{alg}
+(In the beginning pull everything once. You can't use this algorithm for huge action spaces.) 
+
+%(Assume 
+Either the arm you pull is reall the best arm and you get large reward, or you get information that allows you to revise your estimate.
+%Try things that could be really good; 
+
+We could be Bayesian: have a distribution over worlds. Maintain posterior distribution over reward distribution. 
+
+One approach to this is probability matching/Thompson sampling. 
+
+Choose arm with probability it is optimal
+$$
+\pi(a|h_t) = \Pj(\mu_a>\mu_{a'}, \forall a'\ne a).
+$$
+This may be hard to compute analytically, but we can estimate it by sampling. 
+\begin{alg}[Thompson sampling]
+$$
+\pi(a|h_t) = \Pj(\mu_a>\mu_{a'}, \forall a'\ne a) = \EE_{p(R|h_t)} [a-\amax_a\mu_a].
+%bern beta
+%cheap rep posterior, update
+$$
+\fixme{??}
+Sample a reward distribution given posterior, compute the mean given the sampled $R$, and select the action with highest mean for that sample.
+\end{alg}
+This works as long as it is cheap to represent the posterior and we can update it easily.
+Often use the conjugate distribution: if the reward is Bernoulli, use a beta distribution for the prior/posterior. 
+%bern
+
+What is the Bayes-optimal algorithm, that gets the most reward achievable? %If we have a 
+Suppose we act for $H$ steps. We want to select the arm to maximize cumulative expected reward over $H$ steps given the prior. This directly reasons about the value of exploration and information. This is the best we can hope to do; it optimally balances exploration and exploitation.
+% (a Bayes-optimal bandit)
+
+This view transforms a learning problem into a planning (sequential decision-making) problem.
+
+The hidden/latent state is static; it is parameters of the reward distribution. There is a posterior/belief state that is a probability over arm distribution parameters given the history.
+
+Thus, an optimal policy for POMDP planning gives a Bayes-optimal solution for bandit learning. However, it is generally computationally intractable to do POMDP planning for continuous states exactly.
+%will you benefit from the information you might learn.
+%The Gittins index is the 
+
+%branch factor of all arms at each step. Do that up to horizon. 
+We can use sparse sampling of Monte Carlo Tree Search to approximately plan continuous-state MDP or POMDP. But the algorithms don't have provable guarantees.
+
+For RL, the same ideas apply, except we compute $Q$-values rather than the total rewards.
+
+For optimism in the face of uncertainty, compute upper confidence bound over $Q$ values, and given state $s$, select $\amax_a Q(s,a)$. (UCRL algorithm)
+
+To maintain a distribution over worlds, we have to approximate. %Bayes-optimal RL 
+
+\subsection{Evaluating an RL algorithm}
+
+Which should be pick?
+
+When  I say performance, I'm talking about the rewards, or the amount of data required to find the (near) optimal policy.
+
+Other people have been focused on computational efficiency.
+
+We can evaluate performance by empirical, convergence, asymptotic optimality, in the probability approximately correct model, regret, Bayes-optimality, and by comparing within a class of algorithms. Often algorithms with theoretical guarantees don't do so well empirically; we can tune constants of other a;gorithms to  do better. 
+
+Convergence: do we converge to a single estimate of the $Q$-function? %stable?
+Depending on the domain, this is often nontrivial; $Q$-function estimate may end up oscillating.
+
+Asymptotic optimality: 
+\begin{itemize}
+\item
+Greedy in the limit of infinite exploration (decrease rate of exporation): $Q$-learning converges to $Q^*$. (Watkins and Dayan 1992)
+\item
+In the limit of infinite exploration model-based RL, we also converge to $Q^*$ (Littman 1996)
+\end{itemize}•
+
+This is unsatisfactory because it is an asymptotic result.
+
+\begin{df}
+RL algorithm $A$ is \vocab{PAC-MDP} if on all but $N$ steps the algorithm's non-stationary policy $A_t$ satisfies 
+$$
+V^{A_t}(s_t) \ge V^*(s_t)-\ep
+$$
+with probability $1-\de$ where $N=\poly(|S|,|A|, \rc{\ep}, \rc{\de}, \rc{1-\ga})$.
+\end{df}
+$\ga$ is the discount factor; think of $\rc{1-\ga}$ as the horizon.
+
+A popular approach for establishing algorithm is PAC RL. 
+
+RL algorithm is greedy if it maintains a $Q$-value estimate $Q_t$ and selects actions by $\amax_aQ_t(s,a)$. 
+
+Define a known MDP $M_K$ related to the real MDP $M$:
+Given an input $Q$, $K$ a set of known $(s,a)$ pairs, 
+\begin{itemize}
+\item
+for all $s,a\in K$, use the true transition and reward model $M$ parameters, 
+\item
+for all $s,a\nin K$, use self-loop and set reward to input $Q(s,a)$.
+\end{itemize}
+This is like optimism under uncertainty: imagine that places that are unknown have good reward.
+
+Let $A(\ep,\de)$ be any greedfy learning RL algorithm such that with probability $\ge 1-\de$,
+\begin{itemize}
+\item
+accuracy $V_t^{\pi_t} (s_t) - V_{M_{K_t}}^{\pi_t}(s_t)\le \ep$
+\item
+Optimisim $Q(s,a)\ge Q^*(s,a)-\ep$
+\item
+bounded learning complexity: total number of updates to $Q$ estimates and visites to unknown $(s,a)$ is bounded in terms of...
+\end{itemize}
+
+A popular approach for establishing algorithm is PAC RL: Divide horizon into epsidoes, during each episode either don't update $Q$< or update $Q$ and visit unknown $(s,a)$ pair, use threashold to set pair as known. Pig principle ensures tha we con only visit $(s,a)$ a finite number of times until it becomes known.
+
+How do we ensure...
+\begin{itemize}
+\item
+accuracy? Use the simulation lemma: if two MDPs are close in parameters in max norm, then thei value of a policy will be close in max norm.
+\item
+optimism? Combine simulation lemma and use opt estimate of rewards for all unknown $(s,a)$ pairs.
+%opt under uncert approaches.
+\end{itemize}•
+PAC is good because it has finite sample complexity: we bound the total number of mistakes with high probability.
+It's bad because experimentally, we end up exploring much longer.
+
+Early PAC bounds are like $N=\wt O\pf{|S|^2|A|}{\ep^3}{(1-\ga)^6}$. For $|S|=10, |A|=10, \ep=0.1, \ga=0.9$, we need $N=10^{12}$ samples.
+
+In  the episodic case (act for $H$ steps, and then reset) we have a bound tight up to $|S|$. The upper bound is $N=\wt O\pf{|S|^2|A|H^3}{\ep^2}$ ($\de$ hidden in log term) %H sequared?
+and the lower bound is $N=\wt O\pf{|S||A|H^3}{\ep^2}$. There are analogous bounds for episodic, nonstationary dynamics. Key insights include a more refined definition of knownness depending on the probability of visiting $(s,a)$ pairs (based on Tor, Hutter 2012), and bound $V^*\Pj(s'|s,a)$ instead of each separately.
+
+In RL, samples are not iid, so we can't apply standard concentration.
+
+%when comp tractable for bandits? no comp gittins index for RL
+%frequentist vs. bayesian regret
+
+Another approach is to think about regret. Total regret for an algorithm $A$ is
+$$
+\De(M, A, s, T) = \max_\pi\ba{\E\pa{\sumo tT r_t}} - \sumo tT r_t.
+%\lim_{T\to \iy} 
+$$
+Note a subtlety: your policy and the optimal policy $\pi$ may be evaluated along different sequences of states, unlike in PAC.
+
+UCRL2 is a optimism under uncertainty algorithm. The diameter is the maximum over all state pairs of the expected number of timesteps to go from one state to another under a policy you choose.
+
+The UCRL2 algorithm gives an upper bound and an expected regret upper bound
+\begin{align}
+\De(M,UCRL2,s,T) &\le 34D|S| \sqrt{|A|T\ln \pf{T}{\de}}\\
+\E[\De(M,UCRL2, s,T)] &\le O\pf{D^2|S||A|\ln T}{g}
+%optimal policy and next best policy
+\end{align}
+where $g  = Q^*(s,a^*) - \max_{a'\ne a^*} Q^*(s,a')$ is the maximum gap betweeen the average reward of the best policy and best non-optimal policy for any state.
+
+There is also an algorithm called REGAL (Bartlett).
+
+We can also define Bayesian regret for RL. The PSRL expected regret (Bayesian with respect to distribution of MDPs) is $\E[\De(T,PSRL)] \le O(\tau|S|\sqrt{|A|T\ln (|S||A|T)})$. This often does better than UCRL2. Note this is still linear in the state space.
+
+Consider contextual bandits---close to the RL setting. At each time step get a context $x$ that doesn't depend on our actions. The reward $r_t\sim R_{ax}$ depends on the action and context.
+
+We want to do some generalization/sharing across our state or action space. Can we make different assumptions on $R_{ax}$ to make this tractable? For example, it's linear. %$E[r_{t,a}
+
+We can reduce to supervised learning. We get computationally efficient (polylog in $|\Pi|$, size of set of policies),
+$$
+\De(PolicyE, T)\le O\pa{\sqrt{|A|T\ln |\Pi|}}.
+$$
+Assume the class is expressive enough to have the optimal policy (but often it will have to be exponential, $|A|^{|X|}$).
+
+\subsection{Current and future work}
+
+\subsubsection{Off policy policy evaluation}
+
+The past data is gathered using one or more behavior policies $\pi_b$, but we want to estimate the performance on a different $\pi_a$.
+
+In an educational game: what level do we give the students at each time to keep them engaged and learning? We used off-policy evaluation to find a policy with 30$\%$ higher engagement. (Human selection did worse than random; in complex state spaces, human intuition can fail.)
+
+The state space is a bunch of features of the gameplay. We don't assume it's Markov.
+
+More details: we have historical data $R_j = \sum_i r_{ij}$, assume Markov. We want to 
+\begin{itemize}
+\item
+Estimate MDP model and compute $Q$ of $\pi_e$, or
+\item
+ do model-free learning: just compute $Q$ of $\pi_e$.
+\end{itemize}•
+
+This gives a low variance estimator of policy perforamce, but it is biased and and inconsistent.
+
+Use Importance Sampling: reweight distribution by probability of observing the history from the evaluation policy versus from the behavior policy.  This is unbiased and strongly consistent by is a high variance estimator.
+$$
+\rc N \sumo jN \fc{\Pj(H_j|\pi_e)}{\Pj(H_j|\pi_b)}r_j
+$$
+Can we get the best of two worlds? Dudik et al. 2011 did this for bandits, Jiang and Li 2015 did this for RL.
+
+In MAGIC we (Thomas, Brunskill 2016) blend IS-based and model-based estimator to directly minimize the MSE.
+$$
+MSE(x) = Bias\pa{\sumo j\iy x_j g^{(j)}(\pi_e|D)}^2 + \Var\pa{\sumz j\iy x_j g^{(j)}(\pi_e|D)}
+$$
+To compute the bias we need to know the true value. We do a conservative estimate of the value. We may overtrust the model sometimes.  Empirically this leads to orders of magnitudes lower error.
+
+Other variants:
+$$
+\De Q(x,a) = \sum_{t\ge 0} \ga^t \pa{\prodo st c_s}\ub{(r_t+\ga\EE_\pi Q(x_{t+1},\cdot) - Q(x_t,a_t))}{\de_t}.
+$$
+\begin{itemize}
+\item
+In IS the trace coefficient is $c_s = \fc{\pi(a_s|x_s)}{\mu(a_s|x_s)}$, which has high variance. 
+\item
+In $Q^\pi(\la)$, discount large trajectories $c_s=\la$, but this is not safe (off-policy). 
+\item
+In $TB(\la)$, take $c_s = \la \pi(a_s|x_s)$, but this not efficient. %(on-policy).
+\item
+In Retrace$(\la)$, take $c_s = \la \min\pa{1, \fc{\pi(a_s|x_s)}{\mu(a_s|x_s)}}$. Idea is to cut high variance returns by terminating long sequencea of returns, dealing with the fact that this may throw away a lot of data. This is better but still struggles for long histories.
+\end{itemize}•
+
+%They use Atari
+%
+%DQN same place.
+Long horizons, where we get the reward only at the end, is still a challenge. IS estimators have high variance. Retrace will cut (ignore long horizon reward), MAGIC will reduce to model-based estimator. An open problem is to get off-policy, unbiased, low variance estimators for long-horizon delayed reward problems.
+
+%lower bound? temporal horizons.
+
+\subsubsection{Safety and risk sensitivity}
+
+We want confidence bounds on expected value learned from finite data, so we can guarantee the expected return of a new policy is better.
+
+We want to compute more than expected return: distribution of returns, conditional value at risk.
+
+
+%intellig tutoring 
+People have focused mostly on batch learning from a past set of data, but we want safety during online reinforcement learning. See Moldovan and Abbeel 2012. 
+
+Deep RL scales up to large domains. DeepMind has results in Atari competitive with humans, and beat one of the world masters in Go. They use Monte Carlo Tree Search and use RL to estimate the value function. %priors?
+
+Why has this happened over the last few years?
+Historically much of RL has used tabular representations, or linear combination of features (with limited expressive power, and requires feature selection), and dynamic Bayes nets which scales poorly. 
+Fitted Value Iteration can use any regressor to represent value function, but many common function approximators are not non-expanders: the estimated $Q$-function may not converge. It can oscillate and fail to converge.
+
+In practice, a neural network to represent the $Q$-value of policy can work really well. We have enormous data, NNs are a powerful function approximator, and various algorithmic modifications can improve stability.
+ They have $\approx 13$ layers deep.
+
+Deep RL is exploding. Theory is very limited but it works well in practice.
+%200-person auditorium, 70 papers, 100+ papers 2015-now.
+
+%safe and efficient off policy RL.
+
+The initial deep RL algorithms used simple $\ep$-greedy exploration. In some games, exploration needs to be more targeted. 
+This is also not sample efficient. 
+
+How to do generalization and exploration at the same time?
+Cluster state-action dynamics until evidence shows that it should be separate. This speeds up learning and still converges to optimal policy (Mandel, Liu, Brunskill, Popovis 2016). 
+%river swim
+We can view this as posterior sampling over state representation as well as model parameters, and also relates to infinite POMDP's.
+
+How to represent uncertainty with deep RL to support exploration? (Osband, Blundell, Pritzel, Van Roy 2016)  
+The state representation to represent optimal policy may not be Markov. We might need a less compact representation to learn a policy vs. represent it. Aggregating states may lose Markovness.
+
+Sample efficiency and representation: typically the formal sample efficiency scales as specifed state space, but we would like it to scale with the necessary state space. For factored MDP RL, we can get PAC RL to scale in the in-degree of necessary features, not max in-degree of all features.  (Guo, Brunskill, in preparation.)
+
+Open question: is this true (empirically) for deep RL?
+
+%100 variables, only 3 necessary.
+%dynamic Bayes net.
+
+%automatically ignore what doesn't matter. scales with full input or intrinsic rep
+
+Often only 1 frame is needed to represent the policy in Atari.
+
+Other promising directions:
+\begin{enumerate}
+\item
+contextual MDPs (Krishnamurthy, Langford, Agarwal, Jiang, Schapire 2016a/b) (Best-in-class approach)
+\item
+Temporal abstraction (actions, policies that take place over multiple timesteps). Ex. learning skill of going through a door; in-game transfer.
+\item
+Human-in-the-loop RL (Mandoel, Liu, Brunskill, Popovic 2017). You can change the action space---humans create new actions to add into the system.
+\end{enumerate}
+
+%In RL, optimize the expected sum of future rewards in a stochastic domain. 
+
+%go into a loop, pick up coin. 
+%misspecification of reward.
+%constrain model 
+%human-centered AI at Berkeley.
+%know certain behavior avaoid: prob. constraints.
+%how ensure algorithm doesn't discriminate.
+%easy demon desired behav
+%or needs to be dialogue
