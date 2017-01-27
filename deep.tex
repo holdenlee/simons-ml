@@ -1,0 +1,672 @@
+\section{Deep learning, Ruslan Salakhutdinov}
+
+
+%theory, point out some hacks.
+Deep learning algorithms are very data-hungry. They are hierarchical models. 
+
+The impact of deep learning has been strong and surprising: speech recognition, computer vision, recommender systems, language understanding, drug discovery and medical image analysis. %dep gen model
+
+On the Reuters dataset, it discovers topics in an unsupervised way. 
+%antonio 
+For caption generation for images, the nearest neighbor sentence isn't very useful, but a neural language model does reasonably well.
+
+Supervised learning is the most successful. I'll cover recent optimization and regularization techniques. Then I'll talk about unsupervised (deep generative) models which doens't work as well. Finally I'll give open questions.
+
+
+\subsection{Supervised learning}
+
+Traditional approaches extract features from the data and feed them into the learning algorithm. Vision has many techniques for finding the right features. Ten years ago, the main problem was finding the right features.  Audio is similar. %flux, ZCR, rolloff.
+In representation learning, we want to automatically learn these features/representations. 
+
+%end-to-end. when incorporate prior
+
+%if you're too predictable, you're not creative?
+
+\subsubsection{Definition of neural networks}
+
+The neuron pre-activation and output activation are
+\begin{align}
+a(x) &= b+ \sum_i w_i x_i = b+ w^Tx\\
+h(x) &=g(a(x))
+\end{align}•
+where $g$ is some activation function. Popular activation functions are sigmoids $\rc{1+e^{-a}}$, $\tanh(a)$. 
+
+One of the most successful ones (Hinton) is $ReLU(a) = \max(0,a)$, which tends to produce sparse activity. The gradient is a linear function. The network is easier to optimize. The only reason the system becomes nonlinear is that you shut down some units. (It is piecewise linear.) Computing a linear function is faster than computing sigmoid or tanh.
+
+In multilayer neural net, 
+\begin{align}
+a^{(k)} & = b^{(k)} + W^{(k)} h^{(k-1)} (x^{(k-1)})\\
+x^{(k)} &= g(a^{(k)}).
+\end{align}•
+Combining layers you can construct complex decision boundaries.
+
+\begin{thm}[Hornik's universal approximation theorem] A single hidden layer neural network with linear output can approximate  any continuous function arbitrary well, given enough hidden units.
+\end{thm}
+
+Empirical risk minimiation is
+$$
+\amin_\te \rc T\sum_t l(f(x^{(t)}; \te), y^{(t)}) + \la \Om(\te).
+$$
+For NN the regularizer plays a critical role. Recent regularization techniques is what made these models so successful. People used regularization like $L^2$. They work but are not sufficient. Techniques like dropout  are important.
+
+Use stochastic gradient descent (SGD). Initialie $\te = \{W^{(1)}, \ldots, b^{(L+1)}\}$, 
+\begin{align}
+\De & = -\nb_\te l(f(x^{(t)};\te),y^{(t)}) - \la \nb_\te \Om(\te)\\
+\te &\leftarrow \te + \al \De.
+\end{align}
+The backpropagation (chain rule) algorithm computes these gradients. There are good software packages. It's hard to beat SGD.
+%There's a 
+%tensorflow, torch.
+
+With these models, we can't find global optima. 
+%when in grad school, didn't care if convex or nonconvex.
+In practice, local optima is not a big problem even though there are tons of local optima.This is a good theory question. 
+
+Model selection: 
+\begin{itemize}
+\item
+Train model on training set
+\item
+For model selection use validation set
+\item
+Estimate generalization performance using test set.
+\end{itemize}
+We need hyperparameter search: hidden layer size, learning rate, number of iterations/epochs, etc. They play a critical role.
+%figure out feature . now tweaking archiectures.
+
+Stop training when validation set error increases.
+
+Generating data using 1 hidden layer, you want to train using more units (overparameterize). Even for a latent space of 1 dimension, optimization is hard so you want to  overparameterize.
+
+Improvements:
+\begin{itemize}
+\item
+Make updates based on minibatch of examples.
+\item
+Momentum: use exponential average of previous gradients.
+$$
+\ol \nb_\te^{(t)} = \nb_\te l(f(x^{(t)}), y^{(t)}) + \be \ol \nb_\te^{(t-1)}.
+$$
+(Poor man's approximation to diagonals of Hessian.)
+\end{itemize}•
+
+Every layer is learning a distributed representation. Units in a layer are not mutually exclusive. Units do not necessarily correspond to a partitioning.
+
+Clustering or nearest neighbors partitions the space. There are parameters for each region and the number of regions grows linearly with number of parameters.
+
+For distributed representations (RBM, factor model, PCS, sparse coding, deep models), the number of realizable sign assignments grows faster:  it grows polynomially (n.b. not exponential) in the number of hyperplanes. 
+
+NN gains inspiration from visual cortex. 
+
+Let's get to more controversial things. Why is training hard? Hypotheses:
+\begin{itemize}
+\item Hard optimization problem (underfitting): vanishing gradient problem, saturated units block gradient propagation. 
+\item
+Overfitting: we are exploring a space of complex functions, and deep nets have lots of parameters. We could be in a high variance/low bias situation.
+
+Fitting using a linear function has  low variance and high bias. Fitting using a complicated function has high variance, because we might fit very different functions to slightly different datasets, but low bias, because we can get close. The best function trades off between these two.
+\end{itemize}
+For large-scale practical problems, you have to use both better optimization and better regularization.
+%parallelize: gpu's. 
+The best performing systems are where you build a very large model and regularize.
+
+There is good theoretical foundation for unsupervised pre-training (Jeff Hinton, variational lower bound). 
+% shows how you can do pre-training.
+You are actually optimizing some objective function.
+
+Initialize hidden layers using unsupervised learning: force network to represent latent structure of input distribution. Why is one image a character and another not? This is harder than supervised learning (classification) so we expect less overfitting. 
+%info theory: lots of info to model.
+
+There is a class of networks called autoencoders. They try to reproduce the input at the output layer. (For linear maps, this recovers PCA.)
+%\begin{align}
+%\wh x &= o(\wh a(x)) = \si
+%\end{align}•
+
+How does pre-training work? Use a greedy layer-wise procedure.  Train one layer at a time with unsupervised criterion. Fix parameters of previous hidden layers. Previous layers can be used as feature extraction. Make sure the parameters can reconstruct the inputs.
+Then add output layer and train whole network in supervised fashion (fine tuning).
+
+You can enforce by bottleneck, sparsity, etc.
+%encode something from input distribution.
+
+Why train one layer at a time? It's an easier optimization problem.
+\subsubsection{Regularization}
+Another regularization is stochastic dropout.  Cripple neural network by removing hidden units stochastically. 
+\begin{enumerate}
+\item
+Each hidden unit is set to 0 with probability 0.5 (in forward propagation). (0.5 typically works well.)
+\begin{align}
+h^k(x)& = g(a^k(x)) \odot m^k %\\
+%h^{L+1}(x) &= o(a^{L+1}(x)) 
+\end{align}
+where each entry of $m^k$ is Bernoulli(0.5).
+\item
+Hidden units cannot co-adapt to other units.
+\item
+Hidden units must be more generally useful.
+\end{enumerate}
+The units tend to be more uncorrelated.
+
+
+At test time, replace masks by their expectations, ex. the constant 0.5 if you keep with probability 0.5.
+(Or: stochastically sample forward passes.)
+
+This beats regular propagation on many datasets.
+
+Ensemble: this can be viewed as a geometric average of an exponential number of networks. 
+
+%bayesian
+
+Anytime you inject noise, you tend to do better. Sometimes people inject Gaussian noise. That helps as well. %Force the system: either be sure or shut it down if uncertain.
+
+%if overparam and don't hit 0...
+There is a beautiful technique called batch normalization that has become standard. Normalizing the inputs speed up training. Batch normalization tries to do this at the level of the hidden layers (Ioffe, Szegedy 2014). Each unit's pre-activation is normalized (subtract mean and divide by standard deviation).  During training, mean and standard deviation are computed for each minibatch. Backprop takes into account the normalization.
+\begin{alg}[Batch normalization]
+For $B$ the minibatch,
+\begin{align}
+\mu_B &\leftarrow \rc m\sumo im x_i\\
+\si_B^2 &= \rc m \sumo im (x_i - \mu_B)^2\\
+\wh x_i &=\fc{x_i-\mu_B}{\sqrt{\si_B^2 + \ep}}\\
+y_i & =\ga \wh x_i + \be = BN_{\ga, \be}(x_i)
+\end{align}
+(The last step is a scale and shift: for every neuron, learn parameters $\ga,\be$; linear transformation with parameters $\ga, \be$ adapt to non-linear activation function. % ($\ga$ and $\be$ are trained for every neuron---
+(The extra parameters are not  a big deal because most of the parameters come from the edges, not nodes.)
+\end{alg}
+This seems to be approximating the diagonal of Hessian but not quite. From a theoretical perspective this is just a hack, but it works remarkably well. You're computing these based on the batch! Batches are typically size 256. Depends on your GPU.
+
+SGD with momentum, batch-normalization and dropout usually works well; it's hard to beat this.
+
+Pick learning rate by running on subset of data: start large, divide by 2 until loss does not diverge; decay learning rate by $\approx 100$ by end of training.
+
+Visualize: %check gradient numerically by finite differences. 
+Visualize features; see that features are uncorrelated and have high variance. 
+Training is bad when many hidden units ignore the input and/or exhibit strong correlations.
+
+Why normalize the pre-activation? 
+
+%input as image. 28x28
+
+%\subsubsection{Recent techniques}
+%
+%This is where we're lacking theory.
+
+\subsubsection{Computer vision}
+
+Given an image, classify it. Use convolution neural networks. Do convolution, max pooling ($2\times2, 3\times 3$) to get translational invariances. One layer has multiple maps.
+%convolutoin to convolution
+
+This is used in OCR, pedestrian detection, object detection...
+
+The ImageNet dataset has 1.2 million images and 1000 classes. Important breakthrough was AlexNet, deep convolutional nets (8 layers) for vision (Krizhevsky, Sutskever, Hinton). This halved the error of existing systems.
+
+Manual tuning of features is now replaced with tuning of architecture. 
+Use grid search (need lots of GPUs). Smarter strategies include random search, Bayesian optimization.
+
+AlexNet has 8 layers total.
+%\begin{itemize}
+%\item
+%8 layers total
+%
+%\end{itemize}•
+If we remove top fully connected layer 7, drop $\approx 16$ million parameters, lose 1.1$\%$ performance..
+
+GoogLeNet has 24 layers, ``inception module''. Multiple filter scales at each layer. Use dimensionality reduction to keep computation down.
+Width ranges from 256 to 1024. Can remove FC layers on top completely. Number of parameters reduced to 5 million. $6.7\%$ top-5 validation error on Imagenet.
+
+%If you take these 
+%hardwire features. conf5, 7 features.
+%Improvement translates to other datasets.
+
+Residual networks have many more layers. The trick is skip-connections, $F(x)+x$.
+
+%use these features, plug-in.
+%Take these features as input.
+ImageNet has 50 kinds of mushrooms, dog breeds. When you train on these, and you want to train on people, the features are still useful.  There is interesting transferability! %multiclass... 
+%x-rays of cancer patients. 
+%some invariants: edges, etc.
+
+%alex net
+%resnet features.
+
+\subsection{Unsupervised learning: learning deep generative models}
+
+There are
+\begin{itemize}
+\item
+non-probabilistic models: sparse coding, autoencoders, etc.
+\item
+probabilistic (generative) models with explicit density $p(x)$
+\begin{itemize}
+\item
+tractable models: fully observed belief nets, NADE, PixelRNN
+\item
+non-tractable models: Boltzmann models, variational autoencoders, Helmholtz machines
+\end{itemize}
+\item
+Generative adversarial networks, moment matching netwrks implicitly model density. These are game-theoretic.
+\end{itemize}
+\subsection{Basic building blocks}
+
+Sparse coding objective: given set of input data vectors $\{x_i\}$ learn a dictionary of bases $\{\phi_K\}$ such that
+$$
+x_n = \sum_i a_{ni} \phi_i.
+$$
+with $a$ sparse. We want each image patch to be represented by a sparse linear combination of basis vectors.
+
+Training is
+$$
+\min_{a,\phi} \sumo nN \ve{x_n - \sumo kK a_{nk} \phi_k}_2^2 + \la \sumo nN \sumo kK |a_{nk}|.
+$$
+Do alternating minimization. 
+
+%On Caltech101 object category, 47%
+
+Going from sparse features to $x'$ is an explicit linear decoding; encoding is nonlinear and implcit.
+
+Autoencoder: Given input image, encode to feature representation, decode to get back input image.
+(Note:  From a theorist's viewpoint, the names are flipped from coding theory.)
+The details of what goes inside the encoder and decoder matter: we need constraints to not just learn the identity.
+
+%$z=\si(Wx)$, $\si(W^Tz)$.
+%\si(c+W^*)
+
+If both hidden and output layers are linear,  and you use squared error, you recover PCA. You can think of autoencoders as a nonlinear extension.
+
+A denoising autoencoder: Idea is that representation should be robust to introduction of noise. Randomly assign subset of inputs to 0 with probability $\nu$. This is similar to dropout on the input layer. Alternatively add Gaussian additive noise. This is like trying to get back to the data manifold.
+
+Predictive sparse decomposition:
+$$
+\min_{D,W,z} \ub{\ve{Dz-x}_2^2 + \la |z|_1}{\text{decoder}} + \ub{\ve{\si(Wx) - z}_2^2}{\text{encoder}}.
+$$
+For stacked autoencoders, do greedy layer-wise learning. Remove the decoding and use feed-forward part for supervised training.
+
+We can compress images $28\times 28$ to 30-dimensional with deep autoencoder. Olivetti face patches: It removes glasses, mustaches.
+
+Information retrieval: a nonlinear model preserves more clustering structure.
+
+For binary codes, we can encode input into binary space. Searching in binary space is a much easier problem. Map documents into 20-D binary space.  You can also search large image database using binary codes.
+
+\subsubsection{Deep generative models}
+
+Given 25000 characters from 50 alphabets around the world, generate characters. You can also given half of image, sample what the other half looks like. 
+Markov chain Monte Carlo generates different characters.
+%bernoulli markov random field
+
+
+We can model conditional probabilities
+$$
+p_{\text{model}}(x) = p_m(x_1) \prod_{i=2}^n p_m(x_i|x_1,\ldots, x_{i-1})
+$$
+and get good images. (Pixel CNN, RNN.) What representation are these nets using? 
+%pixel separately.
+
+%Graphical models
+
+
+RBM is a Markov random field with stochastic binary visible variables $v\in \{0,1\}^D$, hidden variables $h\in \{0,1\}^F$, bipartite conndtions
+$$
+P_\te(v,h) = \rc{Z(\te)} \exp\pa{\sumo iD\sumo jF W_{ij} v_i h_j + \sumo iD v_ib_i + \sumo jF a_jh_j}.
+$$
+Ising model with bipartite architecture.
+
+We get sparse representations.  Inference in this model is basically exact.
+%logistic is suitable for modeling binary images.
+%regularize, enforce sparsity.
+
+We are matching sufficient statistics. $\EE_{P_{data}}[v_ih_j]$ is easy to compute, $\EE_{P_{\te}} [v_ih_j]$ is difficult to compute because there are exponentially many configuration. This comes from $\pdd{W_{ij}} \ln Z(\te)$.
+
+People use MCMC.
+
+%\begin{itemize}
+%\item
+%Initialize $v^0=v$.
+%\item
+%Sample 
+%\end{itemize}•
+Sample $\Pj(h|v), \Pj(v|h)$ alternately. Instead of running to $\iy$, run one time. This is called contrastic divergence: Then udpate model parameters
+$$
+\De W_{ij}  = \EE_{P_{data}} [v_ih_j] - \EE_{P_1}[v_ih_j].
+$$
+Shapes distribution locally around data point, making it more probable.
+
+You can model real-valued data $v\in \R^D$, 
+
+%a_jh_j
+
+RBM for word count: 
+You  can apply this to modeling count data: replicated softmax model.
+On documents, you find some version of topics.
+%one step reconstruction from replicated softmax model.
+
+We can use this for collaborative filtering; it finds ``genre''. 
+%michael more's movies.
+We can infer states of hidden variables exactly, unlike in Bayesian models where inference can be expensive.
+
+Another intution: these models are also called product models. Marginalizing over hidden variables gives a prduct of experts
+$$
+P_\te(v) = \sum_h P_\te(v,h) = \rc{Z(\te)}\prod_i \exp(b_iv_i)\prod_j \pa{1+\exp\pa{a_j + \sum_i W_{ij}v_i}}
+$$
+Topics government, corruption, and mafia gives high probability to ``Silvio Berlusconi''. This is very different from mixture-based models, where you choose a component and generate a particular word from that component. 
+
+Deep belief networks: these are older models, 2005. They gave rise to many deep learning models. 
+%way of inferring states of hidden variables. 
+The model is a hybrid model, undirected graphical model at top with directed model going down (sigmoid belief network). This is because of a specific training procedure.
+%Ex. for images, low-level features are edges, higher-
+
+$$\Pj(v,h^1,h^2,h^3) = \Pj(v|h^1)\Pj(h^1|h^2)\Pj(h^2,h^3).$$
+This model is a map; proper inference is very hard. 
+There is an approximate inference network, some NN model that infers the parameters/hidden states, approximation to posterior. 
+
+DBN layer-wise training: 
+\begin{itemize}
+\item
+learn RBM with input layer $v$ and hidden layer $h$>
+\item
+Treat inferred values $Q(h^1|v) = P(h^1|v)$ as the data for training 2nd layer RBM.
+\end{itemize}
+1-layer RBM with $W_1$ is equivalent to 2-layer DBN with $W_2=W_1^T$ undirected on top.
+Greedy training improves the variational lower bound.
+For any approximating distribution $Q(h^1|v)$, we can lower bound with variational bou
+$$\log P_\te(v) \ge \sum_{h^1} Q(h^1|v) \ba{\log P(h^1) + \log P(v|h^1)} + H(Q(h^1|v)).$$
+Training 2nd layer RBM improves the term in brackets.
+
+Convolution extensions of DBN: the first layer is learning edges; 2nd layer pick up parts; 3rd layers pick up faces.
+
+Message: original paper on DBN: justification for variational inference is nice. Adding additional layers is solving an optimization problem.
+
+Comparison: DBN  has an interesting structure: undirected followed by sigmoid belief networks. DBM  (Deep Boltzmann machine) is an undirected graphical model.
+
+In DBM, to compute the value of a given variable, we need to take into account variables both above and below; it's not just feedforwards, so we need some approximate inference. (For DBN, inference is feedforward.)
+$$
+\rc{Z(\te)} \sum_{h^1,h^2,h^3} \exp\ba{v^TW^1h^1 + h^{1T} W^2 h^2 + h^{2T} W^3 h^{3}}
+$$
+By making your model more expressive, inference becomes more difficult.
+$\Pj_\te(h^1|v)$ is intractable; it doesn't factor. 
+
+The first term tries to put probability around observed data, $\E_{P_{data}} [vh^{1T}]$. The second term $\E_{P_\te}[vh^{1T}]$ makes sure there is little mass at other locations. 
+$$\pdd{\ln P_\te (v)}{W^1}= \E_{P_{data}} [vh^{1T}]-\E_{P_\te}[vh^{1T}].$$
+Use variational inference for first term, stochastic (MCMC) approximation to estimate the second term.
+
+Many previous approaches were not successful for learning general Boltzmann machines with hidden variables.
+
+First we need to infer the distribution over hidden variables.  I can simulate from the model and see what's being produced, $P_{model} (h,v) $ gives data-independent $EE_{P_{model}}[vh^T]$. 
+From approximate conditional $P_{data}(h|v)$, try to fit data-dependent $\EE_{P_{data}}[vh^T]$ to this.
+%contain single mode, couple of modes.
+%2 alternative explanation, modes in the posterior.
+
+In general, you expect the posterior to be unimodal. This suggests that for posterior inference use mean-field theory (variational inference). For model simulation, use MCMC (stochastic approximation).
+%unimodal towards end or entire.
+
+Define a Markov chain by updating $\te_t,x_t$ sequentially where $x=\{v,h^1,h^2\}$.
+\begin{itemize}
+\item
+ Generate $x_t \sim T_{\te_t}(x_t\leftarrow x_{t-1})$ by simulating from Markov chain leaving $P_{\te_t}$ invariant.
+ \item
+ Update $\te_t$ by replacing intractable $\EE_{P_{\te_t}}[vh^T]$ with point estimate $[v_th_t^T]$.
+\end{itemize}•
+ (Younes, Probability Theory 1989, Robbins Munro 1957.)
+In practice simulate  Markov chains in parallel.
+
+The update rule decomposes into the true gradient and the perturbation term
+$$
+\te_{t+1}=
+\te_t+\al_t\pa{\EE_{P_{data}} [vh^T] - \EE_{P_{\te_t}} [vh^T]} + \al_t \pa{\EE_{P_{\te_t}} - \rc M \sum_{m=1}^T v_t^{(m)}h_t^{(m)T}}.
+$$
+But we don't get an unbiased estimator, because the Markov chain could mix very slowly.
+As learning rate goes to 0 at a rate slower than mixing of the Markov Chain, we're ok.
+There are no known bounds on mixing.
+
+%just asymptotics.
+
+%Going from one mode to another is hard.
+%explore exponential state more efficiently.
+For high-dimensional data the probability landscape is highly multimodal. But the transition operator can be any valid transitoin operator: we can construct other Markov chains that jump between modes. There are connections to stochastic approximation and adaptive MCMC.
+
+Suppose we try to approximate $P_\te(h|v)$ with simpler tractable distribution $Q_\mu(h|v)$. Write
+\begin{align}
+\ln P_\te(v)& = \ln \sum_h P_\te(h,v) \\
+&\ge \sum_h Q_\mu(h|v) \ln \fc{P_\te(h,v)}{Q_\mu(h|v)}\\
+&=\sum_h Q_\mu(h|v)\ub{ \ln P_\te^*(h,v) }{v^TW^1h^1 + h^{1T}W^2h_2 + h^{2T}W^3 h_3}- \ln Z(\te) + \sum_h Q_\mu(h|v) \ln \rc{Q_\mu(h|v)}.
+\end{align}
+The partition function is constant here. 
+This is a variational lower bound.
+$$
+=\ln P_\te(v) - KL (Q_\mu(h|v)||P_\te(h|v)).
+$$
+Mean field: choose a fully factorized distribution $Q_\mu(h|v) = \prodo jF q(h_j|v)$ with $q(h_j=1|v) = \mu_j$. Variational inference: maximize the lower bound wrt variational parameters $\mu$.
+%nonlinear fixe point equations
+%gibbs smapler without sampling.
+
+If posterior multimodal, select 1 model.
+
+Mean-field gives fast inference, and learning can scale to millions of examples.
+%We get almost sure convergence guarantees to asymptotically stable point.
+
+%you can memorize 1500
+%Does this work?
+
+Compare real with generated characters. Generated characters are not as precise.
+Diversity in real data is higher. (Exploration of exponential space: Markov chain can't explore all of space.)
+%description concise compared to what is needed to memorize? No. In principle could memorize.
+
+One of the biggest problems is that there's little quantitative evaluation.
+
+These generative models can be used for classification.
+You can do pattern completion.
+
+Is there a proper way to evaluate generative models? Yes.
+
+We can model multimodel data. The space of text is sparse, discrete, while images are real-valued, dense. 
+We have noisy and missing data. Boltzmann machine models give good text (samples from conditional distribution).
+
+We make a multimodel DBM: bring image and text to some level and model together. Information from words can influence low-level features in images and vice versa.
+
+Failure: crane becomes Obama. The image dataset has lots of Obama pictures, but not animals. Prior takes over because the posterior is too weak.
+
+Instantiate hidden states randomly. There are multiple alternative explanations. This can be useful. Instead of just tagging, get whole distribution of alternative explanations. (Alternative facts!)
+
+%can actually use camer...
+
+There are 25k labeled examples and 1 million unlabeled which helps.
+%train systemcompletely unsupervised
+
+Another class of models is Helmholtz machines/variational autoencoders (VAE). They made a big comeback in the past few years and are popular now because there is a trick that makes them much faster to train.
+
+Helmholtz machines are directed models. 
+The generative process is forwards $\Pj(h^2|h^3),\Pj(h^1|h^2), \Pj(x|h^1)$---sampling and probability evaluation is tractable for each  $p(h^l|h^{l+1})$.
+Approximate inference going to the other way is harder.
+
+%%VAE
+%%We have to make sure 
+%%gaussian, multiple layers and whatever.
+%VAE defines generative process through cascade of hidden stochastic layers. 
+%%They have to be gaussians.
+% Sample $h^2$, from Gaussian or uniform. Go through nonlinearity, get to stochastic layer, then generate the data. Sample from prior, generate data. 
+
+There are 2 terms
+$$
+\ln p(x) = \ln \EE_{q(h|x)}\ba{\fc{p(x,h)}{q(h|x)}}\ge \EE_{q(h|x)} \ba{\ln \fc{p(x,h)}{q(h|x)}} = L(x).
+$$
+How do you optimize in terms of $p,q$? $q$ is the recognition network. 
+
+Assume recognition distribution is Gaussian.
+$$
+q(h^l|h^{l-1},\te) = N(\mu(h^{l-1},\te), \Si(h^{l-1},\te)).
+$$
+We can express this in terms of auxiliary variable
+%\begin{align}
+%\ep^l &\sim N(0,I)\\
+%h^l(\ep^l , h^{l-1},\te) & = \Si(h^{l-1},\te
+%\end{align}•
+Recognition distribution can be expressed in terms of determinisitc mapping.
+
+How do we compute the gradient? Reparametrize in terms of $\ep$.
+\begin{align}
+\nb_\te \E_{h\sim q(h|x,\te)} \ba{\ln \pf{p(x,h|\te)}{q(h|x,\te)}}\\
+&=\nb_\te \EE_{\ep^1,\ldots \ep^L\sim N(0,I)} \ba{\ln \fc{p(x,h(\ep,x,\te)|\te)}{q(h(\ep,x,\te)|x,\te)}}\\
+&=\EE_{\ep^1,\ldots \ep^L\sim N(0,I)} \ba{\nb_\te \ln \fc{p(x,h(\ep,x,\te)|\te)}{q(h(\ep,x,\te)|x,\te)}}.
+\end{align}
+Here $h$ is a deterministic neural net for fixed $\ep$.
+
+Instead of comupting mean first, compute gradient and then mean. We can backpropagate through whole system, through the latent variables! Sample once and backpropagate. Break the system to stochastic and deterministic parts.  Instead of single sample, you can draw multiple samples. We can improve VAE by using a importance weighting of log-likelihood $w_i=p(x,h_i)/q(h_i|x)$. %is the imporance sampling weights $w_i$.
+$$
+L_k (x) = \E_{h\sim q(h|x)} \ba{\ln \rc k \sumo ik p(x,h_i)/q(h_i|x)} \le \ln p(x).
+$$
+$q$ is usually a product distribution.
+
+Entropy term makes sure you spread things out.
+%encoder decoder
+
+Autoencoders are not generative model. These are truly generative models.
+
+Using more samples can only improve tightness of the bound. For all $k$,the lower bounds satisfy
+$$
+\ln p(x) \ge L_{k+1}(x) \ge L_k(x).
+$$
+%if pdd converge
+%how accurate vs. how fast
+%how fast matters a lot.
+%1 samples for 10 examples bada, like fighting against SGD.
+
+Compute gradients using reparameterization trick.
+
+The MC estimate of gradient both use $\nb_\te w(x,h(\ep_i,x,\te),\te)$, but we average differently. %
+some will be better, put more weight on them.
+
+Can we generate images from natural language descriptions? ``Stop sign flying in blue skies.''
+There is a generative model and an inference model. ``A toilet seat sits open in the grass field.''
+%what the heck is this?
+%Bloomberg News: 
+
+\subsection{Generative adversarial ntework}
+
+There is no explicit definition of density for $p(x)$. 
+They work remarkably well.
+
+Set up a game between 2 players, discriminator $D$ and generator $G$. The discriminator $D$ tries to discriminate between a sample from the data distribution and a sample from the generator $G$. 
+
+Given $x$ sampled from data, $D$ tries to output 1, meaning that it came from the data. %The generator tries  to output $x$. Pass it through the discriminator, the di
+The discriminator tries to output 0 for data generated from the generator (fake data). The generator tries to get the discriminator to output 1.
+
+$$
+\min_G\max_D V(D,G) = \EE_{x\sim p_{data}(x)} [\ln D(x)] + \EE_{z\sim p_x(z)} [\ln (1-D(G(z))].
+$$
+The generator pushes down, the discriminator pushes up. The discriminator tries to classify data as being real, and generator samples as being fake. The optimal strategy for discriminator is
+$$
+D(x) = \fc{p_{data}(x)}{p_{data}(x) + p_{model}(x)}.
+$$
+DCGAN combines with convolutional network.
+\subsection{Model evaluation}
+Ex. Bedrooms, CIFAR. Is the model just memorizing the samples, or is it generating these images? 
+
+It's hard to define distance in pixel space. There's an open question of how to evaluate these models.
+
+%ahbadi.
+It does generate something different from the training set.
+What's the objective of this generative model?
+
+%What happens if the random seeds are very correlated, and you give it new random seeds?
+People have looked at conditional simulations: conditioning on a sketch can you generate a real image? conditioning on a sketch it hasn't seen before, can it generate a real image?
+
+%Graphical models have $P_\te(x) = \rc{Z(\te)} \exp(-E(x;\te)}$.
+For RBM, the partition function is intractable.
+%Bayesians raise hands both times.
+
+Model A: Pick a training example at random and display it. But this doesn't generalize. 
+Mixture of Bernoullis has test log probability $-138$nats/digit; RBM is 50 higher.
+
+Suppose two distributions defined on $X$ have probability distribution $p_i(x) = f_i(x)/Z_0$, and $p_t(x) = f_t(x) /Z_t$.
+We can get unbiased estimate using MC approximation (Under mild condition on support)
+$Z_t\approx \rc M\sumo mM\fc{f_t(x^m)}{p_i(x^m)}.$
+But the variance is high.
+
+Annealed importance sampling (AIS): consider a sequence of intermediate distributions $p_0,p_1,\ldots, p_K$ with $p_0=p_i$ and $p_K=t$. One way is to use geometric averages $p_\be(x) = f_i(x)^{1-\be} f_t(x)^\be$. We need to define transition operator $T_k(x'|x)$ that leaves $p_k$ invariant, like Gibbs sampling; this is easy to implement.
+%As you increase $\be$, interesting phase transition
+%Estimate partition function.
+%Define on extended state space.
+
+Importance sampling between adjacent distribution. Break into pieces and estimate each piece separately.
+
+AIS provides an unbiased estimator $\E[\wh Z_t] = Z_t$. But we are interested in estimating $\ln Z_t$.
+By Jensen's inequality $\E[\ln \wh Z_t] \le \ln Z_t$. By Markov's ineq it is very unikely to overestimate $\ln Z_t$. But underestimating $\ln Z_t$ overestimates $$\ln p(x) = \ln f(x) -\ln Z_t.$$ Failing to estimate $\ln Z$ gets misleadingly good log probability estimates.
+
+Upper bounds for general graphical models are difficult. 
+
+Run Markov chain for $T=1000$ steps and assume that's the equilibrium distribution.
+Forget about graphical model: unroll the RBM as a deep generative model. %Using an infinite number of layers $P_{gen}(v) = P_{RBM}(v)$.
+
+Let $x=\{v,h\}$, $v$ observed, $h$ hidden. %Define generative process $p_f(x_0
+%As $K\to \iy$, $P_{ann}(x)$
+Reverse AIS estimator: Generative model $p_f(x_{0:K}) = p_0(x_0)\prodo kK T_k(x_k|x_{k-1}).$
+$\E_{q_{rev}}[v]$ will be an underestimate.
+
+ Use reverse chain as proposal: $q_r(x_{0:K-1}, h_K|v_t) = p_t(h_K|v_t)\prodo kK \wt T_k (x_{k-1}|x_k).$
+ 
+%average test set 
+%nats based on logs
+The higher the average test set $\ln p$ the better (cf. compression). There is a gap between AIS and RAISE; they give higher and lower bound on the log probabilities. The more intermediate distributions we use the smaller the gap.
+Sometimes we can get tight bounds. 
+%start with data do reverse annealing.
+%hard to evaluate, not how you use method for real. proxies on top of proxies.
+
+% You cannot use models for compression
+
+%use approximation to model, RAISE conservative.
+%performance on task never doing.?
+%no: generalize. Is it independent?
+%my estimate of test log probabilities good enough.
+%better compression than someone else's.
+
+%When we have consistency, we 
+
+Decoder-based model transform sample from simple distribution to data manifold, $p(x,z) = p(x|z)p(z)$ where $p(x|z)$ is calculated by deterministic neural network. AIS can be used to properly evaluate decoder-based models. 
+
+%complexity measure: good in perplexity, then good. Is that clear? Is that a good measure? Maybe not, but I don't know any other good measures that say whether the model is overfitting. 
+
+Ex. if model says horse on a table is somewhat probable (though less probably than just horse), then it generalizes.
+
+%don't overfit according to perplexity.
+%Gap between training and validation.
+I want, when I show a test example the model has never seen. I want the model to believe it's a realistic example.
+
+If I can generate new examples  from specific class that I can add to my dataset to improve classification, that's good. This algorithm would be improving something else. It's hard to argue against this measure! To some extent it's been used, but it's not well developed yet.
+RL use generative models to generate possible futures. %It's hard to evaluate! There's always the issue of whether you're memorizing training samples or generalizing.
+
+
+Open problems include unsupervised/transfer/one-shot learning; reasoning, attention and memory; natural language understanding; deep RL.
+
+\subsubsection{Natural language}
+Sequence-to-sequence models. Skip-thought model: predict next and previous sentence.  Inductive bias: if surrounding  contexts look the same, sentences should be identical.
+%Force the model to say: if surrounding context is similar.
+
+%$$
+%\sum_t \ln P(w_{i+1^t | w_{i+1}^t
+%$$
+
+You can get good results on tasks like semantic relatedness (SemEval). %10 people give relatedness.
+
+Best published models use linguistic knowledge. Our model which just looks at a lot of books gets close.
+
+Neural storytelling: generate sentences based on the image.
+Train on 7000 romantic models.
+
+The syntax looks good. Semantically you make mistake. There is inconsistence (sunrise, sunset). How can you generate coherent pieces of text? Even harder is to evaluate.
+
+%trigrams far worse.
+%different authors with different phrasing
+%kiros NIPS 2015
+
+%speeches of trump.
+
+Reading comprehension goes beyond standard classification of documents. 
+``Who did what'' dataset.  Machines get $60\%$ accuracy, people get $95-97\%$. Some better datasets were by Mechanical Turk, like SQuAD. 
+Bidirectional RNN. Multi-hop architecture: for every word, define relationship. Most systems are based on pattern-matching. How do well words in query match words in the document? If there is a match, pass to the next level.
+
+There are many models. How do you search?
+Questions that require looking at multiple places are much harder.
+
+\subsubsection{RL}
+
+Can a single network play many games at once? Can we learn new games using knowledge from previous games?
+Ex. if there are things moving at you, shoot them.
+
+%unsupervised is the next big frontier.
