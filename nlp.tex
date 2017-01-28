@@ -1,0 +1,377 @@
+\section{Natural language understanding}
+
+Language is rich and interesting and makes us human. There are foundational language. We'll talk about language without worrying about what techniques we'll use.
+
+Turing was the first to think about the relationship of language to AI. He was concerned with: can machines think? He came up with the Turing test: if it can convince a human it's human it passes. The Turing test has been criticized but there are 3 important lessons.
+\begin{enumerate}
+\item
+It's an end-to-end approach: an evaluation that doesn't reference how the task is solved.
+\item
+It's an interactive test, which is more interesting.
+\item
+The end goal is AI---language is a mechanism he uses to assess intelligence.
+\end{enumerate}•
+Language is about meaning and understanding. I want to distinguish ``understanding'' from ``processing''.
+
+SHRDLU (1971): Terry Winograd build a system where a human can interact with a computer to move blocks around. The dialogue is quite complex in certain dimensions.
+
+It's unlike systems we have today which are specific in some sense.
+
+But these systems didn't scale up. One year later Terry Winograd thought natural language understanding was a dead end. It was a software engineering problem. Winograd had a flourishing career in human-computer interaction and gave up on this.
+
+The 1990's saw the statistical revolution. We have more computational power and data. Algorithms are parsing sentences on the internet. They changed the problem: dependency parsing (figure out parts of speech and relationships), word vectors.
+
+Here's a way to think about the field in broad terms: breadth vs. depth. SHRDLU is deep but only works in limited domains. Parsing has breadth but is not deep.
+
+There is opportunity for transfer of ideas between ML and NLP. There has been lots of interaction.
+\begin{itemize}
+\item
+mid-1970's: HMMs for speech recognition. HMM is an example of probabilistic models.
+\item
+early 2000's: conditional random fields for part-of-speech tagging. This led to structured prediction: don't predict a single label but entire structure.
+\item
+mid 2010's: attention-based sequence-to-sequence models for machine translation. People developed recurrent neural networks with memory in response to more challenging questions like machine translation.
+\end{itemize}
+
+What is the right way to think about natural language understanding?
+
+\subsection{Properties of language}
+
+I'll first deep-dive into properties of language. We all speak it but don't always think about it outside language. I'll go through several paradigms people use to think about language.
+
+Levels of linguistic analyses are:
+\begin{itemize}
+\item
+syntax: what is grammatical. No compiler errors
+\item
+semantics: what does it mean? No implementation bugs
+\item
+pragmatic: what does it do?
+Implement the right algorithm.
+\end{itemize}
+
+The basic unit is a word, ex. light. There are multi-word expressions with meaning beyond word, behaving like word, ex. light bulb. There is morphology: meaning unit within word: lighten, lightening, relight.
+
+Polysemy: one word has multiple meanings (word senses).
+
+Synonymy: Different words can have the same meaning. Sentences can have the same meaning.
+
+Think about distance metric, similarity.
+
+Hyponymy (is-a), meronomy (has-a). This is useful for entailment.
+
+Compositional semantics has two ideas which often get conflated.
+\begin{enumerate}
+\item
+Model theory: sentences refer to the world, ``block 2 is blue''.
+\item
+Compositionality: The meaning of whole is meaning of parts.
+``The [block left of the red block] is blue.''
+\end{enumerate}
+
+Why is language difficult?
+\begin{itemize}
+\item
+Universal and existential quantification: Every, some.
+\item
+There is quantifier scope ambiguity: Every non-blue block is next to some blue block. 
+
+Some theorem statements have this property...
+
+\item
+Modality: Block 2 must be blue. Block 1 could be red. 
+\item
+Luis believes Superman is a hero doesn't mean Lois believes Clark Kent is a hero. You can't substitute in belief.
+\item
+Pragmatics: There is meaning that is not literal meaning.
+\begin{itemize}
+\item
+Conversational implicature: new material suggested (not logically implied) by sentence.
+
+What on earth has happened to the raost beef? The dog is looking very happy.
+
+All the non-logical stuff is sometimes said to be in the ``pragmatic wastebasket''.
+\item
+Presupposition: background assumption independent of truth of sentence. ``I have stopped eating meat'' has the presupposition ``I once was eating meat''. 
+ (An alternative is to define ``stop'' by saying you can logically stop doing something if you were once doing it.)
+
+Persuasive people know this and use this for traps.
+\end{itemize}•
+\end{itemize}
+%Imagine reading statements of theorem. You wonder what they're trying to say.
+
+%Words denote some proper
+Semantics is what does it mean literally? Pragmatics is what is the speaker really conveying? There is not a strong line. 
+
+Grice (1975) stated the principle that language is cooperative game between speaker and listener.
+
+Implicatures and presuppositions depend on people and  context and involves soft inference. There are machine learning opportunities here! Statistical tools are much better for this than logical tools.
+
+What makes things hard? Probability is a currency to measure uncertainty.
+\begin{itemize}
+\item
+Vagueness: speaker does not specify full information. ``I had a late lunch.''
+\item
+Ambiguity: more than one possible (precise) interpretations:
+``One morning I shot an elephant in my pajamas. How he got in my pajamas, I don't know.'' --Groucho Marx
+\item
+Uncertainty: The witness was being contumacious. (What does ``contumacious'' mean?)
+\end{itemize}•
+
+SO far we've talked about analyses, lexical semantics, compositional semantics, and challenges. Sometimes language is crisp; sometimes it's loose in all kinds of ways.
+
+%sometimes we say things that are ambiguous. To human it's not ambiguous.
+Models don't have the same access to the tools humans have to disambiguate. Humans have context; models are impoverished.
+
+We give 3 ways to model semantics.
+
+%understand sentence in terms of parts
+\subsection{Distributional semantics}
+
+The new design has ? lines. Lety's try to keep the kitchen ?. CLEAN. 
+
+Observation: context can tell us a lot of word meaning. The context is the local window around a word occurrence (for now).
+
+Distributional hypothesis: Semantically similar words occur in similar contexts (Harris 1954). You shall know a world by the companty it keeps (Firth 1957). Contrast with Chomsky's generative grammar (lots of hidden prior structure and no data). This is a ML (data) friendly viewpoint.
+
+The general recipe is:
+\begin{enumerate}
+\item
+Form a word-context matrix of counts (data)
+\item
+Perform dimensionality reduction (generalize). Get word vectors $\te_w\in \R^d$.
+\end{enumerate}
+For latent semantic analysis do SVD: $N\approx \Te S V^T$.
+
+Skip-gram model with negative sampling (word2vec). The context is words in a window. Do logistic regression with SGD, predict good $(w,c)$ using logistic regression
+$$
+\Pj(g=1|w,c) = (1+\exp(\te_w\cdot \be_c))^{-1}.
+$$
+Positives are $(w,c)$ from data, and negatives are $(w,c')$ for irrelevant $c'$ (Use $k$ times more negative data).
+
+There are many other ways to do this. Any type of dimensionality reduction gives something similar.
+You can make a lot of nice plots (ex. 2d visualization of word vectors). Structure emerges; ex. country names are together, pronouns, days of week... It learns some structure. Words that occur in similar contexts are put close by.
+
+What's missing? Does this give you synonyms? Two words are similar if they occur in the same context. ``Cherish'' is close to adore, love, admire, embrace, rejoice. Tiger is close to leopard (not a synonym), etc. Good is close to bad (antonym). There are many notions all jumbled up. 
+
+Suppose Barack Obama always appears together, a collocation. %donald trump
+Using Global context (document-level), then $\te_{Barack} \approx \te_{Obama}$ because they occur in the same context.
+ Using local context (neighbors), the context is different, so they are different.
+ 
+ With the premise that semantics is context, use the recipe: form word-context matrix and use dimensionality reduction. This is data-friendly, and not to be underestimated, it captures nuance.
+ 
+But what is the context? There is no such thing as pure unsupervised learning; representation depends on choice of context. Language is not just text in isolation; context should include world/environment.
+
+Example.
+\begin{itemize}
+\item
+Cynthia sold the bike for \$200.
+\item
+The bike sold for \$200.
+\end{itemize}•
+Cynthia and the bike appear in the same context but not in the same way.
+\subsection{Frame semantics}
+
+Distributional semantics is monolithic, no internal structure on word vectors. 
+
+Frame semantics: meaning is given by a frame, a stereotypical situation. For example, ``sell'' brings to mind a commercial transaction: seller, buyer, price.
+
+Two properties of frames:
+\begin{itemize}
+\item
+prototypical: We don't need to handle all the cases.
+
+For example, frame of ``widow'': woman marries one man, man dies. What if woman has 3 husbands, 2 died?
+\item
+Profiling: highlight one aspect: sell is seller-centric, buy is buyer-centric. Rob highlights person, steal highlighs good.
+\end{itemize}•
+
+Linguistics: case grammar (Fillmore 1968). AI: frames (Minsky).
+
+There are many ways of evoking the frame. Just because Cynthia is a subject of ``sold'' and the biks is a subject of ``sold'' doesn't mean they go in the frame the same way.
+
+The task is semantic role labeling; you can come up with ML algorithms.
+Given a sequence of words (inputs), do
+\begin{enumerate}
+\item
+frame identification (predicate)
+\item
+argument identification (seller, goods)
+\end{enumerate}•
+Frames are usually verbs but can also be prepositions and nouns.
+
+AMR (abstract meaning representation): More recent (the last 4 years) people thought of a more ambitious representation, normalizes ``Cynthia'' and ``she'' are the same thing. ``The boy wants to go to New York City'' becomes a graph of relationships. Visit, want are frames. This is an interesting structure prediction problem: given a sentence, create a graph. 
+
+Frames are a stereotypical situations that provide rich structure for understanding. %chunking.
+%Semantic role le
+
+
+Are frames normally done by hand? The construction of what frames and arguments are has always done by hand. How map sentences to frames? Automatically. It's more difficult to learn frames and arguments automatically.
+
+
+Both distributional semantics (DS) and frame semantics (FS) involve compression/abstraction. Frame semantics exposes more structure and are more tied to an external world, but require more supervision. They are less pure from a data perspective.
+
+Cynthia went to the bike shop yesterday. Cynthia bought the cheapest bike. 
+Frames don't tell you that yesterday means ``1/26'' and ``cheapest'' means lowest price.
+
+Can frames provide a better notion of context for distributional semantics? They can provide a better prior. This is what I am looking for. They are an $n$-ary relation, like a tensor, whereas word2vec is bilexical.
+
+%Frenchman Jac Lacant
+Every utterance we form carries with it the whole history of humankind so it's incredibly complex? Frames do not capture all the meaning. There's no substitute for the whole sentence plus its entire context. Context that's kept needs to be sufficiently rich. DS give you a bit more information, it's looking at all the data.
+
+\subsection{Model-theoretical semantics}
+
+This is the richest, heaviest.
+
+Every non-blue block is next to some blue block.
+
+Distribution says block is like brick, some is like every
+
+Frame semantics: is next to has two arguments, block and block.
+
+Model-theoretic: gives the two interpretations.
+
+Executable semantic parsing: think of sentences as mapping to computer programs. For example: what is the largest city in Europe by population. Semantic parsing gives: 
+$$\text{argmax(Cities $\cap$ contained by(Europe, Population))}$$
+which executes to Istanbul.
+You need a database. Understanding the question is not enough.
+
+%Parsing thinks about the meaning in terms of executable program.
+
+``Remind me to buy milk'', etc. 
+
+In executable semantic parsing: A sentence, semantically parsed gives program, executed gives behavior.
+
+(We restrict to a subset of language which is more logical. We'll talk about ways to rescue this later.)
+
+There's a lot of work which comes out of semantic parsing tradition.
+
+How do we go from sentences to logical forms? cities in Europe to Cities$\cap$ContainedBy(Europe). The meaning should be constructed compositionally.
+This is almost like a parse tree. ``In Europe'' becomes ``ContainedBy(Europe)''. 
+
+This is your textbook example. Even for this example, there are so many ways to phrase it: cities in Europe, European cities, cities that are in Europe...
+
+There are many solutions; I'll skip ahead to something recent.
+
+We can use deep learning for neural semantic parsing (Jia, Liang 2016). Run the RNN and output pieces of logical form. From linguistic POV this is insane, not modeling compositional structure, but it's not bad. 
+
+We learn semantic composition without predefined grammar. We've blown away inductive biases, but can put them back through data recombination. 
+
+What's the capital of Germany? CapitalOf(Germany). What countries border France? Borders(France). If we swap France, Germany, the questions make sense. Throw these in the training set too.
+
+%To train neural networks, you have to create the semantic forms by hand. You can define simple rules that give you certain invariances that is easier than building the whole set of invariances.
+Summary: Idea is that language encodes computation, semantic parsing represents language as programs, and we can use RNN's plus semantic parsing.
+
+We connect the two worlds: distributional semantics tells you relatedness without meaning---it learns a good distance metric which is good for prediction task. 
+
+So far, if we had examples of sentences and logical forms/programs we can do lots of stuff. This doesn't scale up. We don't have to design rule-based system, but need an expert to write down these forms. 
+
+Can we learn from lighter supervision, just questions and answers? Ex. Mech turk can give this data without understanding logic and programming. The problem becomes harder because we don't observe the programs. 
+
+I'll give a sketch of how you can learn anyway. ``Where did Mozart tupress?'' Vienna. Let me generate hypotheses of logical forms, execute each, and scratch out the wrong ones. It could be PlaceOfDeath of PlaceOfMarriage. Going to another example, scratch out. Repeating, we get statistics about what's going on. ``PlaceOfDeath''.
+
+In practice, you have to search over thousands of logical forms until you get the right one. There are lots of things you can do: RL, dynamic programming. It's a hard search problem. It's RL with sparse rewards.
+
+One concrete example of semantic parsing is WikiTableQuestions. A database is a table from Wikipedia. ``In what city did Piotr's last 1st place finish occur?'' Bangkok. Look at position, look at 1sts, look at last, get place. It's a sequence of steps you need to compute the answer. This is different from many other different forms of question-answer. This is different from keyword matching, retrieval. This is trying to understand what's going on in the sentence.
+
+%This problem is apart from the meaning of the sentence. 
+You have to know ``venue'' is related to ``city''. 
+The more on work on these problems, the more I realize this isn't about the language at all.
+
+``How long is Percy's talk?'' LengthOf(PercyTalk). To answer this, you have to do something like Header(PercyTalk)[1] - Header(PercyTalk)[0]. 
+
+In some sense, these types of language understanding problems require more than understanding what the words mean but how to act to get the answer. Language understanding is a small fraction of what's necessary to understand a sentence, like $80\%$.
+
+Summary: The two main ideas model theory and compositionally are both about factorization and generalization.
+
+Semantic parsing factorizing understanding what the sentence means vs. knowing the facts.
+
+Learning from denotations is hard. When they work, these algorithms need to move from easier to harder examples. This is critical but we don't have a theoretical understanding.
+
+Semantic parsing works on short sentences (user to computer); distributional/frame semantics has broader coverage; how to bridge the gap? 
+
+What is the best way to produce answer from question? Logical forms are means to an end. Why not do end-to-end NN? (Neelakantan 2016) The jury is out; these things are difficult. %appealing: 
+When sentences don't permit crisp logical structure, NN may degrade more naturally.
+
+
+I'll shift gears.
+
+\subsection{Interactive learning}
+
+The starting point is Wittgenstein (1953): Language derives its meaning from use. 
+
+This has been hard to pin down. There's no unified way to think about this. Meaning is just a function of how it's used in practice.
+
+He came up with the idea of a language game. Language is a tool used by humans to get things done. It's about the communication between humans rather than staring at sentences. It's a different perspective.
+
+We designed SHRDLURN. A human sees the goal (transfer arrangement of blocks) and has language; the computer performs action but has no language. Only the computer can carry out the actions.
+
+The humans says something like: remove the red one.  The human gives feedback: this is what I meant. The computer makes an online update thereby increasing its language capabilities. The user makes progress toward goals. The goal is to transform starting to end state; language takes a supporting role to get this goal accomplished.
+Over time, you get to more complicated goals, ``Add brown to leftmost''. You can go through different stages. The goals get harder and you have to use more complex language.
+
+We did experiments on 100 players on Amazon mechanical Turk, 6 hours. We rank players by how good they are. The best players: some used English, some designed shorthand notation. The model doesn't come with any preconceived notion of what words mean. The humans can teach any language. Average players have less consistency between sentences which takes longer for the computer to learn, or numbers which the computer doesn't understand.
+In some sense there's no normative standard.
+One person used Polish; one person used Polish notation.
+For morphologically rich languages the system will struggle; we can change it to look at morphology.
+
+Suppose the model saw ``remove red'' means ``remove(hascolor(red))''. If we say ``remove cyan'' the naive model (any statistical model) would predict ``remove(hascolor(red))'' because that's the prior---last time it was ``remove(hascolor(red))''.
+
+The key intuition is mutual exclusivity idea. We didn't want to build this in directly; we use a general principle due to Brice. Language is used to achieve a common goal. The computer recurses on what the human means; the human thinks, what should I say so that when the computer hears it will interpret it as what I mean? 
+
+When we first applied this it didn't improve performance. Why should it? The hypothesis is that it's a collaborative game.  Pragmatics improve performance for top 10 players---pragmatics helps top (cooperative, rational) players. 
+
+Summary: the downstream goal drives language learning.
+%The learning aspect is much more fundamenal.
+Both the human and computer learn and adapt at the same time. (On static datasets if the computer was wrong, the dataset won't change. Talking to a real human being, the human will try to rephrase, try to change the input distribution. We usually think of adaptivity as adversarial; here the person is on your side.) Adaptation happens all the time: handwriting recognition, google searches... 
+
+This requires online learning with instance-level precision. You have to update in way that learn on example in one-shot way but doesn't forget what came before.
+%\url{shrdlurn.com
+
+%The human has the ability to give examples maximize
+	\subsection{Reflections}
+
+
+To summarize: 
+\begin{enumerate}
+\item
+Distributional semantics is broadly applicable and ML-friendly but produces monolithic representations.
+\item
+Frame semantics moves in the direction of structured representations but is not full representation of world.
+\item
+Model-theoretic semantics gives full word representation, rich semantics, and end-to-end, but is narrower in scope---we can't handle the complexity of all natural language.
+\end{enumerate}•
+There are many opportunities for synthesis!
+
+This is not the full story. There has been more interest in end-to-end tasks. People have been wroking on reading comprehension: given passage, answer question. SQuAD (100K examples), \url{http://stanford-qa.com}. Deep models get $82.2\%$ accuracy (MSR-A). It's interesting that the systems can do well on these tasks without explicit model of world.
+
+Another area is dialogue, a conversation between agents. This involves both understanding and generation. It involves understanding and generation. You have to talk back. This opens up interesting complications. When you're asked to talk, there's tons of things you can say; the space is open-ended.
+
+How do you actually evaluate this? It has to be interactive; you need a human-in-the-loop. Even if you're doing things on the dataset, you won't predict the exact words. 
+
+%appreciation 
+Takeaways:
+\begin{enumerate}
+\item
+Most of language understanding is about the world. It's not just about the words, but connection the words with what's going on in the world.
+\item
+Language is about communication, which is intrinsically interactive. Maybe the right way isn't to get large corpora, but assemble many environments where an algorithm can talk to people and learn.
+\end{enumerate}
+
+Broad open questions:
+\begin{enumerate}
+\item
+How to combine logical and distributional approaches? Language has both: you can use langauge to talk about math, or express emotions, feelings, poetry, the antithesis of logical. They fit together in one coherent system, most times you are in between.
+\item
+How to represent knowledge, context, memory?
+%just sentences is impoverished.
+Context is a large object; we don't know how to featurize it. If you give me the web I don't know how to represent it.
+\item
+How to create interactive learning environment? We want to give good supervision signal. %This unlocks a lot of different progress
+\end{enumerate}•
+
+Questions: 
+
+What are the NN computing? There are ways to inspect the hidden units. It's hard to point to a hidden unit and say ``it's representing plurals''. You can find cases where something represents something specifically but you can't do it generically. In broad strokes the representation of a sentence is like a canonicalization. Questions which are similar should get mapped into similar spaces. 
+
+
+
