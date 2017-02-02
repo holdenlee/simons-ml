@@ -1,0 +1,193 @@
+\section{Representation and unsupervised learning: Introduction (Sanjeev Arora)}
+
+I'll describe ways in which the current frameworks are not up to the task.
+
+In statistical learning theory, we observe examples $x_1,\ldots, x_n$ with corresponding labels $y_1,\ldots, y_n$. ERM is finding
+$$
+\amin_C \sumo in L_C(x_i,y_i) + R(C)
+$$
+where $L_C$ is the loss function. If $x_1,\ldots, x_n$ are iid distributed according to $D$ and $C$ comes from a class of ``low complexity'' (Rademacher, etc.) then the test loss is approximately the training loss.
+
+This framework doesn't explain many things about deep nets. The following are mysteries.
+\begin{enumerate}
+\item
+Generalization in deep nets. See Moritz, Recht \cite{zhang2016understanding}.\footnote{\url{https://arxiv.org/abs/1611.03530}} Take image data with \emph{random} labels. Training a neural net with sufficient capacity ($M$ nodes) achieves 0 training error. The neural net can fit even random labels.
+
+But neural nets trained with backprop still generalizes.
+%Rademacher complexity: signs of the loss functions random.
+%isn't random labels. Loss composed with function class.
+
+%Provable example of the perceptron has the same problem: margin is $\rc{\sqrt n}$ even with random training examples. But if margin is large it generalizes.
+%
+%Several things could explain.. Margin theory is one. Boosting over a function class can fit anything. Nearest neighbor classifier can fit anything.
+\item
+Unrelated classes seem to help. ImageNet has 1000 classes, each with 1000 examples. %You can train a classifier for car vs. truck.
+Knowing additional classes helps training for a specific class.
+\item
+Transfer learning. Train a deep net on images. The top 2 layers of the deep net has great features for many other visual task.
+%distinguish paintings from  fake - orthogonal
+%when would it help? negative results also helpful.
+\item
+Zero-shot learning: BM Lake, R Salakhutdinov, JB Tenenbaum \cite{lake2015human}.\footnote{\url{https://staff.fnwi.uva.nl/t.e.j.mensink/zsl2016/zslpubs/lake15science.pdf}}
+Train on data set with letters from 50 languages. Learn a new character. The program can learn well with one or two examples.
+
+%why can you do it?
+%how does their system do it?
+When you see a character, what does your mind do to remember it? Remember it as distinct strokes.  
+%hallucinate additional draws?
+%an alph
+%the system has a notion of stroke
+%70's. 
+
+In theory papers we ignore the distribution. The statistical learning theorem works for every distribution.
+%bound in terms of uniform deviations, find distributions which meet those bounds
+%we know cases where they are tight, what else can we do?
+%In a specific case, there is a specific distribt
+But the classifier is very related to the distribution.
+
+Regularization can incorporate a prior: this is one way to relate with Bayesian approaches.
+\item
+Domain adaptation: If the distributions are very different there are no guarantees. But the distributions can be different: we can train on ImageNet and use for X-ray classification.
+%some simple transformation from one distribution to another.
+%rademacher introduces to be more specific to distribution, but still forces you to randomize the labels. 
+
+The classifier is very related to the distribution. You can't think of choosing them independently. Clustering, classification with margin are examples. %Confluence of classifier and distribution. 
+We want a mroe sophisticated language.
+
+In text, we work with bag-of-words models. 
+\end{enumerate}
+
+Representation learning is finding a map from a data space (raw pixels, etc.) to a representation space, $x\mapsto h$. This could be a many-to-one map. 
+%neural net is a universal
+%brain is universal representation for what we're interested in.
+
+We need a language to talk about such maps. 
+
+We can use simple models like cluster models, mixtures of Gaussians. %There are a wealth of models.
+%It's not fashionable in COLT to talk about distributions.
+
+%what is a good definition of the representation we're shoting for.
+
+The Bayesian view has been to describe representation learning as distribution learning.The task of learning $h$ is finding the MLE for what generated $x$. Their notion of representation learning is distribution learning: minimize KL divergence. Why should KL divergence lead to good learning?
+
+We have a loglinear topic model with dynamics which comes up with a vector for each word. How to do this for fMRI data, or small corpora (100 documents, too small to do topic model)? Once you've understood how to understand meanings using Wikipedia, you can do a simple domain adaptation.
+%neuroscientists...
+
+%semantic content of movie, vector
+%50k
+We had fMRI data (50k dimensional vector every time step) of people watching a movie (Sherlock). The semantic content of the movie was replaced by human annotation every 5 seconds, 2000 in total. Now we correlate.
+%snapshot 
+
+Evaluation: Presented a 50k vector, given 5 annotations, choose the correct one.
+
+%if define task to be all possible linear classifier...
+%linear classification...
+
+If we want to classify according to any linear classifier; then we have to preserve all the bits. %We have to be lossy.
+The human has a semantic model to generate the text; there is a mapping from the semantic representation to the text; we try to find the reverse map.
+
+
+Some discussions:
+\begin{itemize}
+\item
+%segmentation problems: critique of clustering
+Example: Clustering should take into account the task: how they are going to be used. 
+%The clustering algorithm 
+%match, guidelines for how to pick a good clustering algorithm
+%Example: Imagine %price vs. demand is a straight line. 
+%customers are points in $(a,b)$-space. We want to cluster to target them. The optimal clustering are sectors. The task can affect the clustering profoundly. 
+Representations can be profoundly affect by what you want to do.
+%You can classify customers in
+In clustering there is the concrete task of matching the clustering algorithm with the task. Coming up with tools about how to pick the clustering algorithm is an important problem.
+
+%metropolis, backprop. It wasn't designed to make proof easy. Can you run on GPU.
+\item
+Early stopping in NN gives better generalization. This is more general than NN. Which algorithms have this property? 
+You can also do early stopping with gradient descent with kernel methods. In principle you can overfit but you do not.
+(Note: The surrogate might never reach 0, but the classification error can be 0.)
+
+%increase margin after reach 0.
+%if you minimize exp loss you hurt yourself or not.
+\item
+Can we phrase GANs as a problem rather than an algorithm?
+\item
+Neural networks act a little like our brain. This is fascinating. If you look at details in the brain, it's different. Are we functionally capturing what's happening?
+Once you have a good implemention, you can steal any brain. Ex. Train a neural net to repeat blood flow and use it as a feature.
+%russ, 
+\item
+Human-in-the-loop: Practitioners have a problem where they want to achieve human accuracy. If they fail to get training error to 0, make network bigger. Look at the generalization error on the validation set.
+%kick yourself less and less go deeper into test set.
+If that's too high, add regularization. Play with network structure, get more data, etc. 
+
+What algorithms would work well with human-in-the-loop?
+%Every time you realize you overfit, add more data. 
+
+For nonconvex problem, often human creativity is required to get good initialization. To prove anything nontrivial, initialization plays a role.
+
+See Curves dataset.
+\end{itemize}
+
+Some general topics:
+\begin{itemize}
+\item
+Nonconvex optimization
+\item
+Generalization vs. optimization for nonconvex models.
+\item
+Representation power of depth (measure other than number of nodes)
+%Different regularizers, group norm constraints
+\item Models for representations (GANs)
+\item Differentiable computing. (Real numbers, logic)
+\end{itemize}
+%Layer structure allow invariances to be more readily learned? More than convolutions?
+%optimization landscape
+%weight constraints
+%how help optimization get to where it neesd to be
+%Given a programming language, you can write programming lang
+Layers are like function calls; recurrent nets are loops. There are primitive operations which you can compose: loop operator, multiply, divide. 
+Kernel methods cannot represent these efficiently. 
+%old sontag papers. Rational coefficients: rational coefficients.
+%functions are non-Lipschitz.
+%surreal-value. Analog circuit. Fuzzy, approximate real numbers.
+%fewer than $\log\prc{\ep}$... translate into kernel statement.
+%approx rbf
+You get power by reusing computation.
+
+Many things you say about neural networks you can say about polynomials. Why don't people use polynomials in ML? 
+There are certain polys you can write as a neural network.
+
+%NN also work with rectilinear transfer functions (ReLU), partition functions.
+%depth separation result
+%represent sigmoid as ReLU's. They are piecewise affine functions.
+
+%Siegelman instruction
+
+%circuit complexity
+%reluctance: pessimistic. 
+%Fourier learning.
+%repurpose pseudorandom: membership queries. In PAC setting, only Fourier. distribution free... 
+%Fourier learning needs product  distribution
+%use machinery of cryptography, specific distribution.
+%vary distribution, maybe can impose complexity on distribution and avoid barriers. 
+%negative results aren't too bad.
+
+How to interpret ``Turing-complete'' in the context of NN? Have a read-write memory.  
+It can read things it wrote last time, write things for next time.
+
+%Bounded number of computation.
+
+%Jake: circuit complexity
+
+%leon bottou, kristos
+%GANs
+%neural net learns continuously. 
+%parts freeze
+%memory, coming back and relearning
+%sleeping: bayesian interpretation.
+%hard to
+
+
+%Jake: circuit complexity
+%GAN: Shai
+%Speeling NN's: Manfred, Walter
+

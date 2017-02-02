@@ -1,0 +1,29 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+%https://github.com/holdenlee/templates
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Representation learning}
+\chead{} 
+\rhead{Simons Institute, Spring 2017} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{representation.bib}
+
+\begin{document}
+\tableofcontents
+
+\input{2017-1-31.tex}
+%INSERT_HERE
+
+\printbibliography
+\end{document}

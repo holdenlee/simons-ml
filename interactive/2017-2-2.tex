@@ -1,0 +1,237 @@
+\section{Introduction (Sanjoy Dasgupta)}
+
+I'll talk about 5 areas which need foundational work.
+\begin{enumerate}
+\item
+Teaching
+\item
+Explanations and interpretations
+\item
+Unsupervised++
+\item
+Imitation
+\item
+Semantic communication
+\end{enumerate}•
+
+These areas all have one feature in common: Cooperation between agents of different types, that don't know each other's insides (ex. machine and human).
+\subsection{Teaching}
+
+There is a spectrum of types of examples: adversarial (in online learning), random (in statistical learning), benign (in teaching). Does sample complexity dramatically improve?
+People have converged upon a particular model that is influential but also broken.
+
+%IP
+What is the minimum set of labeled examples needed to uniquely identify the target concept? It's a kind of description dimension.
+% you need to give a student for the student
+This is in relation to a specific concept class $C$.  
+\begin{df}
+Let $C$ be a concept class and $h\in C$ be a target. $TD(h,C)$ is the smallest set of labeled instances for which $h$ is the only consistent concept in $C$.
+%normal
+\end{df}
+We can define $TD(C) = \max_h TD(h,C)$, or $\E_h TD(h,C)$. 
+
+This is geared towards finite concept classes.
+
+This is broken because of the following problems.
+\begin{enumerate}
+\item
+It assumes the teacher knows the representation of the learner and the learner's concept class. Examples are tuned to the concept class.
+\item
+The problem of selecting the teaching set can be NP-hard.
+\item
+%makes bad predictions of actual teaching behavior.
+The predictions it gives for ideal teaching sets are ridiculous, ex. cat that looks like dog and dog that looks like cat. In practice people select examples that are far apart (the canonical cat/dog).
+
+
+\item
+This only works for the realizable case.
+\end{enumerate}
+%teacher 
+%what representation adds on top of concept class.
+%What if they know the learner's representation but not the concept class? That's bad too.
+
+What to do? What are better teaching models?
+
+\begin{enumerate}
+\item
+Who is teaching who? Human/machine teaching human/machine? 
+\begin{enumerate}
+\item
+Human-human: education/cognitive science/childhood development
+\item 
+Human-machine:
+machine learning
+\item
+Machine-human: intelligent tutoring
+%human teach mach how to teach human
+%moocs
+\item
+Machine-machine: 
+
+cf. cotraining, two machines bootstrapping each other.
+
+GAN's teach each other to generate/discriminate (with opposite goals).
+\end{enumerate}
+%cats vs dogs
+%contrasting cats and dogs against every other concept.
+%get away that you have to run around the boundary?
+%typical cat/dog.
+%recalcitrant teaching dimension, combinatorics
+%sandra ...son
+\item
+Avoid assuming the teacher knows the learner's represntation and concept class.
+%
+\item
+Interactivity: The machine could ask questions.
+
+Any semi-realistic model would be interactive.
+\item
+Come up with models that gives far apart examples (Jerry Zhu).
+
+Ex. Let's say the learner does nearest neighbor. Suppose it is noisy nearest-neighbor. That pulls you apart.
+\item
+Curriculum learning and self-paced learning strategies.
+Hierarchical learning.
+Simple things are learned first; then you add things.
+\item Other kinds of tasks besides classification, ex. generative.
+\item Restrict to an interesting domain like language.
+\end{enumerate}
+%distribution: distinguish most dogs from most cats.
+%guy in the middle is half-cat, half-dog. Stronger version of feature.
+%agnostic
+%probabilistic labeling.
+
+The teacher does not have unbounded computation, but knows the concept and has a storehouse of examples gleaned from experience.  
+
+\subsection{Explanations and interpretations}
+
+Ex. more than just saying you like a movie, say that you like a specific actor.
+
+Ex. in computer vision % Christin UT Austin
+In addition to giving a label (ex. zebra, antelope), give one-word explanations (stripes, antlers). Learn classifiers for these intermediate features as well. This taps into a potentially infinite latent space.
+
+When feature space is high dimensional, this helps.
+
+\begin{enumerate}
+\item
+%collaborative modeling, mixture model
+Models of explanation-based learning.
+%implicit huge weighting space
+%computer vision: Christin UT Austin
+%In addition to giving a label, 
+
+What are the benefits of explanation-based learning.
+\item
+Interpretable classifiers (transparency in ML).
+
+Output a hypothesis that scientists can understand.
+
+Accompany predictions with explanations. ``Your loan was rejected because...''
+
+Decision trees used to do this automatically until people realized random forests do better.
+
+Use explanations to generate interpretable classifiers?
+%tree could be inscrutable but...
+%helpful if tell people why. Because your friends liked it on facebook. Lie. Helped a lot.
+
+Ex. sparse classifiers: give the support of which features you used.
+%not sparse enough.
+\end{enumerate}
+\subsection{Unsupervised learning++}
+
+Ex. topic modeling. Some are good, some are sliced/diced in various ways, some are garbage. Running the Gibbs sampler for longer doesn't solve the problem. This is ripe for interactive feedback of some type.
+%Topics need to be good.
+%topics corresp to recognizable categories, good.
+
+Sometimes you just literally need feedback; we want to quantify how much feedback is needed.
+
+What type of interaction is useful algorithmically and for the human?
+
+It could be relationships between data points, constraints based on features, etc. A practitioner would choose the algorithm and the form of interaction. %interaction choose the type of algorithm.
+
+%Semisupervised learning, active clustering...
+
+%coding tricks no semantic meaning, still 
+(Q: how to avoid tricks such as: To transmit finite automaton, grammar, write down grammar or automaton. Make an arbitrary convention of how to translate examples into a grammar.)
+%Consistent with data it's seen
+
+%segregation
+%google news: algorithm and human curation.
+
+\begin{enumerate}
+\item
+Improving unsupervised learning with interaction
+\begin{enumerate}
+\item
+Modes of interaction
+\item
+How much interaction?
+%what's a good feature?
+%monotone. convergence to target.
+
+Normally use Euclidean distance. What you want to use if people's subjective similarity scores?
+\end{enumerate}
+\item
+Generalization theory for unsupervised learning
+%complexity score. 
+%tishby?
+%manifold learning: convergence for eigenvectors of laplacian.
+\end{enumerate}
+``Unsupervised learning++=Supervised learning--'': %The only way to really 
+%unsupervised learning is lossy compression.
+Unsupervised learning is talked about a lot as lossy compression. Here, you don't have exactly the label you want, but have something that's associated with what you want.
+This is unsupervised++ because one can imagine this built on top of unsupervised learning algorithms.
+
+The only results I'm aware of are nonstatistical results: ex. for clustering points, query $n\ln n$ distances rather than $\binom n2$. %Usually $n$ does not come in the picture 
+There should not be any $n$ here at all, just $\ep$ and the distribution. 
+
+%clustering, embedding.
+%implicit way we're not recognizing?
+%loose supervision?
+%[only negative space]
+
+%metric learning: computational: how much supervision do you need. semisupervised. manifold learning unsupervised
+
+\subsection{Imitation learning (and teaching)}
+
+One or two decades we'll be telling our domestic robots ``this is how we like to make our coffee.''
+
+Imitation learning seems a tractable case of reinforcement learning.
+Imitation implicitly assumes a sequence of actions.
+
+%These are practical, concrete.
+
+It's not enough to explain why we did this; we have to explain things we don't want to do?
+Littman, NIPS had a formalization.
+
+\subsection{Semantic communication}
+
+\begin{enumerate}
+\item
+One paper was by Juba, Sudan, Goldreich.
+%Ex. communicate to printer. 
+%\item
+Ex. You don't know the language. What protocol can you execute? The answer is disappointing: try everything.
+\item
+Percy Liang: A computer is in charge of blocks. You want to move the blocks to a specific configuration by telling the computer what to do.
+
+Throw in 2 constraints: compositionality of language, pragmatics (different utterances probably mean different things).
+
+(Pragmatics is like dropout: it helps but is not crucial. There's other things going on, which NLP takes for granted but would be interesting for theorists: ex. loglinear model.)
+\end{enumerate}
+
+\subsection{Other topics}
+
+\begin{enumerate}
+\item
+Language learning and generation
+\item
+Crowdsourcing. Designing proper crowdsourcing experiments.
+How do we learn from weak teachers (Amazon Turkers) that make errors?
+
+See work by Nihar Shar, Kevin Jameson (Next, with Robert Nowak).
+
+\url{http://nextml.org/} 
+\end{enumerate}•
+
+

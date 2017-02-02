@@ -1,0 +1,104 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.8 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \sortlist[entry]{anyt/global/}
+    \entry{lake2015human}{article}{}
+      \name{author}{3}{}{%
+        {{hash=05fbe41b830e7b5d9ff02fbaf544ca95}{%
+           family={Lake},
+           familyi={L\bibinitperiod},
+           given={Brenden\bibnamedelima M},
+           giveni={B\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=bd2be300d445e9f6db7808f9533e66cb}{%
+           family={Salakhutdinov},
+           familyi={S\bibinitperiod},
+           given={Ruslan},
+           giveni={R\bibinitperiod}}}%
+        {{hash=acd3b70f49bfac9786f2299a2bfef478}{%
+           family={Tenenbaum},
+           familyi={T\bibinitperiod},
+           given={Joshua\bibnamedelima B},
+           giveni={J\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {American Association for the Advancement of Science}%
+      }
+      \strng{namehash}{19a312bd483ce3a6804a424bc739cb00}
+      \strng{fullhash}{19a312bd483ce3a6804a424bc739cb00}
+      \strng{authornamehash}{19a312bd483ce3a6804a424bc739cb00}
+      \strng{authorfullhash}{19a312bd483ce3a6804a424bc739cb00}
+      \field{labelalpha}{LST15}
+      \field{sortinit}{L}
+      \field{sortinithash}{7bba64db83423e3c29ad597f3b682cf3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Science}
+      \field{number}{6266}
+      \field{title}{Human-level concept learning through probabilistic program induction}
+      \field{volume}{350}
+      \field{year}{2015}
+      \field{pages}{1332\bibrangedash 1338}
+      \range{pages}{7}
+    \endentry
+    \entry{zhang2016understanding}{article}{}
+      \name{author}{5}{}{%
+        {{hash=02582b039d752b000c75f8d7d38a36f4}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Chiyuan},
+           giveni={C\bibinitperiod}}}%
+        {{hash=02404a92b0be3f52ec5ac08e41c13445}{%
+           family={Bengio},
+           familyi={B\bibinitperiod},
+           given={Samy},
+           giveni={S\bibinitperiod}}}%
+        {{hash=e771760b6d0d33f8b4dfd907d8d57ac2}{%
+           family={Hardt},
+           familyi={H\bibinitperiod},
+           given={Moritz},
+           giveni={M\bibinitperiod}}}%
+        {{hash=3503059e1c0c778913607c87d8c5173a}{%
+           family={Recht},
+           familyi={R\bibinitperiod},
+           given={Benjamin},
+           giveni={B\bibinitperiod}}}%
+        {{hash=494b568c5dc85ba8f3f409635f9c5f25}{%
+           family={Vinyals},
+           familyi={V\bibinitperiod},
+           given={Oriol},
+           giveni={O\bibinitperiod}}}%
+      }
+      \strng{namehash}{aefa5e3824e928a3f030ca71f5599336}
+      \strng{fullhash}{5f9fd616ce70a721a8ba93854c0c517e}
+      \strng{authornamehash}{aefa5e3824e928a3f030ca71f5599336}
+      \strng{authorfullhash}{5f9fd616ce70a721a8ba93854c0c517e}
+      \field{labelalpha}{Zha+16}
+      \field{sortinit}{Z}
+      \field{sortinithash}{35589aa085e881766b72503e53fd4c97}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:1611.03530}
+      \field{title}{Understanding deep learning requires rethinking generalization}
+      \field{year}{2016}
+    \endentry
+  \endsortlist
+\endrefsection
+\endinput
+
