@@ -1,15 +1,15 @@
 [0] Config.pm:354> INFO - This is Biber 2.7
 [0] Config.pm:357> INFO - Logfile is 'representation.blg'
 [42] biber-MSWIN32:303> INFO - === 
-[3449] Biber.pm:359> INFO - Reading 'representation.bcf'
-[3561] Biber.pm:835> INFO - Found 2 citekeys in bib section 0
-[3577] Biber.pm:3670> INFO - Processing section 0
-[3598] Biber.pm:3840> INFO - Looking for bibtex format file 'representation.bib' for section 0
-[3629] bibtex.pm:1435> INFO - Decoding LaTeX character macros into UTF-8
-[3634] bibtex.pm:1292> INFO - Found BibTeX data source 'representation.bib'
-[3652] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
-[3653] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
-[3653] Biber.pm:3499> INFO - Sorting list 'anyt/global/' of type 'entry' with scheme 'anyt' and locale 'en-US'
-[3653] Biber.pm:3505> INFO - No sort tailoring available for locale 'en-US'
-[3656] bbl.pm:608> INFO - Writing 'representation.bbl' with encoding 'ascii'
-[3657] bbl.pm:712> INFO - Output to representation.bbl
+[88] Biber.pm:359> INFO - Reading 'representation.bcf'
+[210] Biber.pm:835> INFO - Found 7 citekeys in bib section 0
+[227] Biber.pm:3670> INFO - Processing section 0
+[249] Biber.pm:3840> INFO - Looking for bibtex format file 'representation.bib' for section 0
+[256] bibtex.pm:1435> INFO - Decoding LaTeX character macros into UTF-8
+[264] bibtex.pm:1292> INFO - Found BibTeX data source 'representation.bib'
+[300] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[300] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[300] Biber.pm:3499> INFO - Sorting list 'anyt/global/' of type 'entry' with scheme 'anyt' and locale 'en-US'
+[300] Biber.pm:3505> INFO - No sort tailoring available for locale 'en-US'
+[309] bbl.pm:608> INFO - Writing 'representation.bbl' with encoding 'ascii'
+[312] bbl.pm:712> INFO - Output to representation.bbl

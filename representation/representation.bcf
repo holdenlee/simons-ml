@@ -2147,6 +2147,11 @@
   <bcf:section number="0">
     <bcf:citekey order="1">zhang2016understanding</bcf:citekey>
     <bcf:citekey order="2">lake2015human</bcf:citekey>
+    <bcf:citekey order="3">hornik1989multilayer</bcf:citekey>
+    <bcf:citekey order="4">cybenko1989approximation</bcf:citekey>
+    <bcf:citekey order="5">funahashi1989approximate</bcf:citekey>
+    <bcf:citekey order="6">eldan2015power</bcf:citekey>
+    <bcf:citekey order="7">rossman2015average</bcf:citekey>
   </bcf:section>
   <bcf:sortlist section="0" name="anyt/global/" type="entry" sortscheme="anyt" sortnamekeyscheme="global" labelprefix="">
   <bcf:sorting>

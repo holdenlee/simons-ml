@@ -1,0 +1,372 @@
+\section{Apocryphal Results, Recent Results, and Open Problems in Neural Network Representations, Matus Telgarsky (UIUC)}
+\footnote{We use ``Avi'' notation: 
+
+10 is a small constant.
+
+100 is big-Oh.
+
+1000 is big-Oh with scary constant.
+}
+
+\begin{itemize}
+\item
+Representation? If you use a certain class to represent your predictor, what are the benefits of that choice?
+\item
+Apocryphal/subspaces: Ancient results: subspaces can fit every function. Many people can state these results but are not comfortable with the proofs. Ex. Every continuous function can be approximated with polynomials. This can be used as a lemma to prove that a neural net with two layers can fit continuous functions.
+\item
+$k$ to $k^2$ via $\De$: There's always a benefit to adding more layers. We will see this by constructing a strange, pathological function. You can use this function to compute many polynomials, parity, etc.
+%``Can I fit this class of functions?'' This is a small part of ML.
+\item
+Applications of $\De$
+\item
+Algorithmic interlude: I'll comment about algorithmic question: how to determine whether you should add a $k+1$ layer. Even for polynomials this is hard.
+\item
+$k$ to $k+1$: Initially I thought this was the kind of technical problem that wastes the time of many people, but I don't even know the hard function looks like---my guesses have failed.
+ %I have no idea what NN look like.
+%Ohad: dissected my proof.
+\item
+Rational functions: are also approximable.
+\item
+Recurrent networks: there's a trivial construction of a recurrent network that cannot be computed by a deep net, because you can have loops.
+
+Eduardo Sontag and Siegelmann: Turing-complete model. Empirical work has missed this. 
+\item
+Generalization (?)
+\item Two-layer NN
+\end{itemize}
+
+\footnote{
+Keep in mind:
+\begin{enumerate}
+\item
+View theory as leading the way, not just analyzing existing algorithms.
+\item
+We shouldn't lock ourselves in rooms.
+\end{enumerate}}
+
+\subsection{Representation}
+
+How can we represent our function class? 
+
+For example there are 3 ways to represent polynomials.
+\begin{enumerate}
+\item
+By degree
+$$
+\bigcup_{r\ge 1}\set{x\mapsto \sum_{|\al|\le r}c_\al x^\al}{c_\al \in \R^{\binom{r+d}r}}.
+$$
+\item
+By kernel
+$$
+\bigcup_{r\ge 1} \bigcup_{n\ge 1} \set{x\mapsto \sumo in c_i k_r(x,x_i)}{(x_i)_{i=1}^n \subeq \R^{nd}, c\in \R^d}
+$$
+where $k_r(x,z)$ is the inner product of $[1, x_1,\ldots, x_1^2, x_1x_2,\ldots, x_n^{r}]$ with $[1, z_1,\ldots]$.
+\item
+Sum-product network.
+\end{enumerate}
+%prior knowledge
+%how are representations different from complexity classes.
+There are different tradeoffs in ease of representability, generalization, etc. 
+
+What is the set of low-complexity polys? A sparse function in one representation can be dense in another.
+
+Things we want to prove: 
+\begin{enumerate}
+\item
+Equivalence: One representation can be approximated by another.
+\item
+Inequivalence: There are functions in one class that cannot be approximated by another. Depending on prior, one class really is better.
+%nonmath question which are best in practice
+\end{enumerate}•
+
+Compare and contrast programming languages and ML languages.
+\begin{itemize}
+\item
+In PL, we want human readable/writeable. In ML we want machine learnable human interpretable? (But neural nets are not human interpretable...)
+\item
+In PL we have (debugging) tools to diagnose errors.
+In ML we don't have this, but generalization theory.
+\item
+In PL we have Turing completeness. In ML we haven't looked at this.
+(This isn't just about function approximation---Turing-complete machine can take variable length input and time.)
+%need prior knowledge... if express anything...
+\end{itemize}•
+%whatever prior
+My conjecture on why NN are successful is because of representation: the things they represent are what we see in nature.
+
+%The glory of neural networks is recent.
+
+Challenge: Come up with a function class better than neural networks in some aspect that you can quantify.
+
+\subsection{Apocryphal/subspaces}
+
+\begin{thm}
+Let $RECT  = \{x\mapsto \one[x\in \prodo id [a_i,b_j]]\}$. Then
+$$
+\sup_{f:[0,1]^d\to \R, f\text{ continuous}} \inf_{g\in \spn(RECT)} \ve{f-g}_1=0.
+$$
+\end{thm}
+This implies ``boosted decision trees'' also suffice. (An indicator of a box is an intersection of halfspaces.) The size is $\pf{L}{\ep}^d$. (Good luck doing anything with this.) (Information-theoretically this is the bound; pack bits into a grid.)
+%intersect halfspaces
+
+%For Riemann integrable functions
+%We can also do $L^\iy$ norm.
+%3-layer NN.
+Instead of $g\in \spn(RECT)$, 
+\begin{itemize}
+\item
+Can take $g$ to be 3-layer neural nets. Such $g$ can compute functions in RECT.
+\item
+For $g$ polynomials, two proofs: 
+\begin{enumerate}
+\item
+use Bernstein polynomials. Control the $L^\iy$ norm: break into 2 cases, close to point and far from point. 
+
+Weierstrass's original proof: convolve with a Gaussian, look at Taylor approximation. $x\mapsto \E_{\tau\sim N(0,\si^2)} f(x+\tau)$ is analytic; it has Taylor expansion.
+\end{enumerate}•
+``Discrete-time vs. continuous-time diffusion.''
+\end{itemize}•
+
+There is a proof for 2-layer NN that reduces to polynomial approximation. See
+\begin{itemize}
+\item
+Hornik-Stinchcombe-White \cite{hornik1989multilayer}
+\item
+Cybenko \cite{cybenko1989approximation}
+\item
+Funahashi \cite{funahashi1989approximate}
+\end{itemize}•
+Reverse engineering the size estimate, I get $\pf{L}{\ep}^{2d}$.
+%UCSD
+
+I don't think this is a neural net theorem; this is a theorem about a linear subspace $x\mapsto \sum_i c_i\si(a_i^Tx+b_i)$.
+
+\subsection{Separation: $k$ to $k^2$ via $\De$}
+
+\begin{thm}
+\begin{itemize}
+\item
+For all $k\ge 1$, 
+\item
+there exists $f:[0,1]\to [0,1]$, $f$ has $10k^2$ layers, 2 nodes per layer, and
+\item
+for all $g:\R\to \R$, with $\le k$ layers, $\le 2^k$ nodes, 
+\end{itemize}
+$$
+\int_{[0,1]}|f(x)-g(x)|^2 \dx \ge \rc{100}.
+$$
+\end{thm}
+%This holds for all $k$.
+
+Why care about number of nodes?
+%\begin{itemize}
+%\item
+All the complexity measures in terms of generalization scale with number of nodes.
+VC dimension scales as number of layers times parameters.
+%though 
+%No gpu fits 2^k
+%f has Lipschitz constant $2^k$.
+%$f$ not an interesting function for ML. 
+%\item
+%\end{itemize}•
+
+This works for many classes of functions; we prove it with ReLU.
+The fact that I'm using the uniform measure is amazing. The ReLU allows me to use it.
+%this proof goes through with Lebesgue
+ If I make this statement for the sigmoid, I only know how to prove it with a special hand-crafted measure, and I approximate sigmoids with ReLUs.
+
+%shallow express many not deep network
+%completely symmetric
+%This is a question that 
+If we fix the complexity in the correct matter, each of $\{$shallow networks, deep networks$\}$ represents functions that can't be represented by the other.
+
+Open: Find a function easy to write down as a shallow network and is hard to represent by a deep net. You can express it with $d$ blowup in size; the claim is that factor is necessary. I have a candidate function I don't know how to show; it seems to be  a coding theory problem.
+
+\footnote{``It's what not what you teach, it's what they learn.''}
+\begin{proof}
+\step{1} Find the hard function.
+
+Observation: In a linear representation, the number of bumps is about the number of basis functions.
+
+Define the triangle function 
+$$
+\De(x) = \begin{cases}
+2x,&x\in [0,\rc 2]\\
+2(1-x), & x\in [\rc 2, 1]\\
+0,&\text{otherwise.}
+\end{cases}
+=\si(2\si(x)-4\si(x-\rc2))
+$$
+where $\si(x) = \max\{0,x\}$ is ReLU.
+
+This function has incredible properties in composition: It copies functions, the second copy in reverse. If a function has $k$ bumps, then composing with $\De$ gives $2k$ bumps. 
+
+Thus $\De^{(k)}$ has $2^{k-1}$ bumps.
+%check if this is the function, else SGD.
+%if I don't do the proof it's not trivial.
+
+Take $f=\De^{(10k^2)}$.
+
+\step{2} Upper bound the number of bumps for shallow networks.
+
+Define a $s$-affine function as a piecewise linear function with $s$ pieces.
+
+The sum of $s$-affine and $t$-affine function is $s+t-1$ affine. The composition of $s$ and $t$-affine functions is at most $st$ affine, and this is tight.
+
+Adding functions slowly increases complexity; composing quickly increases complexity. 
+
+Thus a neural network computes $\le \pat{nodes}^{\pat{layers}}$ affine pieces.
+
+The shallow network can have at most $(2^k)^k$ affine pieces, compared to $2^{10k^2}$.
+
+\step{3} $L_1$ bound.
+
+This is a counting argument. Break the shallow function into pieces based on when they cross $y=\rc 2$. 
+On average $\De^{(10k^2)}$ has 
+10 times as many oscillations as the shallow function. In any such piece, about half of the triangles are on the wrong side.
+\end{proof}
+This proof is robust: I can prove separations about polynomials, etc.
+%my theorey gets superpoly with constant gap.
+
+%might be cases want to learn shallow network.
+%on the way, capture many 
+%ML implication?
+
+%driving you to let me talk about open problems
+
+\subsection{Algorithmic open questions}
+
+\begin{itemize}
+\item
+Representations reachable by SGD or some other efficient method. %sgd is not the only algorithm 
+
+Rewrite the $k\to k^2$ theorem in terms of a a function that is learnable efficiently by  a net with $k^2$ layers such that the same algorithm for fewer layers means you need exponentially many nodes.
+\item
+Polytime algorithm to see if you want to add layers.
+
+This is a pain. Consider a poly $x_1x_2x_3$, correlation with any other monomial is 0.
+%Make a boosting algorithm on layers.
+
+You need structural assumptions on the network to make such a theorem go through.
+
+Can you make a boosting algorithm on layers? Residual networks are like boosting.
+\item
+Polytime test to remove layers.
+
+\begin{itemize}
+\item
+In practice, obtain $((x_i,y_i))_{i=1}^n$. 
+\item
+Fit $f_0$ of high complexity.
+\item
+Now fit $f_1$ of lower complexity
+%conference curiosity or do in practice
+$
+((x_i, f_0(x_i)))_{i=1}^n.
+$
+Claim: this gets lower (generalization?) error.
+%every network removes some strange noise.
+\item Now fit $((x_i, f_1(x_i)))_{i=1}^n$, etc.
+\end{itemize}
+\footnote{S Arora:  This can be used in a semisupervised setting. Use humans to label a small set; use the trained network $f_0$ to label more images.}
+%training compress
+
+People have prescribed sizes of networks they try.
+%compress every deep network to shallow network.
+%this is the person's best friend.
+%carawana: sometimes you do need depth.
+\end{itemize}
+\subsection{$k$ to $k+1$}
+
+Find a function in $k+1$ layers which if you try to approximate with $k$ layers you need exponentially many nodes.
+
+Why should this be true?  Evidence:
+\begin{itemize}
+\item
+Eldan-Shamir 2016, $k=2$. \cite{eldan2015power}
+\item
+Boolean circuits: known forever.
+\item
+An average-case depth hierarchy theorem for boolean circuits, Servedio et al. 2016 \cite{rossman2015average}
+\end{itemize}
+%theorem false for step function
+
+I need a candidate hard function.
+
+Ideas:
+\begin{enumerate}
+\item
+Another open problem: characterize many hard functions.
+\item
+Kolmogorov 1957. (Superposition theorem\footnote{\url{https://en.wikipedia.org/wiki/Kolmogorov\%E2\%80\%93Arnold_representation_theorem}}) Consider (almost) bijections $[0,1]^d\to [0,1]$---space filling curve. %minus $\ep$ of space.
+%definition recursive?
+Neural nets can build bijections.
+
+We need multivariate functions here.
+%\item Monkey saddles: strage-looking saddle points.
+\end{enumerate}
+%I don't recommend working on it; it's hard
+%go to STOC, NN think waste time?
+%SA: like it to have a reference.
+%political...
+
+This is much more approachable: Characterize many hard functions. 
+
+Given a function (e.g. the sawtooth function), we can write $+1,-1$ when it is above/below the midline.
+
+Define a mapping from sequences to lines. Given $\{-1,1\}^d$, consider the function that is a sequence of triangles going above ($+1$) or below ($-1$) the $\rc2$ line. A NN \vocab{certifies} this sequence if it's equal to this graph.
+
+%Ex. we say a NN of size $10k^2$, 
+%one fixed sequence of length $2^{k^2}$
+
+What is the set of all sequences achievable with $10k^2$ nodes?
+\begin{itemize}
+\item
+$\La^{(10k^2)}$ certifies the sequence $\ub{-1,+1,\ldots}{2^{10k^2 -1}}$.
+\item
+Any sequence of length $\le k$.
+\item Can only do exponentially few sequences of length $\ge 100k^4$.
+\end{itemize}
+``Find a graphical grammar with what you can do with neural networks.'' (Rong Ge)
+
+When you go to high dimensions, this problem becomes nasty: how do you even carve up the space and define the language? If I could answer this, I think it would give enough intuition to solve $k$ vs. $k+1$.
+
+\subsection{Recurrent networks}
+
+
+%peter bartlett book on gen
+
+\begin{itemize}
+\item
+Computational model by Siegelmann-Sontag.
+
+RNN's are Turing-complete, so there exists $O(1)$ RNN's  that is not approximated by any deep net.
+
+%@article{siegelmann1991turing,
+%  title={Turing computability with neural nets},
+%  author={Siegelmann, Hava T and Sontag, Eduardo D},
+%  journal={Applied Mathematics Letters},
+%  volume={4},
+%  number={6},
+%  pages={77--80},
+%  year={1991},
+%  publisher={Elsevier}
+%}
+
+%Gives its output, and whether it's thinking (whether it's done). If it 
+The RNN gets an input, and gives output and whether it's thinking (whether it's done), and passes state. It can churn as long as it wants---it determines when to stop thinking and get the next input.
+%900 node NN.
+
+To encode a Turing machine, $f$ is a state transition function for the TM; the state contains the tape, head, etc. (you can pack it into a real number)
+
+This has loops so it has crazy power. How do they work in practice?
+
+Here is a function that cannot be approximated by a deep net of any size: $f(x,k) = \De^{\lg(k)}(x)$. The RNN computes $k/2$ (the ``output'' bit) and asks if $k\approx 1$ (the ``done'' bit). RNN's can do loops of unbounded length.
+\end{itemize}
+This model of computation is absurdly powerful. 
+
+This theorem is trivial; the intelligence part is the model.
+
+Another open question: generalization for RNN's. Can you remove the $\sqrt{}$ dependence on length?
+
+I'm most interested in the $k\to k+1$ problem and recurrent nets (learning algorithms, etc.).

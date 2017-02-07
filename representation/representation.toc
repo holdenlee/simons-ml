@@ -3,4 +3,18 @@
 \select@language {english}
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {1}Representation and unsupervised learning: Introduction (Sanjeev Arora)}{1}{section.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2}Apocryphal Results, Recent Results, and Open Problems in Neural Network Representations, Matus Telgarsky (UIUC)}{3}{section.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1}Representation}{4}{subsection.2.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.2}Apocryphal/subspaces}{5}{subsection.2.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.3}Separation: $k$ to $k^2$ via $\Delta $}{6}{subsection.2.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.4}Algorithmic open questions}{7}{subsection.2.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.5}$k$ to $k+1$}{8}{subsection.2.5}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.6}Recurrent networks}{9}{subsection.2.6}
 \contentsfinish 
