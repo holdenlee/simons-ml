@@ -1,5 +1,0 @@
-[0] Config.pm:354> INFO - This is Biber 2.7
-[0] Config.pm:357> INFO - Logfile is 'representation..blg'
-[51] biber-MSWIN32:303> INFO - === 
-[183] Utils.pm:180> ERROR - Cannot find control file 'representation..bcf'! - did you pass the "backend=biber" option to BibLaTeX?
-[183] Biber.pm:113> INFO - ERRORS: 1
