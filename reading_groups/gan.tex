@@ -1,0 +1,256 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+%https://github.com/holdenlee/templates
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Generative Adversarial Nets}
+\chead{} 
+\rhead{Simons Institute, Spring 2017} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+\tableofcontents
+
+%Daniel Roy, Shai Ben-David
+
+We'll discuss:
+\begin{enumerate}
+\item
+Informal problem
+\item
+Basic algorithm
+\item
+Some properties
+\item
+Problems
+\begin{enumerate}
+\item
+Vanishing gradients
+\item
+Mode collapse
+\end{enumerate}
+\item
+State-of-the-art: Unrolled GANs
+\end{enumerate}•
+
+\section{Informal problem}
+We have a true distribution $P_{\text{true}} = P_{\text{data}}$ over $\R^{D}$ (e.g. $D=1000$). We want to find a (neural network) function $G_\te:\R^d\to \R^D$, called the \vocab{generator}, such that for $Z$ some randomness, $Z\sim$(some given distribution/noise), $G_\te(Z) \sim P_{\text{model}}(Z|\te)$.
+
+\section{Basic algorithm}
+
+We introduce another neural network $D_\phi:\R^D\to \R$ which tries to determine whether the data point (image) is from the real model or from the generator.
+
+The objective function is
+$$
+\min_\te \max_\phi
+\ub{\ba{
+-\rc 2\EE_{x\sim p_{\text{data}}} \ln D_\phi(x) - \rc 2 \EE_z \ln (1-D_\phi(G_\te(z)))}}{V(\phi,\te)}.
+$$
+
+The optimal $D$ is
+$$
+D_{\text{opt}}(x) = \fc{p_{\text{data}}(x)}{p_{\text{data}}(x) + p_{\text{model}}(x|\te)}.
+$$
+
+In practice, we have a finite number of samples, so the objective is 
+$$
+\min_\te \max_\phi
+\ba{
+-\rc 2\sum_i \ln D_\phi(x_i) - \rc 2 \sum_j \ln (1-D_\phi(G_\te(z_j)))}.
+$$
+%can you switch?
+
+This isn't a convex problem, so you can't switch min and max.
+
+In practice, do simultaneous gradient descent. Take a step in $\phi$, then $\te$, etc.\footnote{Contrast with alternating minimization: given the current generator, find the best discriminator. This is unstable. 
+%solving inner loop...
+%optimize wrt current generator.
+%empirical could be weird.
+}
+ But the %discriminator 
+generator actually wants to perform well against the max.  In unrolled GANs, do $n$ steps of the discriminator update.
+
+What is the goal? We want $G$ to generate a distribution minimizing the JS divergence
+\begin{align}
+\min_\te JS(p_{\text{model}}(\cdot |\te)||p_{\text{data}})\\
+JS(P||Q) =\rc 2KL(P||M) + \rc2 KL(Q||M)\\
+M=\rc2 (P+Q).
+\end{align}
+You can also minimize $f$-divergences,
+$$
+D_f (Q||P) = \int f\pa{\dd QP(x)}dP(x).
+$$fffff
+You can get a lot of different divergences/metrics from different $f$.
+Ex. One direction of KL is maximum likelihood.
+%distance to square: chi squared
+
+Solving for $\te$ in the minimax against a powerful discriminator would be the same as minimizing the divergence.
+
+Two versions of KL:
+\begin{itemize}
+\item
+$KL(p_{\text{data}}||p_{\text{model}})$ prefers to overgeneralize. 
+\item
+$KL(p_{\text{model}}||p_{\text{data}})$ focuses on one mode.
+\end{itemize}•
+You can interpolate these two cases.
+
+The problem of mode collapse is some problem with the training procedure, not the
+
+The theorist way is to look at TV (total variation, $L^1$) distance, corresponding to the ideal discriminator (binary).
+%exacting notion of distance.
+
+\section{Problems}
+\subsection{Vanishing gradients}
+If you try to max in $\phi$ and min in $\te$, if the discriminator gets ahead of the generator, the
+ gradients of generator are close to 0, and discriminator gets generator in situation where it doesn't know how to improve itself. So actually use a different objective function.
+ 
+% The trick to get simplify 
+For other $f$ divergences, the generator is also minimizing a different objective function. %Modify the generator
+ 
+ %payoff change
+2nd term: on fake data, minimize probability of mistake. Instead, minimize
+$J^{(G)} = -\rc2 \EE_{z}\ln D(G(z)).$
+You tend not to have the vanishing gradient problem.
+%can't massage into divergence?
+
+\subsection{Mode collapse}
+
+This is serious. Fitting on mixtures of Gaussians, over time it fits a mode, jumps to another, and meanders around. The generator does well on one mode. The discriminator chases it around; the generator does not converge.
+%is there good solution?
+
+Unrolled GANs: see that it focused too much somewhere, and penalize. 
+%model the fact that , penalize from not 
+
+Rather than discriminator take a single observation, get a bag of samples from the true and fake data; do a 3-sample test---which is more like the real distribution?
+%alternating gradient descent.
+
+
+%not sgd with momentum, but Adam, inspired in AdaGrad. AdaGrad with extra momentum.
+
+Mode problem is generally a problem with log likelihood: it rewards you for matching a mode.
+
+ Sometimes caps the discriminator to not make strong predictions.                                                                         
+% One sided label distribution.
+%Leon Bottou noises.
+
+%if two are close to subspace...
+%AM not easy to analyze.
+
+%zero-sum: in general expect that.
+%try to improve term, not max of that term.
+
+The point of generator model is that you hope that in learning a good generator, you somehow unlock the structure in the data. There are tricks to making the coordinates more interpretable.
+
+\section{Theoretical problem}
+%Formal problem}
+
+ 
+We have a distribution $p_{\text{true}}$. We have a way of representing a distribution, a neural net, and want to get as close as possible.
+
+Suppose we have a family of representations of distributions.
+$$
+F=\set{G(z)}{z\sim \text{Uniform}, G\in \pat{class of NNs}}.
+$$
+\begin{itemize}
+\item
+What is the input? $x_1,\ldots, x_m\sim p_{\text{true}}$.
+\item
+What do we mean by ``minimize''? We define a distance between distributions $D$.
+%Make as close as possible.
+\end{itemize}•
+
+I will show this is too hard for any distance, and we need to restrict it to make it feasible. We want to find a mathematical valid formulation that reflects natural assumptions. (Find formalization that explains reality.) 
+
+What is the sample, computational complexity of this problem, ignoring algorithmic issues?
+
+Task: Find $G\in F$ that minimizes $D(p_{\text{true}}, G(z))$.
+
+We introduce the two sample problem. There are two unknown distributions $P_1, P_2$. 
+
+\begin{prb}[Two sample problem]
+Given samples $S_1\sim P_1^m$, $S_2\sim P_2^m$, determine: is $P_1=P_2$ or $D(P_1,P_2)>\rc 3=\ep$?
+\end{prb}
+
+
+Consider a simple version. 
+\begin{enumerate}
+\item
+Toy problem 1: 
+$P_1=\text{Uniform}[1,\ldots, N]$, $P_2 = \text{Uniform}[1,\ldots, \fc N2]$. Take a constant number $O(1)$ of samples, see if you have any points in $[\fc N2+1,\ldots, N]$. 
+\item
+Toy problem 2:
+Now consider $P_1$ known, $P_2$ unknown.
+
+$P_1=\text{Uniform}[1,\ldots, N]$, $P_2 = \text{Uniform}(A)$ where $A\subeq [1,\ldots, N], |A|=\fc N2$. 
+
+Now $n=\Om(\sqrt N)$. As long as we don't see a point repeating, we cannot tell if it's uniform from the whole subset or a subset. We need $\Om(\sqrt N)$ to see repetitions.
+\end{enumerate}•
+The key difference between these 2 cases: is the problem symmetric?
+
+%restrict family of discriminators. Ways of restricting. How can this solve the sample complexity.
+%SA: not question reality.
+%
+To make the problem feasible (solve the blowup of sample complexity), I'm going to restrict the discriminator, not the distributions.
+I want the sample complexity $m(\ep,\de,d)$ to depend on just the distance $\ep$, and probability of failure $\de$, and the power of discriminator $d$ (ex. they are in a family of bounded VC dimension).
+ %The class of discriminators will give our definition of distance.
+%Which generator is close to the truth? With finite samples, estimate the distances.
+
+We want to estimate $D(p_{\text{true}}, G_1)$, $D(p_{\text{true}}, G_2)$. %VC dimension.
+%Family of discriminators of VC dimension
+
+We pick a notion of distance $D$ based on our class of discriminators such that we have finite sample size approximation guarantees.
+
+Let $A$ be a family of subsets of $X$ (domain of $P$), 
+$$
+D_A(P_1,P_2) = \sup_{a\in A}|P_1(a)-P_2(a)|.
+$$
+This looks like total variation distance, except we restrict to $a\in A$.
+
+This is a metric; it can be justified by taking a set of subsets we're interested in seeing differences in. It follows from VC theory that if $A$ has some finite VC-dimension then the probability
+$$
+\Pj_{S_1\sim P_1^m,S_2\sim P_2^m}
+[|D_A(S_1,S_2) - D_A(P_1,P_2)|>\ep]
+<O\pf{md}{l^{m\ep^2}}.
+$$
+You can generalize from sets to functions. Replace the sup by 
+$$
+\sup_{f\in A} |\E_{P_1}(f) - \E_{P_2}(f)|.
+$$
+We get pseudodimension, or dimension of a family of functions.
+
+This is actually the type of distance we are trying to minimize!
+
+Ex. subsets are all intervals. $P_1$ is uniform over odd points, $P_2$ is uniform over even points, with respect to intervals they are very similar; no interval has many more/less odd than even points.
+
+%It is 
+We assume the difference between distributions is detectable by the family of sets/functions.
+
+We were looking at sensor networks; detect whether there was a real change/event.
+
+%some distribution, tweak. 
+Can we come up with a family that captures what humans can distinguish?
+
+%If you cannot distinguish between a good/bad generator.
+%can you distinguish between good/bad.
+
+A discriminator is only a NN of certain size. We can talk about sample sizes. This doesn't say anything about the generator.
+
+%iff? 
+How general is this formulation of distance? Converse: If there is distance with finite sample size guarantee, does it have this form (or something similar)?
+
+%Gowers norms
+
+%INSERT_HERE
+\end{document}
