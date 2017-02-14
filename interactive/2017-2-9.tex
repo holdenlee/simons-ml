@@ -1,0 +1,308 @@
+\section{Two Paradigms of Semi-Supervised Active Clustering with Sample and Computational Complexity Bounds (Shai Ben-David, University of Waterloo)}
+
+I want to cover three things.
+\begin{enumerate}
+\item
+Introduction/preaching: what should clustering theory do? 
+\item
+Semi-supervised active clustering (joint work with Hassan Ashtiani and Shrinu Kushagra) \cite{ashtiani2016clustering}
+\url{https://arxiv.org/abs/1606.02404}
+\item
+Learning representations from clustering (Hassan)
+\cite{ashtiani2015representation} \url{https://arxiv.org/abs/1506.05900}
+\end{enumerate}•
+
+\subsection{Introduction}
+
+Different clustering algorithms yield very different outcomes. Contrast this with other computational tasks, like classification, for which different algorithms roughly give the same results.
+
+Thus the choice of a clustering algorithm is very important. They have different objectives which cannot be satisfied simultaneously. Things we want may include:
+%single linkage, 2 means
+\begin{enumerate}
+\item
+Similar points are clustered together
+\item
+Dissimilar points are in different clusters.
+(Already these may conflict---ex. a long chain of points)
+\item
+Balanced cluster sizes
+\item
+Stable under perturbation
+\end{enumerate}
+Where in this simplex of properties do we want?
+\begin{itemize}
+\item
+Single linkage only cares about similar points.
+\item
+Max linkage (postpone merging far points) only cares about dissimilar points.
+\item
+$k$-means cares about balancing cluster sizes.
+\end{itemize}
+
+Different applications have different priorities. One application is record de-duplication: cluster together records that are the same. Here we would want max linkage: we want dissimilar records not to be identified. For viral spread, we want to group similar points together.
+
+There is no universally optimal clustering.
+%at least
+There is a need for domain-specific biases.
+
+The first question is what algorithm to use; there is not enough research in this direction. 
+%Do I need $k$-means? 
+It's not clear what tool is good for that.
+Most people use $k$-means without thinking. ``Because everyone else is using this algorithm.''
+%crusade, preach.
+
+%We can split into several types: quantitative objectives, problems that you can only tell qualitatively.
+
+We can address the problem %of finding a clustering tool 
+in two ways: 
+\begin{itemize}
+\item
+I give similarity of pairs. Find the right clustering algorithm from that.
+\item
+Here is the tool I'm using, but I will play with the similarity.
+\end{itemize}
+We focus on the second approach. 
+There are ways of asking for input from the user that is more intuitive than asking them to choose the objective---ex. ask them how to cluster a small sample of points.
+
+\subsection{Semi-supervised active clustering}
+
+%This has implications for computational complexity.
+See NIPS2016.
+
+Here is the setup.
+\begin{itemize}
+\item
+We have unknown clustering $C_1,\ldots, C_K$ of $(X,d)$ where $d$ is known.
+\item
+The algorithm can interact with an oracle that knows $C_1,\ldots, C_K$.
+\item
+The type of interaction is queries of the form are $x_1,x_2$ in the same cluster or different clusters.
+\end{itemize}
+The algorithm computes, then decides which points to ask about next, etc.
+
+If the user already knows, why do you need the clustering algorithm? There are so many data points; you don't want to ask $n^2$ queries. You need the algorithm to overcome the enormity of the data.
+There are specific applications for which this model is relevant, ex. data de-duplication. Here the number of clusters is large compared to the number of records.
+%learn a general... 
+
+The number of queries needed is logarithmic in the dataset.
+
+I show the result that under some assumptions on the target clustering, there exists an algorithm that requires $O(k\ln n)$ queries and finds the target clustering in linear time $O(kn(\dim))$, where $\dim$ is the dimension.
+
+Without the queries the task is NP-hard. After log queries, the task collapses to linear time!
+
+We assume that answers are noise-free.
+
+We don't need to know $k$ in advance.
+Hardness results kick in for $k$ a function of $n$.
+
+Trivially, $kn$ queries always suffice. Find one representative in every cluster. For every new point, ask whether it's in the same cluster with every representative.
+
+Here are the assumptions.
+\begin{enumerate}
+\item
+Center-based clustering. Every point belongs to the nearest center (Voronoi cell).
+\item
+$\mu_i$, the center of $C_i$, is $\E_{x\sim C_i} f(x)$, for some known $f$. This definitely holds for $k$-means.
+%what's $f$?
+\item
+Niceness (clusterability) assumption: $\ga$-margin.
+
+\begin{df}
+$C_1,\ldots, C_k$ satisfies the $\ga$-margin condition if 
+$\forall i, \forall x\in C_i, \forall y\nin C_i$, 
+$$
+d(x,\mu_i)(1+\ga) \le d(y,\be_i).
+$$
+\end{df}
+Around every cluster there is an empty margin.
+%can take y to be closest point in different cluster.
+\end{enumerate}
+What do we know about $k$-means with such an assumption? 
+
+\begin{thm}[Hardness result]
+$k$-means is NP-hard under $\ga$-margin condition as long as $\ga \le 0.84$. (Euclidean distance)
+In general, it is NP-hard for $\ga \le 1$. 
+\end{thm}
+Here $k\sim n^\ep$. The reduction is from set cover.  %not natural, but satisfy conditions.
+
+Although these conditions look strong, it is still hard to do $k$-means under these assumptions.
+
+Positive result: For $\ga>2$, $k$-means without queries is feasible. Use single linkage and use dynamic programming to search over all prunings. %There is almost a sharp threshold.
+
+\footnote{AWigderson: Could you find a clustering that uses $k\ln n$ centers greedily? Probably. 
+
+Find too many clusters and use queries to prune?}
+
+Usually when people find good clustering algorithms, it's with strong assumptions.
+The task becomes hard before the condition becomes natural.
+
+The algorithm with queries:
+\begin{enumerate}
+\item
+Ask enough queries to get ``many'' ($N$) points in one cluster. Ask $Nk$ queries.
+
+(Once you have representatives, you can compare, and we can ask which cluster you belong to.)
+%random of enough
+\item
+Pick a cluster with enough points and estimate its center. (This estimate is good by Chernoff.)
+The $\ga$ tells me how many points I need in my cluster to be able to tell whether points are in that cluster.
+\item
+Binary search to find the cluster radius. Ask whether a point of some distance away is in the cluster. Need $\ln n$ queries.
+\item
+Delete points in this cluster and repeat.
+\end{enumerate}•
+
+%info theoretic
+%nondeterministic bits in your machine is amount of information you must get.
+%look at reduction and see what you get.
+%number of nondeterministic bits is $k$ rather than $n$.
+
+%what if nonunique clustering at beginning?
+
+%penalty for opening new cluster.
+
+
+\subsection{Learning representations from clustering}
+
+This is a different type of interaction. %I can ask the user to classify small subsets.
+Hand the user a small subset $S\subeq X$ and ask to get back their desired clustering of $S$.
+
+What can I learn/generalize from this?
+
+Based on this $S_1,\ldots, S_k$, how can we pick a suitable clustering tool for $X$? Note that maybe not all clusters are represented. (Otherwise, we can think of it as a classification problem.)
+
+The idea is that what we want to learn is the metric. Instead of picking between different clustering algorithms, fix the clustering algorithm (regularized $k$-means) and learn the metric.
+
+We fix a family of embeddings of $X$ into some $\R^d$ (a family of kernels over $X$), $F$.
+
+Now we can phrase the problem more precisely: the algorithmic task is to find $f\in F$ such that 
+$
+A(f(X))|_S
+$
+is close to $S_1,\ldots, S_k$.
+This is a well-defined problem; we can talk about sample and computational complexity.
+
+This is not an ideal solution because it could be that the number of clusters could be much larger. The user can also give clusterings that are inconsistent when given a small vs. large set.
+
+%minimize on distribution?
+
+%It's hard to justify the assumption that the user is minimizing some objective.
+
+For sample complexity analysis of ERM algorithms in the model, we need a notion of distance between clusterings, and a notion of complexity of $F$.
+
+%dimension of family of embeddings.
+%PAC-style results.
+
+The distance is
+$$
+D((C_1,\ldots, C_k),(C_1',\ldots, C_k')) = 
+\min_{\pi \in S_k} \rc{|X|}\sumo ik |C_i \triangle C_{\pi(i)}'|.
+$$
+%could also be number of disagreements $C:X^2\to $. same, different
+
+Now we can phrase as a PAC problem.
+%uniform convergence.
+What is the sample size $m^{UC}_F(\ep,\de)$ to get within $\ep$ with probability $1-\de$?
+This depends on the generalized pseudodimension of $F$. The pseudodimension is defined as follows. For $F$ is a family of functions $X\to \R$, 
+$$
+p\dim(F) = \max\set{n}{\exists x_1,\ldots, x_n,b_1,\ldots, b_n, \forall \si\in \{0,1\}^n, \exists f\in F, \forall i\le n, \one[f(x_i)\ge b_i] = \si_i
+}.
+$$
+It is the largest set which we can pseudo-shatter.
+
+We have to generalize pseudodimension to vector-valued functions. The generalize is the maximum pseudodimension of all the projections. %to coordinates?
+
+In some common families of kernels, we can calculate the pseudodimension.
+%setup, standard PAC tools
+
+We don't have an efficient algorithm because to find the ERM we need to solve regularized $k$-means. How to use users' information to learn clustering on the whole dataset is interesting and this is only a partial answer.
+%change of perspective
+
+There's little work on sample complexity of metric learning---how many pairs you need to get information about.
+
+Would some condition on clustering make it easier? Fat-shattering dimension, etc.
+
+%%%%%%%%%%%%%%%%%
+%%from PCMI talk
+\begin{comment}
+
+This is a position talk. I'm preaching that everything that you're doing is wrong. 
+
+``The purpose of science is to find meaningful simplicity in the midst of disorderly complexity." --Herbert Simon.
+
+This can also serve to describe the goal of clustering.
+
+Clustering is one of the most widely used tool for exploratory data analysis, but we don't understand it.
+
+I will address 2 topics.
+\begin{enumerate}
+\item
+Model (tool) selection: How to choose the best clustering algorithm for your data? How should you set its parameters (e.g., number of clusters)?
+\item
+Computational complexity of clustering: Discrepancy between theoretical hardness of clustering and practice.
+\end{enumerate}
+
+Unlike other common computational tasks, different choices may lead to significantly different clustering outcomes. It's more crucial than model selection in other tasks. Ex. 2-means, single-linkage.
+
+When you have 300-D data and hundreds of thousands of points, you can't tell!
+
+How do we define clustering? Partition the data sets so that
+\begin{enumerate}
+\item
+similar points reside in the same cluster
+\item
+non-similar points get separated.
+\end{enumerate}•
+Often these two requirements cannot be simultaneously met. The definition does not determine how to handle such conflicts.
+
+Pick $\al\ll \be$. Is there a clustering function that clusters every pair of points closer than $\al$ and separates every pair farther than $\be$? No.
+}
+
+%We can think of any given clustering algorithm as a point in a simplex whose vertices 
+Different clustering tools pick different tradeoffs. 
+Single linkage focus on similar points being in the same cluster.  Max linkage focuses on dissimilar points not sharing a cluster.
+
+$k$-means balance clusters and avoid having dissimilar points together.
+
+Examples:
+\begin{itemize}
+\item
+De-duplication of records in a database: The emphasis is on separating dissimilar points.
+\item
+Clustering people for predicting viral spread (disease or rumors): emphasis on clustering similar points together.
+\item
+Clustering neighborhoods to school districts: Need for balance between sizes of clusters.
+\end{itemize}•
+Ex. binning by locality-sensitive hashing. %similar points, same cluster
+
+How do users actually pick a tool for their data? Ad-hoc.
+
+Ease of use, freely downloadable software, worked for friend.
+
+Ex. pick a drug based on colors of the package and price.
+
+Fallacies: ``my algorithm outperforms all others." ``This medication is best, regardless of what your sickness is." There's no universally best clustering algorithm.
+
+Check against inherent structure in the data? Sure, if it looks like a collection of well-separated dense rounded clouds.
+
+What about experimental evidence: For every two reasonable clustering algorithms there are data sets in which one performs better than the other.
+
+Two approaches to tool-selection challenge.
+\begin{enumerate}
+\item
+Axiomatic (property-based): formulte properties of clustering functions that allow translating prior knowledge into guidance concerning the choice of suitable clustering functions.
+\item
+Data-specific expert input: Must-link/can't link pairs of instances (learn from user), sample clustering of small input subsets. Present small clustered subset to user and ask for feedback.
+\end{enumerate}
+
+Is it the case that clustering is hard only when it does not matter (CDNM)?
+
+Worst-case complexity is by far the most cited, researched, best understood approach to analyzing the difficulty of computational tasks. Ex. SAT.
+
+Show easy: reduce to SAT and use a SAT solver. Linear programming, neural network training.
+
+%papadimitriou
+%400000 biologist not understanding complexity
+
+List requirements on notions of clusterability. (Hardness coming from cases where there is no structure?)
+\end{comment}

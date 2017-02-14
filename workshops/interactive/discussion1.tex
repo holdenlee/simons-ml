@@ -1,0 +1,78 @@
+\section{Discussion 2/13/17}
+
+EBrunskill: We want to bridge different fields. RL and active learning communities are largely disjoint but they tackle common problems.
+
+SDasgupta: Traditional divide between learning concepts (what is a giraffe) and skills (ride bicycle). Are there math formalisms which allow us to unite the two?  This is why control-related work and conceptual active-learning work have been done separately.
+
+JZhu: Relation between optimum teaching and RL: how do you teach a RL agent?
+If the learner is not a simple batch classifier, but something more complex, how does that change the problem formulation and solution?
+
+R: Minimal contrast pair, smallest change to picture to change classification cf. learning with 2 examples. 
+
+JZ: What kind of learner takes that as important teaching examples? %learners insensitive.
+
+SD: Representation teaching. Teaching doesn't have to be limited to examples and labels. Everyone understands what those mean. Features and explanations: one party doesn't understand the other any longer.
+
+TMitchell: Tabular rasa assumptions in theory. Zhu's talk assumed the learner was a tabular rasa learner. How to frame theoretical questions that can be studied in this messy world where there are people. Tabular rasa is one of the big question marks: can we frame theory questions that are close enough to reality?
+
+JZ: Baby step to weaken assumption is to give uncertainty to human student.
+
+SD: Learning theory has focused on a single concept and the learner doesn't need to know anything else. In principle we can imagine a hierarchy, DAG of concepts; the learner is somewhere along the way. Teacher should understand what learner already has. Should be quite easy to formulate math model where there are many concepts and the learner knows some.
+
+EB: cf. education, knowledge graph.
+
+Issue when doing one-shot, minimal learning (esp. in interactions with human) is very little data. having a whole lot of experience. Policies of behavior are great when you have experience and terrible when you don't. There is disconnect between minimizing amount of data needed and having enough of it to optimize policy.
+
+JZ: Human is not a great teacher. 
+
+When we explain to someone else, we make commonsense assumptions. We expect that you will spread info to rest of state space where it's applicable.
+
+JZ: Educate the human teacher.
+
+R: ``Make a PB and J sandwich'' game.
+
+EB: cf. picking up dust.
+
+SD: We have rich spaces of concept classes, how difficult we expect the problem to be. What are categories of agents we can learn to control easily, slightly more complicated... that would give a nice handle on how much linguistic communication is needed to be able to control these agents.
+%cat of agents
+
+TM: Think of a policy of robot, say, actions in discrete space. It is a function. In that sense, there is no difference even though it feels like there are. 
+
+EB: Policy search: often formulate in terms of VC dimensions. dimension. There may be other forms.
+
+SBen-David: View as hierarchies of agents. Hierarchies of behavior?%optimize over low-levels.
+
+%RL +/or AL
+%optimum teaching and RL
+%representation teaching
+%theoretical framing/? for nontabula rasa setting
+EB: cf. Anca. Control community. What assumptions do we make? Stochastic, 1-step approximation. Types of approximations.
+
+SD: What about agnostic case? %concept is super-complicated
+In the teaching cases, it seems more reasonable to assume there is a perfect concept. We are perfect categorizers. Of course there must be a perfect categorizer for zebra, antelope, because we do it.
+
+%imperfect complex class.
+: Can still have model misspecification problem. 
+
+JZ: Ideal teacher knows the world is complex, but I know you're limited (ex. linear classifier), and help you get the linear separated. Meta-level teacher: I want to tell you to expand your hypothesis space, can't just use linear classifier.
+
+%ATomasz
+%EB: time
+
+List of topics
+\begin{itemize}
+\item RL +/or AL
+\item
+Learning concepts vs. learning skills
+\item
+Optimum teaching and RL
+\item
+Representation teaching
+\item
+Theoretical framing, questions for nontabular rasa setting
+\item Min data needed for RL vs. typical data requirement
+\item
+Categoris of agents
+\item
+Imperfect concept classification, model misspecification
+\end{itemize}•

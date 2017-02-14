@@ -1,3 +1,6 @@
+%PDF at
+%https://www.dropbox.com/s/mxbbdv8i11f63an/interactive_workshop.pdf?dl=0
+
 \def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
 %https://github.com/holdenlee/templates
 
@@ -7,7 +10,7 @@
 \input{\filepath/formatting.tex}
 
 \pagestyle{fancy}
-\lhead{Interactive learning}
+\lhead{Interactive Learning}
 \chead{} 
 \rhead{Simons Institute, Spring 2017} 
 \lfoot{} 
@@ -17,14 +20,21 @@
 \setlength\voffset{0in}
 \setlength\textheight{648pt}
 
-\addbibresource{interactive.bib}
+\addbibresource{bib.bib}
 
 \begin{document}
 \tableofcontents
 
-\input{2017-2-2.tex}
-\input{2017-2-9.tex}
+Workshop website (with videos): \url{https://simons.berkeley.edu/workshops/schedule/3749}
+
+%Day 1
+\input{verbal_user.tex}
+\input{machine_teaching.tex}
+\input{robot_objective.tex}
+\input{play.tex}
+\input{svr.tex}
+\input{discussion1.tex}
+%Day 2
 %INSERT_HERE
 
-\printbibliography
 \end{document}

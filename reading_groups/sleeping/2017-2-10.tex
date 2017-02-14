@@ -1,0 +1,305 @@
+\section{Sleeping}
+
+Data comes in a stream, say in different languages. 
+%%All the old stuff stays 
+We want an algorithm that learns English, learns another language, and when English comes back again, can learn it faster. All the old stuff it learns stay with it and it's easy to relearn. Humans are good at this. 
+
+This is a general natural phenomenon. If a bug specialized in a certain environment, if the environment reverts, old genes can be brought up again. Old knowledge lingers and and is quickly brought up again.
+
+Changing one line of code can enable this.
+
+%In the supervised setting do regression
+
+I want sleeping for neural nets.
+
+%are same neurons going to be repurposed?
+Some neurons freeze (learning rate decreased or zeroed), and wake up again (learning rate increased) later. Neurons can switch between these states.
+
+We have a piece of intriguing theory. Bayesians will be upset but it works.
+
+Note: does nearest neighbors do this? But label assignments can also change. Note you don't get feedback about there being a transition. You may have to remember all examples.
+
+%When you go back to something you have seen before, you can learn it faster.
+
+%You will see this phenomenon in weight space.
+Use the disk spindown problem as an example (when to timeout laptop).
+\begin{itemize}
+\item
+experts: $n$ fixed timeouts $\tau_1,\ldots, \tau_n$.
+\item
+Master algorithm maintains a set of weights $s_1,\ldots, s_n$, and predict with weighted average.
+\item
+Multiplicative update
+$$
+s_{t+1,j} = \fc{s_{t,i} e^{-\eta \pat{energy usage of timeout $i$}}}{Z}
+$$
+\end{itemize}•
+A multiplicative update can pick out the current best and eliminate everyone else.
+
+If idle times short, spin down after a longer time.
+If idle times long, spin down immediately.
+If we have a short period, a long period, then a short period...
+
+Mix in a little bit of a uniform update to obtain uniform recovery.
+\begin{align}
+s' &= \pat{multiplicative update}\\
+s &= (1-\al)s' + \al\pa{\rc N,\ldots, \rc N}
+\end{align}
+where $\al$ is small. No expert goes to 0 so you can pick it up quickly again.
+%how is this related to EXP3, etc. with fixed number of changes?
+
+%The costs are $O(\ln N)$. 
+Regular multiplicative update learns the first language (English) too well and fails to learn anything else. ``The curse of the multiplicative update.'' The multiplicative update with uniform update  has a fixed adjustment time each time the language changes, but can learn different languages.
+%mixing past posterior. exp decay with smaller?
+
+To get long-term, keep track of past average share vector $r$.
+\begin{align}
+s'&=\pat{multiplicative update}\\
+s&=(1-\al)s'+\al r.
+\end{align}•
+Related to momentum? We fixed $\al\approx 0.01$.
+
+Wouter M. Koolen and Dmitry Adamskiy found a Bayesian interpretation. 
+
+Double track: 
+We have a mixture of experts (RNA strands). Put $\ga$ fraction into alive track and $1-\ga$ into asleep track. In the alive track, do a multiplicative update (selection and PCR). For the asleep track, don't do anything. Split up alive into $(1-\al,\al)$ alive/asleep, split up asleep into $(\be, 1-\be)$ alive asleep, and repeat. 
+Initially, 
+\begin{align}
+s&=\ga\text{ initial}\\
+r&=1-\ga\text{ initial}\\
+s^m &= \text{MultiplicativeUpdate}(s)\\
+r^m& = r\\
+s&=(1-\al)s^m + \be r^m\\
+r&=\al s^m + (1-\be) r^m\\
+\ga &=\fc{\be}{\al+\be}.
+\end{align}
+You can vary parameters dynamically.
+
+%have bounds for arbitrary data. 
+If you know when the switches happen, loss is very low. 
+\begin{itemize}
+\item
+Regular multiplicative update learns the first language (English) too well and fails to learn anything else (or it takes a long time). 
+\item
+The multiplicative update with uniform update  has a fixed adjustment time each time the language (best expert) changes, but can learn different languages (switch experts).
+\item
+Double track does even better. 
+\end{itemize}•
+
+I plotted logs of weights. Part of it is sent to the other track. When it's need again, it's pulled up faster. 
+
+If a weight does good, it leaks over to the sleeping track. 
+
+Would it benefit to have a third track? We can do everything continuously!
+
+How can long-term memory be realized in neural nets? How is long-term memory realized in nature? Junk DNA, hidden genes? Sex?
+
+When you throw wild seeds in your yard, part of it sprouts the first year, second year... It takes 7 years to all sprout. A farmer doesn't want this, wants monoculture, breeds out this variation.
+In time-varying weather, you want to guard against disasters, sleep some.
+
+It could be that the third track handles switching small sets of pools.
+
+%hierarchy? No hierarchy. 
+%tradeoff between $\al,\be$. 
+Bio experiment: tubes with $10^{15}$ experts. You can do long-term memory with pouring. All the genes that were ever good can stick around.
+%grains in a sandbox. MU is filter and renormalize.
+
+\section{Bayesian interpretation}
+
+\subsection{Bayes}
+In the end we want to know how this scales up to NN. To get there we need some good perspectives. This is a second description.
+
+I want to get to long-term memory, but I will first give you 2 things you need: Bayes Rule (learn a single best expert), specialists (not all experts make predictions all the time). Then you can build resilience, things that come back when they need to.
+%predict ``don't know.''
+%predict when not to predict?
+
+Let past outcomes be $y_1,y_2,\ldots$, models be $m\in M$, so we have probabilities
+$$
+\Pj(y_t|y_{<t},m).
+$$
+Get all the pieces and form the joint. 
+A Bayesian puts a \vocab{prior} 
+$$\Pj(m)$$ 
+and makes a \vocab{joint} prediction
+$$
+\Pj(y_{\le t}, m) = \prod_{s=1}^t \Pj(y_s|y_{<s},m).
+$$
+Now \vocab{predict}
+$$
+\sum_m \Pj(y_t|y_{<t}, m) \ub{\Pj(m|y_{<t})}{\text{posterior}}.
+$$
+The \vocab{update} is given by Bayes rule (cf. multiplicative update)
+$$
+\Pj(m|y_{\le t}) = \fc{\Pj(m|y_{<t}) \Pj(y_t|y_{<t},m)}{\Pj(y_t|y_{<t})}.
+$$
+%mean posterior
+%thompson sampling
+In MU, write $\Pj(y_t|y_{<t},m)$ as $e^{\text{log loss}}$.
+$$
+\Pj(y_t|y_{<t},m) = e^{-\eta l_t(m)}.
+$$
+The regret bound is
+$$
+\sumo tT  - \ln \Pj(y_t|y_{<t}) + \ln \Pj(y_t|y_{<t},m)
+\le -\ln \Pj(m)
+$$
+Ex. for $\rc{N}$, you get logarithmic in the number of experts. There is no dependence on time.
+%in some sense one round game
+%logloss is much nicer than linear
+\subsection{Specialists}
+
+
+
+Now I build on this. I want to deal with the case when not all the models are giving a prediction, $\Pj(y_t|y_{<t},m)$ might be missing. They are not participating. %or ``I don't want to give an answer.''
+%if adversarial...
+%no reason given.
+(A specialist is a model whose predictions might be missing. ``I don't know about this area, I abstain.'') 
+It's not a partial observation.
+
+How do we deal with this? 
+
+Probabilities are available only for $m \in W_t$.
+
+%Make up something 
+Make up probabilities? Ignore what's missing?
+
+%you don't have a prediction. 
+
+Now there's two types of models: the ones that are there and not.
+\begin{align}
+\Pj(y_t|y_{<t}) &= 
+\sum_{m\in W_t}
+\Pj(y_t| y_{<t},m) \Pj(m|y_{<t})
++ \sum_{m\nin W_t} 
+\Pj(y_t|y_{<t}) \Pj(m|y_{<t}).
+\end{align}
+Plug in your own prediction for the missing predictions.
+``If you're silent you must agree.'' This is the same as ignoring and normalizing.
+%This makes the prediction defined for everyone.
+Solve for the probability:
+$$
+\Pj(y_t|y_{<t}) = \fc{\sum_{m\in W_t}\Pj(y_t|y_{<t}, m) \Pj(m|y_{<t})}{\sum_{m\in W_t} \Pj(m|y_t)}.
+$$
+%I was just running Bayes rule with an assigned prediction.
+
+This means I get the Bayesian regret bound for free.
+When the model is asleep, I assigned my own prediction; there is no contribution to the regret model.
+$$
+\sum_{t: m\in W_t} -\ln \Pj(y_t|y_{<t}) + \ln \Pj(y_t|y_{<t}, m) \le -\ln \Pj(m).
+$$
+%?not enough to random-guess - rising tide lifts other boats.
+(If no experts are awake, it doesn't matter what we do: if we have no prediction at all, we have no yardstick to evaluate.)
+
+%Cover whole weight line with weight pieces.
+We are plugging in the prediction as a likelihood.
+
+%abstaining?
+
+This also works with an infinite number of model; there is another model that was asleep so far. (But you need a prior for models.)
+
+
+\subsection{Resilience}
+
+You need a way to deal with the fact that there is a model that is good on the second half of the data. You need an equal amount of goodness to compensate for the badness to even bring it back to the starting point.
+
+We want a model to join in at the time that it's useful. 
+Let's design specialists that do this for us. Let's enrich the model class.
+%go into hiding until time comes when they are useful.
+$$
+M^{res} = \set{(m,s)}{m\in M, s\in \N}
+$$
+Let 
+$$
+N_t = \set{(m,s)}{s\le t}.
+$$
+Here $(m,s)$ predicts like $m$. Let
+$$
+\Pj(m,s) = \Pj(s)\Pj(m).
+$$
+Let $\Pj(s)=\rc T$.
+
+My loss from $s$ to $T$ is given by 
+$$
+-\pat{loss  against $m$}\le -\ln \Pj(m) + \ln T.
+$$
+This is fixed share: mixing against uniform.
+
+There are only those that have woken up and are still asleep.
+If I keep on playing, it doesn't break my regret at time $T$! I can sum them to cover all my data.
+%bayesian regret weird here - compete not against actual model, but the model that's best so far.
+
+\subsection{Long-term memory}
+The experts need to participate, go away, and come back.
+
+We want experts of the form sssswwwsssswww....
+%If we have those types of specialists, we can say
+
+Let 
+$$
+M^{LTM} = M\times \{w,s\}^{\N}.
+$$
+We have $(m,\ol a)\in W_t$ iff $a_t=w$.
+
+The prior is
+$$
+\Pj(m,\ol a) = \Pj(m) \text{Markov}(\ol a).
+$$
+We want a stretch of asleep/awake. The more switches, the more complicated. The most reasonable are the sticky sequences.
+There are 2 states in the Markov process: given I'm awake I have high likelihood of being awake. Given I'm asleep I have a high likelihood of staying asleep. There is a small probability of changing tracks.
+
+This comes back in the regret bound.
+
+You can group everything that's awake/asleep. That's exactly the two tubes.
+
+%You have too many experts? They collapse. %The prior cost 
+The regret depends on $\Pj(m)$: %for some sequence, they get worse: 
+Roughly you pay $\ln T$ for every switch. You can tune the prior to match the frequency. 
+You can make $\rc{T}$ for switching: smaller probability of switching as time goes on. %Sublinear number of jumps.
+This is appropriate for meteorites, not seasons.
+
+Going to 0 at known rate is close to knowing the proportion given it's sublinear. 
+%lower order term don't care.
+%always a mixture. 
+%what if I'm not in log loss model.
+
+If you have hard-core loss there are standard reductions. It's orthogonal.
+
+Finding the best sequence in hindsight is NP-hard. %We have to ``cover'' the transitions twice. 
+Can I make the best such partition?
+
+The model can compete with all partitions.
+%prior on ways to partition.
+
+Use sleeping to avoid putting prior on partitions and trying to solve a NP-hard problem? (This is not Markov: you want to do well with models that have appeared in the past, which corresponds to models in the past being more likely to recur. A Bayesian would use a Dirichlet process prior, but this is intractable to do inference on.)
+%ones in the past are more likely.
+
+Can you equate ``sleeping'' with wildcard? No, you have to produce a likelihood.
+
+%What is the full joint distribution?
+%We have models and times. 
+
+From a Bayesian perspective it is disturbing, but it works. If you imagine any predictions it becomes fully defined. 
+
+%what happens in bayesian regret if many models predict the same thing?
+
+When something is asleep keep on going. You have to cover your timeline.
+
+You have 2 modes of using it: the sleeping things are real, or build your own model where they are defined by you: virtual experts, you define where they are sleeping.
+
+
+\subsection{Neural networks}
+
+For a single neuron, once in a while you want to freeze it, and the whole graph underneath. How to freeze and wake up again? Put a new feature.
+
+Problem: the layers depend on each other.
+
+The other question: maybe there is another track where you leak; it goes at a slower rate. Maybe you can do it hierarchically, and show English a small pool, German is another pool, and you shift between pools. With very little additional mechanism (in the single neuron case), have layered long-term memory, layered time scales.
+
+%vs. boosting
+
+How about continuous things? The math goes through if you have partial awake/asleep. As you vary ``asleep'' parameter, you are more asleep.
+
+%three - two part markov model?
+
+We had fixed sleep/awake factors. You can learn those. One step do likelihoods, the next step get feedback, have heuristic for being awake or asleep.
+This is allowed for in Bayesian thinking. If you have likelihood to waking up/falling asleep, the two things interleave. %Active/inactive, waking/asleep.

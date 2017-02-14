@@ -1,0 +1,236 @@
+\section{Machine Learning from Verbal User Instruction (Tom Mitchell, Carnegie Mellon University)}
+
+Abstract: 
+Unlike traditional machine learning methods, humans often learn from natural language instruction. As users become increasingly accustomed to interacting with computer devices using speech, their interest in instructing these devices in natural language is likely to grow.
+
+We present our Learning by Instruction Agent (LIA), an intelligent personal agent that users can teach to perform new action sequences to achieve new commands, using solely natural language interaction. LIA uses a CCG semantic parser to ground the semantics of each command in terms of primitive executable procedures defined in terms of the sensors and effectors of the agent. When LIA is given a natural language command that does not understand, it prompts the user to explain how to achieve the command through a sequence of steps, also specified in natural language. As a result of the instruction episode, LIA learns two types of knowledge: (1) a new procedure defined in terms of previously understood commands, and (2) an extension to its natural language lexicon that enables it to understand and execute the new command across multiple contexts (e.g., having been taught how to ``forward an email to Alice,'' LIA can correctly interpret the command ``forward this email to Bob.'' This talk will present LIA, plus ongoing research to extend it to include demonstration-based learning, and theoretical questions raised by such learning from instruction.
+
+Background reading: \url{http://ai2-website.s3.amazonaws.com/publications/LearnByInst.pdf}
+
+To think about the future of machine learning, look at how humans learn that machines don't. ML has been overfocused on one paradigm.
+
+Suppose there is a sensor-effector system (like a phone) you would like to teach through human instruction. Sensors include mike, camera, GPS, web pages, incoming message, news... Effectors include vibrate, speak word, display message, seach web, invoke app... 
+
+If you could teach your phone things, what would you teach? Most things we say now are instantaneous: what is the weather?
+
+We can have conditional strategies monitored all the time. Ex. Google has: Whenever I have to catch a flight, alert me to head to the airport so that I'll arrive an hour before flight time.
+
+But there are lots of other things I want:
+\begin{itemize}
+\item
+Whenever it snows at night, set my alarm 30 minutes earlier.
+\item
+If somebody sends me a picture containing my mom, email it to her.
+\item
+Whenever a student sends email about a homework question, forward it to the right teaching assistant.
+\end{itemize}
+These are all in the sensor-effectuator closer of the phone: depending on things the phone can sense and actions the phone can do.
+
+
+We assume 
+\begin{itemize}
+\item
+set of sensors, effectors
+\item 
+primitive language capability (language lexicon able to invoke each sensor, effector)
+\item
+general learning mechanisms.
+\end{itemize}
+
+We want the system to learn
+\begin{itemize}
+\item
+langauge: lexicon entries to understand new phrases. (``drop a note to Bill'') The system might not know the phrase at first, but it should learn it.
+\item
+Capabilities: new sensors and effectors defined in terms of existing.
+\item
+Representations: new concepts and instances linked to instance. 
+
+Ex. define concept ``workshop''. One instance is Interactive Learning 2017. 
+
+This becomes another sensor. ``Whenever I'm attending the workshop,...''
+\end{itemize}
+
+I'll show a prototype which allows teaching new commands.
+\subsection{Teaching new commands}
+Philosophy:
+\begin{itemize}
+\item
+Teaching the agent should be like teaching another human: it will remember.
+\item
+Anyone should be able to teach. Anyone can become a programmer!
+\item
+Verbal instruction and demonstration
+\item
+Anytime.
+\end{itemize}•
+
+If the system doesn't know what something means, ``I don't know how to do that, can you teach me what it means?''
+
+%igor..
+\begin{itemize}
+\item
+``Tell Tom to come to the meeting a few minutes early.''
+\item
+Instruct by breaking into substeps.
+\item
+``I'm trying to generalize to other similar commands.''
+\item
+``Tell Bob to bring some coffee.'' This is now comprehendable!
+\end{itemize}
+
+The system learned new language competence, and learned a procedure. 
+
+What it means to understand a command means to create the code to make the command execute.
+
+The generalization comes out of inherent structure of the semantic parsing, and some heuristics to make it work as well as possible.
+
+If the generalization was not perfect, how to correct? No good answer yet...
+
+This system right now deals when unknown semantics have to do with phrasings and verbs (tell). It didn't know ``tell'' before; now it can show the semantics of ``tell''. 
+
+Meta-conversations: remember that time when I told you to tell Bob to bring coffee...
+
+CCG (combinatory categorical grammar) parsing maps natural language to logical forms.
+``Prepare an email to Bill'' becomes (doSeq (createEmail) (set recipient Bill)). 
+
+Parsing steps combine sentence parts both syntactically and semantically: Adjective Noun is a NP, where the logical form of the NP is Adjective(Noun).
+
+%LIA executes the logical form of the full sentence, grounded. LIA
+
+``Set the subject to time to go.''
+
+\begin{itemize}
+\item
+subject: FieldName, becomes (lambda x (getMutableFieldByFIeldName x)).
+\item
+time to go: StringV
+\item
+to: absorb phrase to right PP\_StringV.
+\item
+End: (setFieldFromString (getMutableFieldByFieldName subject) (stringValue ``time to go'')).
+\end{itemize}•
+Grammar rules can be ambiguous: we say this ``can'' be parsed a certain way rather than it will.
+
+There are 2 things to learn: Learn new parsing rules and right control strategies to control the parse. Ex. ``set'' makes it more likely to parse the RHS as a string.
+
+In practice, the number of potential parses increases rapidly as vocabulary.
+
+We learn loglinearly and use beam search, keep 15 most valued parses. If you make complex sentences, the beam is not wide enough.
+
+In the example, the algorithm learned the semantics of ``tell''.
+
+Generalization algorithm: parameterize any text span whose semantic parse is a subtree of the full sentence semantic parse (replace by variable, ex. arg0=``Tom'', arg1=``I am late'').
+
+We don't have things like yet: ``Inform'' is a synonym of ``tell''.
+
+Everything is symbolic so far. Logical forms do have to be executable. SA: Embeddings could inform probabilities. %Christian Murthy
+
+What about sending email vs. text? (Synonyms in action space.) It doesn't have a notion of goals, subgoals, planning. This would be a much richer substrate.
+
+%Ambiguity?
+
+%recursion
+We ran experiments on Mechanical Turk. Create a new email and set the recipient to the current email's sender. %Set recipient to Mom's email...
+Set recipient to Mom. I can't. Set recipient to Mom's email. This is a clarification that teaches the machine.
+
+Subject taught agent new commands, saved on average 52 subcommands. Only 41\% completed the task.
+
+No cumulation in experiment. %Duplicate commands taught by other people/
+People can have own dialects (ex. send email vs. text). How about customizing from fully loaded sytem?
+
+\subsection{Teaching conditional strategies to automatically invoke commands}
+
+If (sensor value) then (command).
+\begin{enumerate}
+\item
+If I get new email from...: this is easily defined in language, ``Test whether value of the from: field equals...''
+
+Declarative.
+%intentional
+\item
+Concept definable as active sensing procedure. ``If it snows at night...'' Open weather app, read current conditions, equal to snow?
+
+Procedural.
+\item
+Concept not definable in closed form, or procedurally. ``If I get spam email...'' No closed declarative or procedural definition. Generalize from examples with user instruction.
+\end{enumerate}•
+
+Typical user instruction is ``it's probably spam if it's trying to sell me something.''
+
+The meaning has to be grounded in observable properties in email. 
+Our approach is to jointly learn meaning of these natural language statements, (boolean) values for individual emails, and a classifier based on these values plus observed features.
+
+%mushy
+%observable features
+%if contains ``You are invited''
+%meaning grounded in observable properties in email and learn classifier.
+
+MTurkers generated emails in the following classes.: contact, employee, event... Other MTurkers provided advice on classifying them.
+
+The F1 score of the learned classifier is higher with sentences provided by users.
+
+\subsection{Teaching by demonstration}
+
+SUGILITE: Creating multimodal smartphone automation by demonstration.
+
+Ex. ``Order a Cappucino.'' Demonstrate using any third party apps. Determine parameter using voice command. Analyze app's user interface. Click on behalf of user.
+
+\subsection{Future work}
+Future work:
+\begin{itemize}
+\item
+Integrate verbal instruction with demonstration
+\item
+Share learning across agent (phones)
+\item
+Incremental refinement (``if it snows'' to ``if it snows lots'')
+\item
+mixed initiative teachine dialogs
+\item
+If (sensor) then (effector) because (goal). This gives us a way to teach the system reasoning!
+\item
+Combine statistical, verbal, demonstration, and experiments.
+\end{itemize}
+%asking for clarification, disambiguation
+
+Theory needed:
+\begin{itemize}
+\item
+Sample complexity impact from different types of instructions.
+
+Communcation is not necessarily a label, but another type of instruction: demonstrations with or without commentary, suggested new features...
+
+There is an effectively infinite set of features defined by a grammar. In ML we usually assume we have a nice set of features.
+\item
+Theory of agent architectures: what are sufficient initial capabilities to assure learnability of everything in the sensor-effector closure?
+
+What is the value of a good curriculum?
+
+What are sufficient conditions to assure non-damaging learning?
+\end{itemize}
+
+In one sentence: because now computers can understand what we're saying to some degree, there is this huge new underexplored area of verbal user instruction. %as a key part of machine learning, 
+Opening it up we get into interesting practical and theoretical questions, ex. incompleteness of verbal instruction.
+%turkers run app on phone.
+
+Android platform easier than iOS. Toby Li: track every keystroke on every application.
+
+Inverse question: how machine can teach humans to teach, interact in way it can understand. Student saying ``that wasn't very good''. I didn't understand your command because... there are many Bobs, I couldn't parse this last part...
+
+Speech recognition is a bottleneck. We use google speech. One problem is that you get back the whole things; we want to track in real time the utterance. There are other speech systems at CMU (finer grained) but they are not as globally competent.
+%speech recognition dialogue.
+Is there a way to make speech recognition better with grammar/parsing?
+
+%social norms communicate back and forth.
+%doesn't work with crufty robotic back and forth.
+
+Gather vague and informative signals? Attention, etc. OpenSmile.
+
+%language understanding
+
+Part of the experiment: given human understanding, can they break it into pieces? Maybe it doesn't have to work as well as human understanding.
+
+
+
+

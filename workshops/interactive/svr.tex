@@ -1,0 +1,198 @@
+\section{Stochastic variance reduction methods for policy evaluation (Lihong Li)}
+
+Abstract: Policy evaluation is a crucial step in many reinforcement-learning problems, which estimates a value function that predicts long-term value of states for a given policy. In this talk, we present stochastic variance reduction algorithms that learn value functions from a fixed dataset, which is shown to have (i) guaranteed linear convergence rate, and (ii) linear complexity (in both sample size and feature dimension), under the condition of linear function approximation and possibly off-policy learning as well as eligibility traces. In particular, we transform the policy evaluation problem into an empirical (quadratic) saddle-point problem and apply stochastic variance reduction methods in the primal-dual space. Interestingly, the algorithms converge linearly even when the quadratic saddle-point problem has only strong concavity but no strong convexity. Numerical experiments on random MDPs and on Mountain Car demonstrate improved performance of our algorithms.
+
+This is not common in RL work because it uses recent advances in optimization. The techniques can be very powerful.
+
+A robot takes actions $a_t$ to affect the world and gets immediate reward $r_t$.
+
+The value of a state is the expected long-term return from state $s$,
+$$
+V^\pi(s) := \E\ba{\sumo t{\iy}\ga^{t-1}r_t|s_1=s}.
+$$
+In the end we care about policy optimization.
+
+A crucial step is to evaluate a fixed policy (policy evaluation). 
+
+For convenience, drop $\pi$ and $a$ for the rest of the talk. We focus on PE with linear function approximation, and a batch setting where data is fixed (experience replay).
+
+We showed first-order algorithms with linear convergence: total time complexity $O\pa{nd\ln \prc{\ep}}$ where $n$ is sample size, $d$ is dimension, and $\ep$ is optimization precision.
+ Previous complexity is $O(nd^2)$ or $O(n/\ep)$.
+ 
+ Key technical ingredients are
+ \begin{itemize}
+\item
+Saddle-point reformulation of policy evaluation. (Usually it's described as an fixed point of an iteration.) This seems to make it more complicated, but we can apply optimization.
+\item
+Stochastic variance reduction based on SDVRG and SAGA.
+\item
+Eigenvalue analysis of corresponding matrices.
+\end{itemize}•
+ 
+All results can be extended to eligibility traces and off-policy RL.
+
+\subsection{Problem setup}
+
+We model as Markov reward process (there is no action) $M=\an{S,P,R}$: Markov chain with reward function. $S$ is finite set of states, $\Pj(s'|s)$ is transition probability, $R(s)$ is expected one-step reward.
+
+Value funciton is $V(s) = \E[r_1+\ga r_2+\ga^2r_3+\cdots|s_1=s]$. Bellman equation says
+$$
+V=R+\ga PV.
+$$
+$V$ is a fixed point to the linear operator $X\mapsto R+\ga PX$.
+
+In linear value function approximation, we want an approximation
+$$
+\wh V(s) = \phi(s)^T \te
+$$
+(or $\hat V = \Phi\te$). Here $\phi(s)$ is a $d$-dimensional feature vector and $\te\in \R^d$ has parameters to optimize.
+ 
+ The objective function: Data is a trajectory of $n$ steps, $D=(s_1,r_1,\ldots, r_n,s_{n+1})$ with $\phi_t=\phi(s_t)$. Training target is not given, unlike regression problemn.
+ 
+ We use empirical MSPBE (mean square projected Bellman error)
+$$
+\ve{\wh V - \Pi (R+\ga P\wh V)}_{\Xi}^2.
+$$
+Precisely...
+\begin{align}
+\te^* &= \amin_\te \rc 2 \ve{A\te - b}_{C^{-1}}^2 + \fc{\rh}2\ve{\te}^2\\
+A_t &= \phi_t(\phi_t-\phi_{t+1})^T\\
+A &= \rc n \sum_t A_t\\
+b_t&=r_t\phi_t\\
+b&=\rc n\sum_t b_t\\
+C_t &= \phi_t\phi_t^T\\
+C&=\rc n \sum_t C_t.
+\end{align}•
+Important is that we have an objective function.
+
+
+\subsection{Saddle-point formulation and algorithms}
+
+The objective does not have the sum-over-data structure. It's not straightforward to decompose into individual examples. Direct optimization is not easy, often requiring $O(d^2)$ complexity. 
+GTD2 (Sutton et al 2009) has $O(d)$ complexity but convergence is slow.
+
+The conjugate function of $f(w)=\rc 2\ve{w}_C^2$ is
+$$
+f^*(u):=\sum(u^Tw - f(w))=\rc 2\ve{u}_{C^{-1}}^2.
+$$
+Rewrite MSPBE as
+\begin{align}
+\min_\te \ba{\rc 2\ve{A\te - b}_{C^{-1}}^2 + \fc\rh2\ve{\te}^2} = \min_\te\max_w\ub{\ba{w^T(b-A\te) -\rc 2\ve{w}_C^2 + \fc \rh2 \ve{\te}^2}}{L(\te,w)}
+\end{align}
+$L$ is convex-concave, so the we can find the minimax. We can decompose
+$$
+L(\te, w) = \rc n \sum_t L_t(\te, w).
+$$
+Use existing optimization, like primal dual batch gradient.
+
+Initialize $(\te, w)$. For $m=1:M$, update by gradient
+\begin{align}
+\coltwo \te w -&=\matt{\si_\te}{}{}{\si_w} B(\te,w)\\
+%neg sign 
+B(\te, w) :&= \coltwo{\nb_\te L}{-\nb_w' L} = \coltwo{\rh\te - A^Tw}{A\te - b + Cw}.
+\end{align}•
+Per-iteration cost is $O(nd)$. This enjoys linear convergence.
+
+But is it not practical because it is linear in $n$.
+
+We can do a stochastic version. Randomly sample a data point and compute a stochastic gradient.
+\begin{align}
+\coltwo \te w -&=\matt{\si_\te}{}{}{\si_w} B_{t_m}(\te,w)\\
+%neg sign 
+t&\sim U[1,\ldots, n]\\
+B(\te, w) :&= \coltwo{\nb_\te L_t}{-\nb_w' L_t} = \coltwo{\rh\te - A_t^Tw}{A\te - b_t + C_tw}.
+\end{align}•
+This recovers GTD2. Per-iteration cost is $O(d)$ but convergence is sublinear. The problem is that $B_{t_m}$ has high variance. We reduce the gradient by SVRG
+\begin{align}
+\coltwo \te w -&=\matt{\si_\te}{}{}{\si_w} B_{t_m}(\te,w, \wt \te, \wt w)\\
+%neg sign 
+t&\sim U[1,\ldots, n]\\
+B_t(\te, w, \wt \te, \wt w) &= B_t(\te, w)-B_t(\wt \te, \wt w) + B(\wt \te, \wt w).
+%ifg far from true grad,
+%B(\te, w) :&= \coltwo{\nb_\te L_t}{-\nb_w' L_t} = \coltwo{\rh\te - A_t^Tw}{A\te - b_t + C_tw}.
+\end{align}•
+We need to maintain $\{\wt \te, \wt w, B(\wt \te, \wt w)\}$, update periodically. In the long run, $B_t(\te, w, \wt \te, \wt w) \approx B(\wt \te, \wt w)$. Per-batch is $O(d)$. onvergence is linear.
+
+SAGA also reduces variance. Idea is similar but details are different. It doesn't need periodic batch graident updates, but has to maintain gradient for each datum (extra space $O(n)$).
+
+Extend to off-policy PE (when data sampled from different distribution) and PE with eligibility traces (smooth the gap between MSPBE and MSE).  The difference is how $(A,b,C)$ are formed.
+
+\subsection{Complexity bounds}
+
+Summary:
+\begin{enumerate}
+\item
+LSTD (least squares temporal difference) $O(nd^2)$ (exact matrix inversion)
+\item
+GTD2 $O\pf{d\ka_1}{\ep}$. 
+\item
+PDBG $O\pa{nd\ka_2\ln \prc{\ep}}$.
+\item
+SVRG/SAGA $O\pa{nd\pa{1+\fc{\ka_3}\ln \prc{\ep}}}]$.
+\end{enumerate}•
+The $\ka_i$ are algorithm-specific condition numbers. 
+
+$L(w,\te) = w^T(b-A\te) -\rc 2\ve{w}_C^2 + \fc \rh2 \ve{\te}^2$. Step sizes are $(\si_\te, \si_w$. Let $\be = \fc{\si_w}{\si_\te}$. Optimality conditions give
+\begin{align}
+\De_{m+1} &=(I-\si_\te G)\De_m\\
+\De_m:&= \coltwo{\te_m-\te^*}{\be^{-0.54} (w_m-w^*)}\\
+G&=\matt{\rh I}{-\sqrt \be A^T}{\sqrt \be A}{\be C}.
+\end{align}•
+Eigendecomp $G=Q\La Q^{-1}$ is diagable for large enough $\be$.
+Get
+\begin{align}
+\De_{m+1} &= (I-\si_\te Q\La Q^{-1}) \De_m\\
+Q^{-1} \De_{m+1} &= (I-\si \La) Q^{-1} \De_m.
+\end{align}•
+Capture convergence by potential function $P_m:=\ve{Q^{-1}\De_m}^2$, 
+$$
+P_{m+1} \le \ve{I-\si_\te\La}^2 P_m.
+$$
+Proper $\si_\te$ gives exponential decay of $P_m$. This gives linear convergence of $\te_m$ to $\te^*$.
+$$
+\ve{\te_m-\te^*} \le \ve{Q}^2 \ve{Q^{-1}\De_m}^2 = O(2^{-m}).
+$$
+We have to bound eigenvalues of $Q$.
+\subsection{Experiments}
+
+We compare
+\begin{enumerate}
+\item
+TD (experience replay)
+\item
+GTD (experience replay)
+\item
+PDBG 
+\item
+SVRG/SAGA
+\item
+LSTD
+\end{enumerate}
+We experiment on random MDPs (400 states, 200 actions, $\ga=0.95$, features $d=200$, $n=100000$) and mountain car (2d, 3 actions, $\ga=0.9$).
+
+Previous work:
+\begin{itemize}
+\item
+ stochastic variance reduction for convex optimization, 
+\item
+saddle-point optimization (Balamurugan, Bach 2016).
+
+Require proximal mappings that are expensive to compute in PE, and strongly convex-concave objectives (we only require strong concavity in dual).
+\item
+Gradient-based TD (Sutton et al. 2009). This is derived from very different principles and have slow convergence.
+\item Incremental LSTD, unknown convergence rate.
+\end{itemize}
+
+\subsection{Conclusion}
+We give a saddle-point formulation of batch policy evaluation, first-order algorithms with linear convergence rate, and have promising experimental results on benchmarks.
+
+Future directions
+\begin{itemize}
+\item
+extend to nonlinear value-function approximation
+\item
+extend to control case (policy optimization)
+\item
+application of modern optimization techniques to RL.
+\end{itemize}•
+

@@ -1,0 +1,206 @@
+\section{Machine teaching in interactive learning, Jerry Zhu, University of Wisconsin-Madison}
+
+Abstract: If machine learning is to discover knowledge from data, then machine teaching is an inverse problem to pass the knowledge on. More precisely, given a learning algorithm and a target model, the goal of machine teaching is to construct an optimal (e.g. the smallest) training set from which the algorithm will learn the target model. I will discuss several aspects of machine teaching that connect to interactive machine learning.
+
+What do we really want from interactivity? 
+
+Imagine we're doing binary classification, $x\in [0,1]$, label $y\in \{-1,1\}$, the hypothesis space is threshold classifiers $\cal H = \set{\te\in [0,1]}{\wh y = \one_{x\ge \te}}$.
+
+Contrast 3 types of teaching. Assume noiseless.
+\begin{enumerate}
+\item
+PAC (passive) learning: sample iid. A learner gets a batch of iid samples. With large probability
+\begin{align}
+|\wh \te - \te^*| &=O(n^{-1}) \le \ep\\
+n&\ge O(\ep^{-1}).
+\end{align}
+We can do much better with active learning.
+\item
+Active learning: the learner picks query $x$; human oracle answers $y=\te^*(x)$. Do binary search,
+\begin{align}
+|\wh \te - \te^*| &=O(2^{-n}) \le \ep\\
+n&\ge O(\lg(\ep^{-1})).
+\end{align}
+\item
+An ideal human teacher: Teacher knows the learner and designs an optimal training set. $n=2$ for all $\ep>0$ by giving 2 opposite items $\ep$ away from each other.
+\end{enumerate}
+%noise, lipschitzness...
+\begin{enumerate}
+\item
+Machine teaching: what can we expect from an ideal teacher?
+\item
+The real world is not ideal.
+\end{enumerate}
+
+\subsection{Humans are teachers, not annotators. What can an ideal teacher do?}
+
+We make strong assumptions.
+\begin{enumerate}
+\item
+Teacher knows target model $\te^*\in \cal H$.
+\item
+Teacher can give training set $D$ but not $\te^*$ to learner.
+\begin{itemize}
+\item
+Constructive teaching (can lie) $D\in \bb D=\bigcup_{n=1}^{\iy} (X\times Y)^n$.
+\item
+Constructive teaching (honest) $D\in \bb D=\pa{\bigcup_{n=1}^\iy X^n, Y=\te^*(X)}$.
+\item
+Pool-based teaching $D\in \bb D = 2^{\{(x_i,y_i)\}_{1:N}}$.  Can only select examples from a pool.
+\end{itemize}
+\item
+Teacher knows learning algorithm/estimator/student $A:\bb D\to 2^{\cal H}$. 
+\begin{itemize}
+\item
+Ex. version space learner $A(D) = \set{\te\in \cal H}{\te(x_i)=y_i,1\le i\le n}$.
+\item
+Ex. regularized empirical risk minimizer $A(D) = \amin_\te\sumo in \ell(\te,x_i,y_i) + \la\ve{\te}$.
+\end{itemize}
+\end{enumerate}
+
+The teacher is solving a problem in the space of training sets. Objective is size of training set.
+$$
+\min_{D\in \bb D, \te^*\in A(D)} \ve{D}_0.
+$$
+This is like the ``inverse'' of machine learning, find something in $A^{-1}(\{\te^*\})$.
+An alternative view is from coding: the message is $\te^*$, the decoder is $A$, the language is $\bb D$. It's a strange decoder, maps the training set to the model.
+
+A special case is classical optimal teaching (Goldman, Kearns 95). Further restrictions: $A$ is a version space learner, often for $X,\bb D, \cal H$ finite.
+
+The teaching dimension is
+\begin{align}
+\min_{D\in \bb D, \te^*\in A(D)} \ve{D}_0\\
+TD(\cal H):=\sup_{\te^*\in \cal H} TD(\te^*)
+\end{align}
+I'll move to other definitions depending on the learning algorithm.
+
+\begin{ex}
+Think of hard-margin SVM. %linearly separable. Find hyperplane with largest margin.
+We want to teach a target model---a hyperplane. The teacher can do constructive teaching (pick arbitrary items). What's the smallest training set?
+
+You can do it with 2. Place the examples such that the hyperplane is the perpendicular bisector of the hyperplane. So $TD=2$ and $VC=d+1$.
+\end{ex}
+\begin{ex}
+Teach a $d$-dimension Gaussian to the maximum likelihood estimator.
+
+In $d$ dimension, choose tetrahedron vertices, $TD=d+1$.
+\end{ex}
+
+To teach linear learners (ridge regression, soft SVM, logistic regression), $A(D) = \amin_{\te\in \R^d} \sumo in \ell(\te^Tx_i,y_i) + \fc\la2\ve{\te}_2^2$.
+
+TD depends on the loss function.
+For just learning the boundary, TD dimension is 1 for squared, hinge, and logistic loss: you can teach by a single example even with one positive example. This is because the student has a regularizer, which acts as a negative pull from the training example.
+%decision boundary, off by constant in terms of parameter.
+
+For ridge regression, the singleton set is
+$$
+x_1 = a\te^*, \quad y_1 = \fc{\la + \ve{x_1}^2}{a}.
+$$
+You can take any $a\ne 0$. 
+Ex. to teach $\la=1$ student the target $\te^*=1$, the teacher lies: $x_1=1,y_1=2$. 
+%There are optimal, infinite number of training set
+The teacher needs to lie because the student is shrinking the estimate. Cancel out the regularizer.
+
+The student doesn't know it's being taught; it just follows its algorithm.
+(What if the student expects to be taught?)
+
+%how make robust to initial conditions, etc.?
+TD is like the ``speed of light''.
+Unavoidable effort in interactive machine learning: $n\ge TD$. 
+Ideal teacher achieves $n=TD$. This can be much faster than active learning (ex. 2 vs. $\lg\prc\ep$). We must allow teacher-initiated items, unlike active learning. (You can't allow the computer to pick the items.)
+
+We can also define learner risk, teacher effort, constraints (minimize subject to tolerance, or subject to budget). There is a Lagrangian form.
+%$$
+%\min_{D\in \bb D} f(A(D),\te^*)
+%$$
+
+Suppose the teacher is restricted to a pool of items. Let the pool be $n$ uniform items from $[-1,1]$.
+Take the innermost pair and learner puts the boundary in the middle.
+Giving the whole pool achieves $\rc n$. Because the learner is special, we can achieve $\rc{n^2}$. Pick the most symmetric pair! Whp,
+$$
+|\wh \te - \te^*| =O(n^{-2}).
+$$
+This is not training set reduction nor sample compression.
+%uniform distribution.
+
+%there's nothing for CSists to do.
+
+This is boring.
+
+\subsection{Most humans are not ideal teachers}
+
+I will continue using the 1-D example.
+
+How do real humans teach? (Cover story: they choose their own $\te^*$. We told them what the learner is doing; we're not sure they understood it.) (One failure mode is when the teacher doesn't know what the student is doing.) (Instruction: please give the smallest training set.) People seemed to try to cover the hypothesis space.
+\begin{enumerate}
+\item
+30\% move linearly in space.
+%\item
+%Teach symmetrically.
+\item
+40\% crazy.
+\item
+Few people gave 2 examples.
+Often they start with 2 examples, but add more to make sure.
+\end{enumerate}
+
+The mixed-initiative algorithm: from $i=1$ to TD, let human give $(x,y)$ pair, to allow ideal human teachers.
+Afterwards the computer takes control and runs active learning starting from $D$ until completion.
+(Good teachers should be allowed to do their thing. If the human isn't good at teaching, running active learning is good.)
+
+%Consider 3 types of human teachers:
+Examples of teachers:
+\begin{enumerate}
+\item
+%There is a group of teachers who know
+Seed teacher: provides one point per positive region.
+
+The concept class of interval can be hard to learn because it can be narrow. (You need random search. A seed teacher warm-starts the active learner, and reduces to binary search.)
+\item
+Naive teacher: can be arbitrarily bad. (Ex. only give positive examples.)
+\end{enumerate}
+Fallback guarantee: waste at most TD examples. $TD\le AL$, so you get factor of 2 at most.
+
+\begin{enumerate}
+\item
+Human teachers: a significant fraction were unable to teach the concept (ex. only provide positive examples).
+\item
+Active learning: 14 by binary.
+\item
+Mixed initiative: preserve smart teachers, force those who can't succeed to be around 14--16.
+\end{enumerate}
+
+Two ideas to help:
+\begin{enumerate}
+\item
+Control with mixed-initiative learning.
+\item
+Educate with analogues: automatically generated optimal training sets for arbitrary $\te'\in \cal H$: If threshold was \$19000, show \$19000 acceptable, \$19001 unacceptable.
+\item
+Translate the teacher.
+
+Ex. Don't know the teacher's regularization constant. If human assumes wrong $\la^w$, then the learner learns wrong $\te$.
+
+If translator-in-the-middle knows $\la^w$, $\la^*$, it can translates examples $\wt x = \fc{xy}{x^2+\la^w}$.
+
+The translator is the meta-algorithm.
+
+This is not realistic, but may be useful when we know roughly what the teacher is teaching (ex. mixture of Gaussians), while in reality the student is running something else (ex. SVM).
+\end{enumerate}•
+
+\url{http://pages.cs.wisc.edu/\~jerryzhu/machineteaching/}
+
+Recruit people with teaching experience? We asked if they were teachers or parents, but didn't see correlation. Tasks may be too artificial.
+
+%Comment on the 
+Role of adaptivity?
+
+%When probing only gives partial information, interleaved active learning and teaching.
+
+Imperfect memory?
+%imperfect learner
+%experiment tease apart imperfect memory?
+
+Build from psychology: models human might assume of human student?
+
+%how well does a hand-crafted set do compared to huge dataset?

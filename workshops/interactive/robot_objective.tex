@@ -1,0 +1,138 @@
+\section{Interactively Learning Robot Objective Functions (Anca Dragan, UC Berkeley)}
+
+Abstract: Inverse Reinforcement Learning enables robots to learn objective functions by observing expert behavior, but implicitly assumes that the robot is a passive observer and that the person is an uninterested expert. In this talk, I will share our recent works in making this learning process interactive, where humans teach rather than provide expert demonstrations, and robots act to actively gather information to showcase what they've learned.
+
+Formally specifying objective functions is hard. Ex. asking a vacuum to suck dust: the robot pours dust on the floor and sucks it.
+
+How do we get a robot to learn objective functions that are implicit in people's heads but hard to write down?
+
+A robot car can drive according to passenger preferences, and predict how other drivers will drive.
+
+The framework is inverse reinforcement learning. The person implicitly knows parameters of $\te$ but can't explicate or write it down, but can demonstrate behavior according to $\te$:
+$$
+\Pj(u|\te, x_0)\propto e^{U_\te(x_0,u)}.
+$$
+The action can be the person acting or operating the robot.
+
+Arobot can take this evidence to update its belief about $\te$.
+$$b'(\te) \propto P(u|\te,x_0)b(\te)$$
+
+This is implicitly making 2 assumptions we don't want to make.
+\begin{enumerate}
+\item
+The robot is a passive observer during the learning phase.
+
+Robots are actuated agents. Can we leverage this to improve learning?
+%Turtle video!
+
+\textbf{Desiderata 1: Robots should leverage their action to improve learning.}
+\item
+We're asking people to behave like uninterested experts, optimally with respect to $\te$. 
+%from significant other.
+
+This is like the machine having to learn gymnastics from learning Gabby Douglas (Olympic level); instead it's easier to learn from a coach.
+%What's useful for me in learning how to drive 
+
+
+\end{enumerate}•
+\textbf{We formulate learning as a cooperative 2-player game.}
+
+This gives the person an interest in the robot's learning. 
+
+In cooperative inverse RL, the human has an objective function $U_\te(x_0,u_R,u_H)$ and the robot has an objective function $U_R(x_0,u_R,u_H)$. Go a step further and equate the utility function. The robot acts to improve estimation and the human has an incentive for the robot to improve its estimation, learn the right $\te$.
+
+The challenge is tractability: how to solve this?
+
+Inverse RL is one approximation: fix the human's policy to expert demonstration $\pi_H$. The robot assumes no more human actions (it won't get more information)  and chooses the best response $\pi_R=br(\pi_H)$.
+
+Setting it up as the game allows us to think about other approximations that take us closer to the desiderata.
+
+%Commit to policy for person
+
+First: how to model as a game.
+
+In autonomous driving, estimate $\te$ because we assume the person acts according to it. It's important to be able to do this as an ongoing interaction because people drive in different ways: aggressive, distracted, defensive, attentive.
+
+All users react in almost the same way. If a robot just does inverse RL, it doesn't get a lot of information. If the robot tries to merge left, it allows the other person to go first. This is typical behavior; they're defensive.
+That's not what humans do. I have to stick myself in front of people and force them to allow me in.
+
+``Google's driverless cars run into problem: cars with drivers.'' The human drivers kept inching forward looking for the advantage---paralyzing Google's robot.
+
+We thought: what if %we imrpove; 
+instead of just observing actions, allow the robot to act, and the human's actions depend:
+$$
+\Pj(u_H|u_R, \te,x_0) \propto e^{U_\te(x_0,u_R,u_H)}.
+$$
+Incentivize information gain. Robot updates belief $b'(\te)\propto P(u_H|u_R, \te, x_0)b(\te)$ and optimizes
+$$u_R^* = \amax_{u_R} \EE_\te [H(b)-H(b')]
+=\amin_{u_R} \int H(b')b(\te)\,d\te.
+.$$
+%An update decreases entropy.
+%If I got an update, those things have different amounts of entropy.
+%Make the other person predictable.
+%use actions to update driving.
+Choose actions to aid learning.
+Trade off exploitation and information gain.
+Learning more about the other person helps make better decisions.
+
+This is a POMDP but we can't solve them well in continuous state and action space.
+
+This is used in navigation, localization, etc. We're doing it not over physical state but human internal state.
+
+%We have a probability distribution
+%$$
+%\Pj(u_H|u_R,\te,x_0) \
+%$$
+Simplification: Assume optimal observation (rather than draw from distribution)
+$$
+u_H=\amax U_\te (x_0,u_R,u_H).
+$$
+where $b'(\te)\propto \Pj(u_H|u_R,\te,x_0)b(\te)$. Use quasi-Newton method. Use implicit differentiation. 
+
+Replace integral by sum,
+$$
+\amin_{u_R} \sum_\te H(b')b(\te).
+$$
+Offline do clustering of user types. Identify type of user online.
+
+When merging, the robot car nudges in. If the person is distracted, go back. If the person is attentive, merge. 
+%what if 2 robot cars that aren't coordinated?
+At an intersection, inch forward. See one behavior from distracted (continue) and another from attentive users (stop). If distracted, backs up. 
+
+Data from a simulator.
+
+Information gathering improves estimation.
+
+In order to interact properly, we can't treat them as obstacles; we have to interact with them.
+
+The robot autonomously generates strategies that we normally hand-code.
+
+%right-of-way.
+Right-of-way?  We haven't put in those constraint.
+%do against copies of itself.
+
+How does the robot do with a copy of itself? That would be different. %This is more like a game. 
+%best response.
+%People don't fully solve games.
+
+There's another side of learning how the passenger wants to drive; make queries to the expert. Generate trajectories, which would you prefer?
+$$
+\amax_{x_0,u_R^1,u_R^2} \EE_\te[H(b)-H(b')].
+$$
+
+The person (teacher) tries to figure out how the robot is learning, and responds differently from just an expert demonstration:
+$$
+\pi_H \ne br(br(\pi_H)).
+$$
+
+Ex.  Robot doesn't know the relative value of peaks of the optimization function. Expert goes straight to the closest peak. The best response visits both, gives robot evidence that the other peak is also good.
+
+%This makes a statement about when inverse reinforcement learners are easier to optimize. 
+There's a sweet spot: if the person is optimal, there's little you can do. If there's enough flexibility, people can take interesting teaching actions.
+
+Looking at the problem this way speeds up learning.
+
+Safety vs. information? Adapt tradeoff with safety over time. Reason about value of information you gain.
+
+Other relaxations? Game makes a lot of assumptions about person having perfect knowledge. This is not the case. Person has own beliefs. I don't think iterating on best responses buys us that much.
+

@@ -1,28 +1,6 @@
-\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
-%https://github.com/holdenlee/templates
+Daniel Roy, Shai Ben-David
 
-\input{\filepath/packages_article.tex}
-\input{\filepath/theorems_with_boxes.tex}
-\input{\filepath/macros.tex}
-\input{\filepath/formatting.tex}
-
-\pagestyle{fancy}
-\lhead{Generative Adversarial Nets}
-\chead{} 
-\rhead{Simons Institute, Spring 2017} 
-\lfoot{} 
-\cfoot{\thepage} 
-\rfoot{} 
-\renewcommand{\headrulewidth}{.3pt} 
-\setlength\voffset{0in}
-\setlength\textheight{648pt}
-
-\addbibresource{bib.bib}
-
-\begin{document}
-\tableofcontents
-
-%Daniel Roy, Shai Ben-David
+\section{Intro}
 
 We'll discuss:
 \begin{enumerate}
@@ -44,10 +22,10 @@ Mode collapse
 State-of-the-art: Unrolled GANs
 \end{enumerate}•
 
-\section{Informal problem}
+\subsection{Informal problem}
 We have a true distribution $P_{\text{true}} = P_{\text{data}}$ over $\R^{D}$ (e.g. $D=1000$). We want to find a (neural network) function $G_\te:\R^d\to \R^D$, called the \vocab{generator}, such that for $Z$ some randomness, $Z\sim$(some given distribution/noise), $G_\te(Z) \sim P_{\text{model}}(Z|\te)$.
 
-\section{Basic algorithm}
+\subsection{Basic algorithm}
 
 We introduce another neural network $D_\phi:\R^D\to \R$ which tries to determine whether the data point (image) is from the real model or from the generator.
 
@@ -111,8 +89,8 @@ The problem of mode collapse is some problem with the training procedure, not th
 The theorist way is to look at TV (total variation, $L^1$) distance, corresponding to the ideal discriminator (binary).
 %exacting notion of distance.
 
-\section{Problems}
-\subsection{Vanishing gradients}
+\subsection{Problems}
+\subsubsection{Vanishing gradients}
 If you try to max in $\phi$ and min in $\te$, if the discriminator gets ahead of the generator, the
  gradients of generator are close to 0, and discriminator gets generator in situation where it doesn't know how to improve itself. So actually use a different objective function.
  
@@ -125,7 +103,7 @@ $J^{(G)} = -\rc2 \EE_{z}\ln D(G(z)).$
 You tend not to have the vanishing gradient problem.
 %can't massage into divergence?
 
-\subsection{Mode collapse}
+\subsubsection{Mode collapse}
 
 This is serious. Fitting on mixtures of Gaussians, over time it fits a mode, jumps to another, and meanders around. The generator does well on one mode. The discriminator chases it around; the generator does not converge.
 %is there good solution?
@@ -153,7 +131,7 @@ Mode problem is generally a problem with log likelihood: it rewards you for matc
 
 The point of generator model is that you hope that in learning a good generator, you somehow unlock the structure in the data. There are tricks to making the coordinates more interpretable.
 
-\section{Theoretical problem}
+\subsection{Theoretical problem}
 %Formal problem}
 
  

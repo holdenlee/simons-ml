@@ -1,0 +1,171 @@
+\section{Words, Pictures, and Common Sense: Learning by playing (Devi Parikh, Georgia Institute of Technology)}
+
+Abstract: Wouldn't it be nice if machines could understand content in images and communicate this understanding as effectively as humans? Such technology would be immensely powerful, be it for aiding a visually-impaired user navigate a world built by the sighted, assisting an analyst in extracting relevant information from a surveillance feed, educating a child playing a game on a touch screen, providing information to a spectator at an art gallery, or interacting with a robot. As computer vision and natural language processing techniques are maturing, we are closer to achieving this dream than we have ever been.
+
+In this talk, I will present two ongoing thrusts in my lab that push the boundaries of AI capabilities at the intersection of vision, language, and commonsense reasoning.
+
+Visual Question Answering (VQA): I will describe the task, our dataset (the largest and most complex of its kind), our model, and ongoing work for free-form and open-ended Visual Question Answering (VQA). Given an image and a natural language question about the image (e.g., ``What kind of store is this?'', ``How many people are waiting in the queue?'', ``Is it safe to cross the street?''), the machine’s task is to automatically produce an accurate natural language answer (``bakery'', ``5'', ``Yes''). We have collected and recently released a dataset containing >250,000 images, >760,000 questions, and $\approx 10$ million answers. Our dataset is enabling the next generation of AI systems, often based on deep learning techniques, for understanding images and language, and performing complex reasoning; in our lab and the community at large.
+
+Learning Common Sense Through Visual Abstraction: Common sense is a key ingredient in building intelligent machines that make "human-like" decisions when performing tasks -- be it automatically answering natural language questions, or understanding images and videos. How can machines learn this common sense? While some of this knowledge is explicitly stated in human-generated text (books, articles, blogs, etc.), much of this knowledge is unwritten. While unwritten, it is not unseen! The visual world around us is full of structure bound by commonsense laws. But machines today cannot learn common sense directly by observing our visual world because they cannot accurately perform detailed visual recognition in images and videos. This leads to a chicken-and-egg problem: we would like to learn common sense to allow machines to understand images accurately, but in order to learn common sense, we need accurate image parsing. We argue that the solution is to give up on photorealism. We propose to leverage abstract scenes -- cartoon scenes made from clip art by crowd sourced humans -- to teach our machines common sense.
+
+
+\subsection{Common sense from cartoons}
+
+Classical computer vision: describe what is going on in images.
+
+
+Hard: 
+``A man is \emph{rescued} from his truck that is hanging \emph{dangerously} from a bridge.''
+
+This requires commonsense reasoning.
+
+Where do we gather this common sense from? We can use all the text on the web.
+
+There is reporting bias in what people write about online. Ex. people inhale 6 times more often than they exhale, and get murdered 17 times as often. People have heads to gallbladders 1085:1.
+
+Is there a way to watch the world around us and use the structure to learn commonsense knowledge. Ex. two people conversing in front of a blackboard vs. two people standing in front of a blackboard. Gaze helps us differentiate.
+
+This is hard:
+\begin{itemize}
+\item
+lack visual density: hard to find two images where just gaze differs.
+\item
+Annotations are expensive
+\item
+Why need annotations? Computer vision doesn't work well enough.
+\end{itemize}•
+
+There is a chicken-and-egg problem: learn common sense vs. improve image understanding
+
+Do we need photorealism? No, it lies in semantic content of scene. We introduce Mike and Jenny with variety of objects. They can have different expressions and poses. We can get people to create visual data for us.
+
+``Mike fights off a bear by giving him a hotdog while Jenny runs away.''
+
+People make different images: consistent: Mike facing bear with hot dog, Jenny running in opposite direction.
+
+We took 1000 classes, 10 MTurkers for each. 
+
+Each image is trivially annotated. Which visual features are important for semantic meaning? Which words correlate with specific visual features?
+
+We have full control over density of sampling.
+
+We can take an input description (fresh sentence, not in training set), turn them into tuples, and automatically generate images. (Zitnick, Parikh, Vanderwende, ICCV2013)
+%The sentence is a fresh sentence.
+
+%What about generating beyond the object in the game?
+%mike and jenny
+
+%now, use word embeddings.
+
+Based on sentences, update on potential of how likely objects are likely to be there. Ex. ``raining'' reduces probability of sun relative to prior.
+
+%What you learn is process of generating synthetic data.
+Goal is to use this abstract world to learn commonsense knowledge that generalizes to realistic examples.
+
+Another example (fine-grained interactions): Learning what it looks like to interact with each other. Ex. ``Person 1 is dancing with Person 2'', walking with, holding hands with, talking with, jumping over, etc. We keep track of all intermediate stages but haven't used it.
+
+Could we use this as training data to help learn real-life interactions (zero-shot learning). We can do statistically significant above chance. You would get similar performance if you train on 2--3 real images vs. if you train on 50 generated images.
+
+This is just a 2-D canvas, while real images have all of that. If you want to improve this, make 3-D canvas.
+
+We initialize poses randomly, hope that people go to the local minimum rather than all converge to the same thing. For Mike and Jenny, we give access to a randomly generated sample of clip art.
+
+\subsection{Visual question answering}
+
+What color are her eyes? What is the mustache made of? Is this a vegetarian pizza? Recent years: improve 55 to 68\%. Human accuracy is 83\%. 
+
+There is a heavy language bias. %For a lot of images, ``Is there a clock?''
+``Do you see a...?'' is right 87\% of the time.
+When collecting the dataset, people are asking while looking at the image. People ask ``Is there a clock?'' more often when there is a clock.
+This hindered progress on binary question.
+
+Sometimes there is a bias towards no. ``Should this person be doing...?'' The framing of the question gives away information about what the answer is! Problem with using as a benchmark!
+
+We want to rectify this, by removing language priors. 
+
+``Is there a place to sit other than the floor?'' Modify the image as little as possible to make it true. Now we have 2 complementary scenes which are globally very similar but differ in the answer. Guessing can't do well here.
+
+Only if model answers correctly for both in pair does it get a point. Answering based on question alone you get 0 accuracy. Training on holistic features gets 3.2\%. Training on balanced set gets 23.13\%. Making the model more sophisticated (parsing, explicit alignment), this attention-based model gets 9.84\%, 34.73\% in the unbalanced/balanced case.
+
+Here everything has (primary, verb, secondary object) structure. Attention model is learned from training data.  It decides how sharp the attention map should be. %Conceptually it should work out.
+
+%Attention is geared towards specific questions. Is it beautiful, realistic?
+
+Summary:
+\begin{itemize}
+\item
+Learn by playing
+\item
+Fully annotated visual data.
+\item
+Allow full control over distribution and density of data. You're not at the mercy of the distribution of Google, flickr...
+\end{itemize}
+
+\subsection{Reasoning by imagination}%visualization} 
+
+We have text where it helps to imagine the scene behind the text. %to assess text.
+\begin{itemize}
+\item
+man holds meal
+\item
+tree grows in table.
+\end{itemize}•
+Fill-in-the-blank: Mike is having lunch when he sees a bear. (Mike tries to hide.)
+
+Visual paraphrasing: Are these two descriptions describing the same scene. 
+\begin{itemize}
+\item
+Jenny was going to throw her pie at Mike
+\item
+Jenny is very angry. Jenny is holding a pie.
+\end{itemize}
+
+Ex. For multiple choice, generate scene from each answer. Given text with correct answer and scene should score higher than incorrect ones.
+What's relevant are semantics. 
+This helps.
+
+%when tree grows to table.
+Ex. Plausibility of ``tree grows in table.'' Find support for description in images \emph{and} database of text.
+
+%Can information 
+
+You should be able to learn from text embeddings, so similarity in new representation space matches.
+
+\subsection{Understanding visual humor}
+
+People rate humor. 
+
+Ask maching to: Recognize humor. Add humor. Remove humor.
+
+Ask people to create funny and nonfunny scenes. What part of scene is funny? Replace with soemthing else so it stops being funny. Which objects are contributing to humor? Replace with something semantically meaningful. Ex. replace with butterflies... Indoor: potted plant.
+
+Test: which scene is less funny.
+
+Turing test: human's funny version vs. algorithm's funny version. Algorithm wins 28\% of the time. When there is a lot of something the machine thinks it's funny.
+
+Often we weren't laughing, so we ask them why it's funny. ``This terrified woman's home is being invaded by mice while the cat sleeps.''
+
+Visual abstraction for...
+\begin{itemize}
+\item
+studying mappings between images and text.
+\item
+zero-shot learning
+\item studying image memorability, specificity, visual humor
+\item learn common sense
+\item
+Rich annotation modality: ask for descriptions, ask for scenes, show scene and ask for modifications, perturb scene and ask for descriptions. 
+\end{itemize}
+Study high-level image understanding tasks without waiting for lower-level vision tasks to be resolved.
+
+Further push learning by playing modality.
+
+In images, ``look at'' and ``eat'' are close in visual space. These are not close in word embedding space!
+Word2vec is now informed by this!
+(Note: not symmetric.)
+
+%Completely different types of data, but doesn't generalize. %It's not doing very well---
+%Not a good proxy for real data. To demonstrate this point, we need real data as test images.
+%We only look at concepts for which we have real images.
+
+
