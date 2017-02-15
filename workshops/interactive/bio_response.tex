@@ -1,3 +1,139 @@
 \section{Active Learning for Multidimensional Experimental Spaces of Biological Responses (Robert Murphy, Carnegie Mellon University)}
 
-The scale and complexity of biological systems makes biological research a fertile domain for active learning. This is because for complex biological systems, time and cost constraints make it infeasible to do all possible experiments. Previous applications of active learning in biology have been limited, and can be divided between retrospective studies, the goal of which is just to demonstrate the usefulness of active learning algorithms, and prospective studies, in which active learning is actually used to drive experimentation. The latter ones are rare. Furthermore, past studies mostly considered unidimensional active learning, where only a single variable is explored (i.e., which member of a set of drugs is most active on a single target). The goal was to reduce cost for a study that would have been feasible but expensive if carried out exhaustively. However, most biological systems have multiple, interacting components, and thus require multidimensional active learning (e.g., choose which pairs of drugs and targets to test in order to model possible effects of multiple drugs on multiple targets). This is far more challenging, but the goal is not just to reduce cost but tackle problems not otherwise addressable. In this talk, I will describe both retrospective and prospective applications of multidimensional active learning to biological systems. Considerations discussed will include the choice of the modeling method, incorporation of prior information using similarity matrices, and how to know when a model is good enough to stop doing experiments.
+Abstract: The scale and complexity of biological systems makes biological research a fertile domain for active learning. This is because for complex biological systems, time and cost constraints make it infeasible to do all possible experiments. Previous applications of active learning in biology have been limited, and can be divided between retrospective studies, the goal of which is just to demonstrate the usefulness of active learning algorithms, and prospective studies, in which active learning is actually used to drive experimentation. The latter ones are rare. Furthermore, past studies mostly considered unidimensional active learning, where only a single variable is explored (i.e., which member of a set of drugs is most active on a single target). The goal was to reduce cost for a study that would have been feasible but expensive if carried out exhaustively. However, most biological systems have multiple, interacting components, and thus require multidimensional active learning (e.g., choose which pairs of drugs and targets to test in order to model possible effects of multiple drugs on multiple targets). This is far more challenging, but the goal is not just to reduce cost but tackle problems not otherwise addressable. In this talk, I will describe both retrospective and prospective applications of multidimensional active learning to biological systems. Considerations discussed will include the choice of the modeling method, incorporation of prior information using similarity matrices, and how to know when a model is good enough to stop doing experiments.
+
+The oracles aren't humans, but experiments.
+
+In drug development we have big problems and little data. We have nowhere near the amount of data we need. This is the quintessential place where we need active learning.
+\begin{itemize}
+\item
+Diseases are complex/heterogeneous, can be affected by many variables.
+\item
+Drug effects can be very different depending on patient and disease.
+\item
+We would need a huge matrix with lots of variables...
+\item
+The biggest problem of drug development is not finding drugs that do what you want, but finding drugs that do what you want \emph{and not other stuff}.
+
+We need to know the effect of drugs on many different things in the body, not just one thing.
+\end{itemize}
+``Genetic code'' seems to imply there are rules. There aren't rules! Bio systems are complex systems without rules/laws. All we can do is build empirical models
+
+Let's take a piece of that where we learn, for some system, learn a matrix or tensor that describes responses of systems as a function of different sets of variables.
+
+Consider the case where we have many possible drugs (var 1) and targets (var 2). 
+There are millions of drugs, 100,000 targets.
+
+Constrast with the way things are done now: pick a particular target (protein important in cancer) and find drugs which block that target. There is active learning work to try and reduce the experiemnts.
+
+But we didn't learn anything from protein 1 for protein 2.
+
+People thought from 2 perspectives: 
+\begin{enumerate}
+\item
+matrix factorization from whatever data you have
+\item
+take data on drugs we know already to predict other drugs without doing experiments
+\end{enumerate}•
+Neither is satisfactory.
+
+What kind of active learning problem is this?
+
+We don't have unlabeled data---we have nothing. All we have is variables of all the drugs and targets. We have to do an experiment to get the response. We typically start with very little data. If only a little data is missing, we can do matrix completion and predict. If we have all data on some drugs and not on others, we can do also do matrix completion/factorization.
+
+The most common case is starting from nothing; most data is missing. We may still have some information to make predictions: features of the drugs or targets, measures of chemical similarities between drugs, similarity of pathways in the cell.  When we do have the info, we often don't know how good it is.
+
+What are we prediction? Most work predicts binary values, and sometimes a real values. It turns out for many responses, we can't think of it in those terms. There's not a single axis over which the response occurs. A drug could have totally different effects in different patients. We care about the class of response. Does it affect the heart, kidney, cell transport, etc.
+
+Almost all work on active learning is done to test an approach using retrospective studies where all data is available. ``It meets all the assumptions.''
+
+We assume fixed costs to experiments, but in general it could be variable; we also have an oracle accuracy problem.
+
+We want to do ``batch'' experiments. Biologists tend to do 1000 experiments at a time for efficiency. We have equipment to do this.
+
+Most work has been done with small spaces of drugs and targets.
+%The question of how many combinations actually show a response
+
+We do standard uncertainty-based active learning.
+In all datasets which have only been analyzed in the framework ``given 80\%, predict other 20\%'', we found they were good candidates for active learning. Doing active learning up to 80\% is much better.
+
+%response rate number of nonzeros
+
+We try to extend to something closer to the real problem. We took a subset of PubChem with 177  assays and 133 protein targets, 20000 compounds, $\approx 10^6$ experiments. Almost all of current matrix factorization approaches don't work efficiently on data this big.
+
+Given features, make a LASSO model to predict the target, and vice versa. We have lots of row and column predictors, and average the results. This is the driver for the active learning.
+
+We compare random search (random choice of experiments), QSAR model (model for each target), and active learning in terms of counts of discoveries.
+
+We're starting to get the kind of results we want. With only 2.5\% of the matrix covered, we identify 57\% of responses!
+
+Problem: This needs features to make predictions before we started. What do we do when outputs are multidimensional?
+We're now in the space where any phenotype is possible.
+
+We measure features not of the drugs and targets, but of the image (cells expressing a target treated with drug), and make a representation of the possible phenotypes. We get clusters of phenotypes that are similar responses.
+
+%An experiment consists of exposing to drug.
+%Does feature include numerical simulations? It can be. Simulations are expensive and not particular revealing. They are good for cases where we have lots of knowledge about the protein. 
+%Features give measure of similarity and relationship.
+
+Do matrix factorization on phenotypes. Each experiment is assigned a phenotype by clustering (categorical). Group the drugs by which drugs are not provably dissimilar, potentially the same. Do the same thing for targets.
+
+Now we predict the phenotypes for everyone. We assume same phenotypes with other members of the group. This gives a predictive model.
+
+How to use this in active learning?
+
+Which experiments explicitly test the assignment of a drug to a group. We try to break the implicit factorization. Also take into account if we were to falsify one assignments, how many other things would have been falsified?
+
+This is along the theme, trying to get a mutual information measurement, looking at the impact on future models without doing an explicit calculation.
+
+Using that approach, we try to test prospectively: set up a robot to add drugs to cells, set up camera, computing pipeline... %Pick a hitting set of experiments. 
+The computer decides the experiments to run next. %Run and not get in the way.
+
+%tagged proteins. 
+%48 drugs, 48 targets where 
+
+The experiment space is 48 proteins and 48 drugs where we know nothing about drugs or targets. But we don't know whether the model is right, so we duplicate all the drugs and targets, so we get a $96\times 96$ space.
+
+(Our group has automated image analysis. We have lots of experience with this: textures, etc. We presume we have a good unsupervised feature generator.)
+
+Start with looking at the cells when no drugs are added, and then run; stop when we run out of money.
+We sampled 28\%. This accounted for 78\% of responses. 
+
+We ask: at each round how good of active learning was the model. We can't compare predictions because they're clustering dependent. We measure how close the estimated phenotype is.
+
+[Demo: big matrix with experiments done, correct predictions, incorrect predictions. Why vertical strips of incorrect predictions? drugs that the model didn't learn well because the response of cell is very variable.]
+%not a lot of similarity outside duplication.
+%Why vertical strips? drugs that the model didn't learn well because the response of cell is very variable.
+
+After 28\% of experiments, it is 92\% accurate, 40\% more accurage than random experiment. Almost all improvement came from duplication structure.
+
+This is the first example of AL in biology where we didn't know phenotypes. It's the first real-world case!
+
+One real issue is knowing when to stop active learning (assuming I still have money...).
+It's not talked about very often because so much active learning work is done retrospectively, when you know the whole model. In the real world the aim is to avoid during those experiments.
+
+We tried a different approach. We can characterize/parameterize an experimental space using 2 parameters: sparseness of interactions (how often does a target respond to a drug), and how similar drugs and targets are to each other.
+
+%improvement of active learning over random.
+
+Simulated results: 
+In the unique case you get no improvement. In the case where there are few responses (needle in haystack) you don't get improvement. Otherwise we get significant improvement in active learning.
+
+Define a set of features of an active learning trajectory, %If we do a simulated 
+like how consistency changed from step to step, how many I found so far... Learn regressors from those features to accuracy. If this is a fair parameterization of space, then I have a predictor of accuracy for experiments drawn from that space. 
+
+%prob true accuracy meets or exceeds estimated accuracy.
+
+In the range that I care about ($\approx 90\%$ accuracy), I can get accurate prediction. The prediction is conservative.
+
+Doing the same thing I did before, but deciding to stop using this criterion, I get a comparable accuracy compared to just doing a fixed percentage.
+
+%In this simulated world, are you implicitly taking a uniform average over space? 
+%have parameterization
+
+%raw accuracy as measure? 
+Q: Adverse interaction is much more important, more important to catch?
+I flipped around between accuracy and area-under-curve (AUC). I could weight differently.
+
+%Most of what I learned in bio is wrong.
+%You can make proteins without ribosomes, by this other system that nobody knew about for decades.

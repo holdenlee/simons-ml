@@ -1,3 +1,198 @@
 \section{Crowdsourcing and machine learning (Adam Kalai, Microsoft Research New England)} 
 
 Abstract: People understand many domains more deeply than today's machine learning systems. Having a good representation for a problem is crucial to the success of intelligent systems. In this talk, we discuss recent work and future opportunities for how humans can aid machine learning algorithms. Beyond simply labeling data, the crowd can help uncover the latent representation behind a problem. We discuss recent work on eliciting features using active learning as well as other aspects of crowdsourcing and machine learning, such as how crowdsourcing can help generate data, raise questions, and assist in more complex AI tasks.
+
+The crowd is still useful today. One basic application is labeling data. They can caption, but can also label things much better and more efficiently.
+
+
+Captioning the Obama picture: 
+``Barack Obama plays a clever prank on someone.'' vs. the best neural net, ``Barack Obama smiles and watches man weigh himself on locker room.''
+
+The crowd still understand the real world better than ML.
+
+An example: word embedding capture semantics, Man:King::Woman:Queen. 
+
+There are gender biases in word embeddings.
+\begin{itemize}
+\item
+he:blue::she:pink (*)
+\item
+he:brother::she:sister
+\item
+he:doctor::she:nurse (*)
+\item
+he:programmer::she:homemaker (*)
+\item
+he:kidney stone::she:pregnancy
+\item
+he:realist::she:feminist
+\item
+he:kidney stone::she:burn
+\end{itemize}•
+Question: which analogies reflect stereotypes? (*)
+
+Demo: put in words and the algorithm finds related words split by gender.
+
+%I wasn't labeling examples, but coming up with examples from my mind.
+\subsection{Crowdsourcing judgments}
+
+
+There is a lot of work on getting labels from crowdsourcing. I call it ``judgment'' rather than labels because they might not agree. There is a common EM algorithm and ways to improve; I don't cover this.
+
+People give different answers. Get people to build a classifier to estimate how much a person weights from a picture.
+Different people have different judgments.
+Suppose we have a budget: we can ask people questions. Asking other questions like ``is pretty'', ``is male'', ``has good posture'' helps predict weight. How many people should we ask for each question?
+Ex.
+%\E_5,  \E_2
+$$
+\wh y = 20+\pat{numeric weight} - 15\pat{is pretty} + 23\pat{is male} + 7\pat{has good posture}.
+$$
+Average weight estimate over 5 people, prettiness over 2 people, gender over 1 person, etc.
+%We came up with features (but we can ask the crowd too).
+\begin{enumerate}
+\item
+Choose representation for data. (Use crowd)
+It could be feature-based or similarity-based.
+\item
+Label data set according to that representation (Use crowd)
+\item 
+Run ML algorithms on labeled data.
+\end{enumerate}•
+Make this whole process ``crowdomatic.''
+
+
+\subsection{Crowdsourcing representation}
+
+Input is images $X=\{x_i\}$. Crowdsource queries are: is $x_i$ more like $x_j$ or $x_k$?
+
+This works for any dataset that the crowd can understand.
+
+Ask: is floor tiling 1 more like tiling 2 or tiling 3?
+At the beginning randomly choose question; later choose them adaptively.
+We get an embedding of items in $\R^d$.
+
+You can use this on any dataset, as way to search (shoppjng for products, or find researcher by face).
+
+%when similarity hard to determine, unfazed?
+How about with letters, ``is e more like s or u?'' We benefit from diversity of crowd. Semantic features include vowel/constant (there is a large margin separator), tall/short, and alphabetical order
+
+Nearest neighbors show reasonable results.
+
+The adaptive algorithm is as follow. Ask Turks random triples. Then loop: fit $K$ to all data so far, and ask Turk most informative triples.
+
+We model by 
+$$
+p_{ijk}^K=\Pj\pat{person says $x_i$ more like $x_j$ than $x_k$} = \fc{\de_{ik}^K}{\de_{ij}^K + \de_{ik}^K}.
+$$
+The MLE is nonconvex but in the realizable case the 
+SGD will converge to the correct model.
+
+We use probabilistic model and information gain to decide informativity. 60\% more triples are required to achieve the same performance with random triples compared to adaptive triples.
+%after 20 questions, how highly rank
+
+``Closest to the margin'' queries are those we know are 50/50. This is often useful.
+
+A standard model is
+$$
+\Pj\pat{$x_i$ is more like $x_j$ than $x_k$} = \fc{e^{\al K_{ij}}}{e^{\al K_{ij}} + e^{\al K_{ik}}}.
+$$
+This has convex MLE but most informative triples are ``extreme'', and not as useful as the probabilistic model.
+
+In a dream world we can learn the matrix with $n\log n$ queries.
+
+%we can think of as online model. Query strategy would be a tree? Branching program? 
+You can think of this as an online problem too.
+
+%What if random one of other . Which one 
+Measuring information: Start with uniform prior over the tiles. Pretend A is an unknown tile. Which question could we ask (is A more like B or C) to get most important about which A is?
+%answers not helpful?
+%this is not a good question.
+
+We did this on a lot of datasets.
+
+Wilber et al. SNaCK 2015. 
+%Remove humans from the loop.
+
+\subsubsection{Feature elicitation}
+
+We lose a lot of information from just asking similarity. There are many reasons (both have glasses), etc. We ask the crowd to give us features.
+The features should be
+\begin{itemize}
+\item
+numerous,
+\item
+salient
+\item
+dense
+\item
+easy
+\end{itemize}
+Ex. dictionary for sign language. Standard image tagging gives constant features.
+%Ex. waving, man, beard, balding. 
+
+Give compare/contrast questions: Which one is different? Why is it different? (not helpful) What is common to the others? Vehicles (helpful).
+
+We give 2/3 comparisons. What feature is common to two of the three examples? Ex. Two hands. 6-\% responses on random triples were number of hands.
+
+Use crowd to get features and label rest of images with features.
+
+We don't compare  a triple for which we already know 2/3 have a feature in common. 
+
+Pick uniformly a random ``unresolved'' triple and ask.
+
+%Ex. face dataset. Get feature male, label males. Get ``clean shaven'', label. Get ``female''
+
+Without active learning, run into problem that people give synonym for feature (male, man).
+
+Two models are hierarchical and independent. If you show your algorithm works in both cases, that's indication it's a reasonable algorithm.
+
+%Eventually people can't come up with distinguishing feature?
+At some point you don't have unresolved triples anymore.
+
+There are generalists and specifists: ex. two birds and a car: ``nature'' vs. ``bird''.
+
+Every time you ask an unresolved triple you find a new node on the tree. 
+
+For hierarchical/independent features, adaptive gives $d,\te(d)$, while nonadaptive comparisons gives $\fc{d^3}4$, $2^{\Om(d)}$. 
+
+Analysis of hiearchical case: 
+\begin{enumerate}
+\item
+Every triple has a feature that distinguishes one. 
+\item
+Every feature has a triple for which it is the unique 2/3 feature.
+\item
+By design, never rediscover a feature.
+\end{enumerate}•
+
+Nonadaptive algorithm requires $\Om(d^3)$ expected computations because only 1 triple exposes the deepest feature to a generalist.
+%If you keep getting high-level features
+
+Ex. in sign language: 1/2 hands is general feature, thumb use is fine feature.
+%We did this on a few datasets
+
+%Features are different if they differ on at least 10%
+
+%\subsection{Other applications}
+Programming with help of the crowd. We want computers to program for us. Given a natural naguage description ``Get the last number'' and/or training examples (``foo 12'', ``12''), (``55 bar'', ``55''). The crowd can give lots more unlabeled examples. 
+
+\subsection{Conclusions}
+
+Machine learning steps:
+\begin{enumerate}
+\item[0.] Choose problem
+\item[1/2.] Get data.
+\end{enumerate}
+
+Help us come brainstorm interesting machine learning problems based on data set that we will create.
+
+Help invent a fun game: guess gender from picture of handwriting. 
+Guess eye color from picture of face with eyes closed.
+
+Crowdsourcing can help ML find models and representations, make better use of resourcing. +ML can help us make progress on hard ML problems.
+
+QA:
+
+How many of the features are easy for a computer to learn?
+
+Images are easy for crowd to understand, but you can also choose other data (audio, etc.).

@@ -213,6 +213,27 @@
       \field{pages}{1030\bibrangedash 1048}
       \range{pages}{19}
     \endentry
+    \entry{telgarsky2016benefits}{article}{}
+      \name{author}{1}{}{%
+        {{hash=cc58bc38a2fd6209406cca9b6a4d0730}{%
+           family={Telgarsky},
+           familyi={T\bibinitperiod},
+           given={Matus},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{cc58bc38a2fd6209406cca9b6a4d0730}
+      \strng{fullhash}{cc58bc38a2fd6209406cca9b6a4d0730}
+      \strng{authornamehash}{cc58bc38a2fd6209406cca9b6a4d0730}
+      \strng{authorfullhash}{cc58bc38a2fd6209406cca9b6a4d0730}
+      \field{labelalpha}{Tel16}
+      \field{sortinit}{T}
+      \field{sortinithash}{2e5c2f51f7fa2d957f3206819bf86dc3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:1602.04485}
+      \field{title}{Benefits of depth in neural networks}
+      \field{year}{2016}
+    \endentry
     \entry{zhang2016understanding}{article}{}
       \name{author}{5}{}{%
         {{hash=02582b039d752b000c75f8d7d38a36f4}{%

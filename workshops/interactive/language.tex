@@ -1,7 +1,222 @@
-\section{Interactive Language Learning from the Extremes (Sida Wang, Stanford University)}
+\section{Interactive Language Learning from two extremes (Sida Wang, Stanford University)}
+
+Note: First part of talk overlaps with Percy Liang's talk \url{https://www.dropbox.com/s/cbwmt7i2o9p0ki0/simons_ml.pdf?dl=0} (\S9.5 Interactive learning)
 
 Towards the goal of creating more usable and adaptive language interfaces, we consider two extremes of the solution space -- starting from scratch, and ``naturalizing" a programming language.
 
 The former is inspired by Wittgenstein's language games: a human wishes to accomplish some task (e.g., achieving a certain configuration of blocks), but can only communicate with a computer, who performs the actual actions (e.g., removing all red blocks). The computer initially knows nothing about language and therefore must learn it from scratch through interaction, while the human adapts to the computer's capabilities. We created a game called SHRDLURN in a blocks world, and analyze how 100 people interacted with the game.
 
 On the other extreme, we seed the system with a core programming language and allow users to ``naturalize'' the core language incrementally by defining alternative syntax and increasingly complex concepts in terms of compositions of simpler ones. In a voxel world, we show that a community of users can simultaneously teach one system a diverse language and use it to build 240 complex voxel structures. Over the course of three days, these builders went from using only the core language to using the full naturalized language in 74.7\% of the last 10K utterances.
+
+%We address natural language interfaces. 
+Natural language understanding is the bottleneck. We want NL systems to learn from mistakes.
+
+We are stuck when these systems misunderstand us. We want it to adapt to users, handle special domains and low resource languages where mamiliar words take on new meaning, and perform complex actions (ex. call Bob, hang up after 8 rings).
+
+\subsection{Learning language games from scratch}
+
+
+
+Language derives its meaning from use (Wittgenstein). 
+
+We consider a iterated, cooperative game between human and computer. 
+\begin{itemize}
+\item
+The human has a goal and cannot perform actions, but can use language and provide feedback. 
+\item
+The computer player does not know the goal, can perform the actions, but does not understand language. 
+\end{itemize}•
+The human must teach the computer a suitable language and adapt, and the computer must  learn language quickly through interaction. 
+
+The setting is a blocks world.  The human gives an utterance; the computer produces a ranked list of end results; the human chooses the desired result.
+
+We user semantic parsing: actions are logical forms such as add(hascolor(red), cyan). Multiple actions can correspond to the same block configuration.
+
+Use parsing freely: generate logical forms from the smallest to largest, score with a model, and use beam search.
+
+Score logical forms with a loglinear model with features of the input and logical form (features of the input are arbitrary strings).
+$$
+p_\te(z|x)\propto \exp(\phi(x,z)\cdot \te).
+$$
+We don't have access to $z$, just the denotation, 
+$$
+p_\te(y|x) = \sum_{z:Exec(z)=y}p_\te(z|x).
+$$
+Use a L1 penalty and update with AdaGrad.
+
+Features include uni-, bi-, skip-grams for the utterance and tree-grams for the commands.
+Real features are cross-products.
+%greedily add more featuers?
+
+We got 100 Turkers to play SHRDLURN, and got 10223 utterance (6 hours total). We gave minimal instructions. Measure performance by amount of scrolling needed.
+
+Tasks are in order of difficulty.
+
+Good players are consistent and match the computer action space.
+
+Players adapt to the task by becoming more consistent and precise. Our full model gets 33.3\% accuracy, 48.6\% for top players. 
+
+Pragmatics makes learning quicker.
+
+%Since we turked this game, more people played it. We have 
+
+Findings:
+\begin{itemize}
+\item
+Our system learns from scratch quickly
+\item
+Learning pragmatics helpful
+\item
+Players adapt.
+\end{itemize}•
+
+(Idea: let players design own teaching tasks.)
+
+%%%%copied from ML seminar
+\subsection{Learning concepts through definitions}
+
+Drawbacks of previous system:
+\begin{enumerate}
+\item
+Logical forms are simple.
+\item
+Each user has a private language, no sharing. The system does not improve with more users
+\item
+Exponential number of logical forms (Selection as a supervision signals cannot scale very well because the number of logical forms is exponential in length. )
+\end{enumerate}
+%Why not aggregate?
+
+Our solution is naturalization: 
+\begin{itemize}
+\item
+Seed the system with a core programming language that ensures capability, defines action space, but is tedious.
+It is unambiguous and composes tractably.
+\item
+User augments the system by adding definitions like ``3 by 4 square:= 3 red columns of height 4.''
+
+The is the Montague approach to  language: language derives its meaning through definition.
+\end{itemize}
+
+We do this in a voxel world, Voxelurn. Voxels are $(x,y,z,\text{color})$. Domain specific relations are directions.  
+
+The core language is designed to interpolate with NL but has usual programming language constructs. We avoid explicit variables with lambda DCS.
+\begin{itemize}
+\item
+controls: if, foreach, repeat, while
+\item
+lambda DCS for variable-free joins, set ops, etc. ``has color yellow or color of has row 1''
+\item
+selection to avoid variables: select left of this.
+\item
+block-structured scoping.
+\end{itemize}•
+
+Demo: 
+\begin{itemize}
+\item
+``add palm tree''. 
+\begin{itemize}
+\item
+Explain: ``Add trunk at 3''.
+\begin{itemize}
+\item
+Add brown top 3 times.
+\end{itemize}
+\item
+Go to top and add green blocks.
+\end{itemize}
+\end{itemize}
+Use probabilistic model to handle scoping. We can now use palm tree in other definitions and commands. ``Row of 5 palm trees 5 spaces apart.''
+
+At first we have to do the bracketing, etc., but quickly it's getting powerful.
+
+The model is now over derivations:
+$$
+p_\te(d|x,u)\propto \exp(\phi(d,x,u)\cdot \te).
+$$
+There is less collision, but we have to handle scoping choices.
+
+A derivation describes how to derive the formula from the utterance.  Ex. (loop 3 (add red left)).
+
+We have features, like which rule you use. This turns CFG to PCFG. We have indicators: whether the rule is induced or core. This is a community project so we add features like social.author, social.friend (id of author), social.self (is rule authored by user?).
+
+We user grammar induction: substitute matching parts. Input $x$: add red top times 3. Define as $X$: repeat 3 [add red top]. Derivation: (loop 3 (add red top)) and how it is derived. 
+Substitute matching derivations by their categories.
+
+There isn't a generic way to be correct because there is context dependence. We use the same scoring for formulas to determines which parts to abstract (Zettlemoyer, Collins 2005). %Find the part that has the highest scorin
+
+Can people actually do it?  We got turkers to use the system and build structures.
+
+Setup: 
+\begin{itemize}
+\item
+qualifier: build a fixed structure
+\item
+post-qual: over 3 days build whatever they want.
+\item
+prizes for best structures in categories, ex. bridge, house, animal.
+\item
+prize for top $h$-index: a rule (and its author) gets a citation whenever it is used.
+\end{itemize}
+The users don't actually see the rules---if text matches then the computer proposes the derivation with the rule; if accepted, the rule gets a citation.
+A rule has as a property the person who proposed it.
+
+Statistics: 70 workers qualified, 42 participated, 230 structures. 64K utterances, 36K accepts. Each leads to a datapoint labeled by derivation.
+
+Is naturalization happening? Has the language evolved from the core to what the user wants? Measure by percent utterances in core or using induced rules. 
+
+The percent of utterances using induced rules is 58\% at the end (up from 0). At the end, 77.9\% of last 10k are accepted.  Top users naturalized to different extends, but all increased.
+
+A rough metric of expressive power is cumulative average of string.length in program / number of tokens in utterance. 
+This is stable at 10 for core language. As time passes the ratio increases; this varies greatly by user. A jump is when the user defines a higher-level concept.
+
+Modes of naturalization involve:
+\begin{itemize}
+\item
+short forms, like ``l'' for ``move left''
+\item
+syntactic: pick different syntax. go down and right := go down; go right (sequencing)
+
+select orange := select has color orange.
+
+add red top 4 times := repeat 4 [add red top]
+\item
+higher level: add black block width 2 length 2 height 3, cube size 5.
+\end{itemize}
+Therer are 1113 cited rules. Top rules: left 3, select up, right, ..., go left, select right 2, etc.
+
+%Is there evolutionary pressure on length of string? A new user happens to think the same way, or they learn it from the leaderboard.
+
+You need to do simpler actions more frequently, so simpler actions everyone needs have high citation counts. 
+
+(If augment with these primitives, what more naturalization do you need? But this way you don't have to figure out alternate phrasings. We also have complex concepts that require 2 loops, 1 subconcept.)
+
+%global?
+%If people conflict, friends' features get downweighted.
+
+The hope is many different versions of flowers; you can have ``flower'' have different definitions.
+
+The goal is to bridge the gap in power. Naturalize a programming language to handle complex actions, share community learning to cover more variations, and be  better for beginners.
+
+Pidgin language?
+
+We covered 2 extreme:
+\begin{enumerate}
+\item
+LLG: start from scratch, understand nothing, anything goes; user has private language; selection is supervision; features and learning from denotations do heavy lifting, language agnostic
+%Build 
+\item
+NPL: start with programming language and power, user community has shared language, definition is supervision; grammar induction.
+\end{enumerate}
+
+We tried to apply the same approach to a calendar setting. See blog post.
+
+Q: 
+What
+are backgrounds of turkers? Try out with schoolkids?
+
+We did a survey about programming experience. 2/3 had no programming experience. 
+
+Important is the curriculum, sequence of tasks. 
+
+Code, experiments, demo: \url{shrdlurn.sidaw.xyz}.

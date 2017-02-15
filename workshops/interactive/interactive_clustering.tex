@@ -1,3 +1,208 @@
 \section{Interactive clustering (Pranjal Awasthi, Rutgers University)}
 
 Abstract: Clustering is typically studied in the unsupervised learning setting. But in many applications, such as personalized recommendations, one cannot reach the optimal clustering without interacting with the end user. In this talk, I will describe a recent framework for interactive clustering with human in the loop. The algorithm can interact with the human in stages and receive limited, potentially noisy feedback to improve the clustering. I will present our preliminary results in this model and mention open questions.
+
+Most theoretical work on interaction is in supervised learning (PAC learning, active learning, membership queries, equivalence queries). This work looks at interaction  for unsupervised learning. Can interaction be useful?
+
+In clustering, given $n$ objects, we want to partition them into $k$ disjoint clusters. We want to design provably good algorithms. 
+
+The classical approach is to define an objective function like $k$-means
+$$
+\sum_i \min_j \ve{x_i-c_j}^2.
+$$
+This requires the objective function to actually be minimized with the actual clustering.
+
+Another approach is to use a generative modeling approach: data is generated from a mixture of Gaussians, stochastic block models, etc. We have optimal recovery under these assumptions, but this is not robust; we can't say much if the modeling assumption is wrong.
+
+Both approaches aim to remove ambiguity from the problem. Can we remove ambiguity with a human-in-the-loop?
+In many scenarios, the best clustering is ambiguous unless the end user is involved, ex. personalized recommendations.
+
+Approaches to interactive clustering include:
+\begin{enumerate}
+\item
+constrained $k$-means/median (constrained given by users) (cf. semisupervised learning)
+\item
+pairwise clustering  (asking the user whether pairs are in the same cluster or not)
+\end{enumerate}
+We give a different model.
+\begin{itemize}
+\item
+What can we do with minimal feedback?
+\item
+Can the model be made noise robust? 
+\item
+Is the model practical?
+\end{itemize}•
+
+Interactive clustering was introduced by Balcan and Blum 2008. This is inspired by equivalence query model for learning. There is an algorithm and teacher. The algorithm proposes function $f_1$, and gets a counterexample $x$ such that $h_1(x)\ne h^*(x)$. Repeat until the algorithm proposes $h^*$.
+
+We do this in the clustering setting. The algorithm proposes clustering $C_1,\ldots, C_k$, gets limited/coarse feedback, and repeats until it proposes the true clustering.
+%how to do if agnostic?
+
+We want as few rounds of interaction as possible.
+
+To specify this model, I need to say what the right feedback is. It should be
+\begin{enumerate}
+\item
+easy to provide form teacher's point of view
+\item
+be informative
+\end{enumerate}•
+The two kinds of feedback are 
+\begin{enumerate}
+\item
+split: Split$(C_i)$ if $C_i$ contains points from two or more clusters of the ground truth. The teacher does not have to say why.
+%why not say?
+%we're interested in coarse feedback.
+\item
+merge: Merge$(C_i,C_j)$ if $C_i$ and $C_j$ are subsets of the same cluster in the ground truth. (In particular they are pure.)
+\end{enumerate}
+%SD: Must link/cannot link. These would automatically generate constraints of this form? 
+Note that ``cannot link'' can be interpreted as a split, but ``must link'' cannot be interpreted here.
+
+The goal is to design an efficient algorithm that attains ground truth in small number of rounds.
+\begin{itemize}
+\item
+Given $n$ points, we can cluster them in at most $n-k$ queries: start with each point in own cluster and merge points when merge feedback is issued.
+
+The teacher is just stepwise saying what the clustering is.
+\item
+Without further assumptions this is best possible.
+\item
+What if the clusters are nice?
+%\begin{itemize}
+%\item
+%
+%\end{itemize}•
+\end{itemize}•
+Suppose that membership in cluster $C_i^*$ can be decided by a boolean function $f_i()$, $f_i\in H$. For example, $H$ can be linear separators, rectangles...
+
+\begin{thm}
+Suppose $f_i$'s belong to class $H$. Then we can cluster using $O(kd\ln n)$ queries where $d=VCdim(H)$.
+\end{thm}
+The algorithm is similar to version space algorithms: The version space is all valid clusterings.
+\begin{enumerate}
+\item
+ Start with $VS=\{\text{all valid clusterings}\}$. 
+\item
+Choose a clustering from VS and present it to the teacher.
+Choose by:
+\begin{enumerate}
+\item
+Find a maximal set of points $S$ such that more than half of clusterings in VS put S in a single cluster.
+\item
+Output $S$ as a cluster. Repeat until points are clustered.
+\end{enumerate}•
+\item
+On feedback, delete all clusterings from VS that are inconsistent with feedback. 
+\end{enumerate}•
+%how is it when geometry?
+
+This works for every concept class. We can get efficient algorithms for specific function classes.
+%
+The algorithm does not know $k$; it could generate more clusters.
+
+Claim: After each request, we get rid of at least half of VS. 
+\begin{itemize}
+\item
+On Split$(C_i)$, delete all clusterings that put $C_i$ in a single cluster. 
+\item
+On Merge$(C_i,C_j)$, delete all clusterings that do not put $C_i\cup C_j$ in a single cluster. (This must be more than half, otherwise $C_i\cup C_j$ is the maximal set.)
+%
+\end{itemize}•
+In practice, show random subsets of each cluster.
+%boundary.
+
+Another model: the ground truth $C_1^*,\ldots, C_k^*$ is stable. Assume average stability, which says that on average, points prefer their own clusters over other: %$A$ prefers its own cluster over $A'$. 
+For $i\ne j$, $A\subeq C_i^*, A'\subeq C_j^*$.
+$$
+S_{avg}(A,C_i^*\bs A)\ge S_{avg}(A,A')
+$$
+\begin{thm}
+If average stability holds, $k$ queries suffice.
+\end{thm}
+Algorithm:
+\begin{enumerate}
+\item
+Construct average linkage tree $T_{avg}$. This is a minimum spanning tree using average distance (to merge children).
+\item
+Present the root node as a single cluster.
+\item
+On split feedback, replace cluster with children in $T_{avg}$.
+\end{enumerate}•
+Claim: $C^*$ is laminar with respect to $T_{avg}$: each cluster is present as a subtree in $T_{avg}$. Otherwise average stability is violated. The teacher will never issue merge requests.
+
+These results are nice but don't lead to practical algorithms.
+\begin{itemize}
+\item
+They don't account for noise in human resposne.
+\item
+They will present very bad clusterings to the user in order to make quick progress.
+
+We want to show clusterings in a smooth fashion.
+\end{itemize}
+%Model noise as follows.
+Change the model:
+\begin{itemize}
+\item
+$\eta$-noisy merges: If the 
+user asks to merge $C_i,C_j$, then $\ge 1-\eta$ fraction of both the clusters belong together in the ground truth.
+\item
+Local algorithm: The algorithm cannot choose the initial clustering. After a round of feedback, the algorithm can onlhy modify the clusters involved in the feedback. This gives better user experience.
+
+This is useful if you already have a system in place, in use.
+\end{itemize}•
+Measure progress in terms of how far it is from the actual clustering.
+\begin{thm}
+If $C^*$ is stable, then we can find it using $O\pa{\fc{\ep_0+k}{1-\eta}\ln n}$-queries where $\ep_0$ is the error of the initial clustering. 
+\end{thm}
+Algorithm:
+\begin{enumerate}
+\item
+Construct average linkage tree $T_{avg}$.
+\item
+On split$(C_i)$, find the first node where $C_i$ gets split and go to its children.
+\item
+On merge$(C_i,C_j)$, find the deepest node containing enough points from $C_i,C_j$ and carve out the pure portion from this node.
+\end{enumerate}•
+%split is not as direct. does not need to be an actual node.
+Can we deal with extremely high noise? 
+\begin{itemize}
+\item
+Unrestricted merges: if user asks to merge $C_i,C_j$ then at least one point from both the clusters belongs together in ground truth.
+\end{itemize}•
+\begin{thm}
+If $C^*$ is stable and request is chosen randomly, then can find it using $O((\ep_0+k)^2\ln n)$ rounds with high probability.
+\end{thm}
+
+We chose image segmentation. This is not really the right problem, but it's easy to test. We posed this as a problem on Mechanical Turk. The user can point to regions to merge or split.
+This model has the potential to lead to good algorithms.
+
+There are many technical problems:
+\begin{itemize}
+\item
+Algorithm is not scalable, requires average linkage tree.
+\item
+We need strong stability assumption to prove theorems.
+\item
+In other applications, presenting the entire clustering is not practical.
+\item
+What if user is willing to provide more feedback?
+\end{itemize}•
+
+Main message: interaction can be useful/critical for unsupervised learning.
+
+%Algorithm gives you optimal $k$ in own sense. Have you compared with cross-validation methods?
+
+QA:
+
+After each step, ask user: Are you happy with segmentation, or do you want to provide more feedback. Some workers were trying to fine-tune boundaries.
+
+Show the same picture to multiple people: %Same phenomenon. 
+Did they come to the same answer? In a global sense, they come to the same answer. On boundaries there is some disagreement. In crowdsourcing scenario, take a vote?
+
+Your algorithm wants clusters with respect to underlying similarity or distance. Are users happy with the metric itself? Is there a way to tell your algorithm that?
+
+
+
+

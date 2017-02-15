@@ -1,3 +1,171 @@
 \section{Active Learning Beyond Label Feedback (Kamalika Chaudhuri, UC San Diego)}
 
 Abstract: An active learner is given a hypothesis class, a large set of unlabeled examples and the ability to interactively query labels of a subset of them; the learner's goal is to learn a hypothesis in the class that fits the data well by making as few label queries as possible. While active learning can yield considerable label savings in the realizable case -- when there is a perfect hypothesis in the class that fits the data -- the savings are not always as substantial when labels provided by the annotator may be noisy or biased. Thus an open question is whether more complex feedback can help active learning in the presence of noise. In this talk, I will present two separate feedback mechanisms, and talk about when they can help reduce the label complexity of active learning. The first is when labels are obtained from multiple annotators with slightly different labeling patterns; the second is when the annotator can say ``I don't know" instead of providing an incorrect label.
+
+%Given vectors of features and discrete labels
+
+To build an accurate classifier we need a lot of data. Unlabeled data is cheap but labels are expensive.
+We hope to use interaction to get around this.
+
+We have $x_i$'s and try to find a prediction rule to predict $y$ from $x$ using few label queries.
+By querying strategically we can get away with fewer labels.
+
+The challenge is incorrect/noisy responses. Or we are in the agnostic setting: there are no assumptions on data distribution.
+
+Active learning could be statistically inconsistent. Even if label budget is infinite, you converge to a local minimum.
+
+Can other kinds of queries help active learning?
+
+We use the Probably Approx. Correct (PAC) model
+\begin{itemize}
+\item
+Concept class $X$, samples $(x_i,y_i)$ from data distribution $D$
+\item
+Ex. $C=$linear classifiers,
+\item
+Find $c\in C$ with low error $\Pj_{(x,y)\sim D} (c(x)\ne y)$. 
+\end{itemize}•
+
+We look at 2 versions: 
+\begin{itemize}
+\item
+realizable: there is a perfect classifier, $\exists c^*\in C$, $c^*(x,y)=y$ for all $(x,y)\sim D$.
+\item
+agnostic: No assumptions on $D$.
+\end{itemize}
+
+This leads us to agnostic active learning: if the best $c\in C$ has error $\nu^*$, we want to find a classifier with error $\le \nu^*+\ep$. 
+
+There are 3 types of algorithms.
+\begin{enumerate}
+\item
+disagreement-based active learning
+\item
+margin/confidence-based active learning
+\item
+clustering-based active learning.
+\end{enumerate}
+We focus on disagreement-based active learning.
+
+Algorithm:
+\begin{enumerate}
+\item
+Maintain candidate set $V$ that contains best $c\in C$.
+\item
+For unlabeled $x$, if $\exists c_1,c_2\in V$ such that $c_1(x)\ne c_2(x)$, then $x$ is in disagreement region, query $x$.
+\end{enumerate}•
+
+
+\subsection{Weak and strong labelers}
+
+What happens if we have auxiliary information in the form of an oracle? Ex. doctor is the oracle, expensive but correct. Medical resident is a weak labeler, cheap and sometimes wrong.
+
+We can make interactive label queries to oracle $O$ or weak labeler $W$. We want to minimize label queries to $O$.
+
+We want to find $c\in C$ with error $\le \nu^*+\ep$ on $O$.
+
+Problem: The weak labeler may be biased. There can be a region where $W$ gives the wrong answer. (You can't ask multiple times and average.)
+
+[UBS12] make explicit assumptions on where $W$ and $O$ differ, close to decision boundaries.
+
+[MCR14] give no explicit assumptions, but applies to online selective classification and robust regression.
+
+We give general learning strategy from $W$ and $O$ with no explicit assumptions.
+
+%estimate accuracy on oracles.
+
+%W provides no information.
+
+The main idea is to learn a difference classifier $h$ to predict when $O$ and $W$ differ. Use $h$ with standard active learning to decide if we should query $O$ or $W$.
+
+\begin{enumerate}
+\item
+Draw $x_1,\ldots, x_m$. 
+\item
+For each $x_i$, query $O$ and $W$. Set $y_{i,D}=1$ if $y_{i,O} \ne y_{i,W}$. 
+\item
+Train difference classifier $h\in H$ on $\{(x_i,y_{i,D})\}$.
+\item
+Run standard disagreement-based active learning.
+\end{enumerate}•
+
+
+Key observations:
+\begin{enumerate}
+\item
+Directly learning difference classifier may lead to inconsistent annotation on target task.
+
+Solution: train cost-sensitive difference classifier: constrain false negative (FN) rate to be very low.
+
+What is label complexity?
+
+The number of labels to train difference classifiers is $\approx \wt O\pf{d'}{\ep}$ where $d'=VCdim(H)$ and $\ep=$target error.
+\item
+Let $R$ be disagreement region of current confidence set.
+
+We don't need the difference classifier  to work well outside $R$. Just train restricted to $R$.
+
+We need to learn a difference classifier with FN rate $\le \fc{\ep}{\Pj(R)}$. We need $\approx \wt O\pf{d'\Pj(R)}{\ep}$ labels.
+
+Problem: $R$ keeps changing, so we have to retrain.
+
+The full algorithm: let $H$ be the difference concept class, $d'=VCdim(H)$. For epoch $k$, the target excess error is $\ep_k\approx \rc{2^k}$. Maintain confience set $V_k$, disagreement region $DIS(V_k)$. Draw samples, query $O$ and $W$, and train difference classifier $h$.
+
+Run disagreement algorithm $A$ to target excess error $\ep_k$. When $A$ queries $x$, if $h(x)=1$ query $O$, else query $W$.
+\end{enumerate}
+%Disagreement region is $x$ s.t. there exist $c_1,c_2$.
+
+The total number of labels to train difference classifier is $\approx \wt O\pf{d'\te(\nu^*+\ep)}{\ep}$ vs. the number of labels for active learning $\approx \wt O\pf{d\si(\nu^*)^2}{\ep^2}$, $\si\approx \fc{\al (2\nu^*+\ep, O(\ep))}{2\nu^*+\ep}\le \te$. The number of labels for disagreement based active learning is  $\approx \wt O\pf{d\te(\nu^*)^2}{\ep^2}$.
+
+We assume there is $h$ in $H$ such that
+\begin{itemize}
+\item
+low FN over disagreement region
+\item
+low positives.
+\end{itemize}
+
+\subsection{Abstaining labelers}
+
+Labeler abstains on more difficult examples. Can we exploit abstentions to learn better?
+
+Example: learn thresholds. The concept class $C$ is thresholds on instance space $X=[0,1]$. Suppose $c^*$ is ground truth.
+
+The learner can query any $x\in X$ (membership query).  Responses can be $+,-,?$ drawn from unknown $\Pj(Y|x)$.
+
+Our goal is to find $c$ such that $|c-c^*|\le \ep$ with minimum number of queries.
+
+When can abstentions help?
+
+We assume that close to the decision boundary, abstentions happen more often.  This could give us information about the boundary.
+
+%What if the abstention rate is 1 in interval around $c^*$.  Get to that interval; then we can stop.
+
+The basic algorithm (assuming correct response) is binary search. Divide plausible interval containing $c^*$ by 2 each query.
+
+For noisy response; query multiple times and average to get ground truth label with high confidence.
+Make an adaptive number of queries
+
+Make 3 queries at quartiles of interval.
+
+Adaptively learn confidence, see whether we are confident in the label at any point, or if the abstention rate is increasing in some direction.
+%ground truth
+
+You can query multiple points and they are independent.
+
+Why do we need 3? We need to determine which direction the abstention rate is increasing.
+
+The algorithm is completely adaptive and statistically consistent as long as abstention rate does not decrease towards the boundary.
+
+Ex. suppose abstention rate is $\Pj(Y=?|x) = 1-C_0 |x-c^*|^\al$ and $\Pj(Y\ne c^*(x)) \le \rc 2-C_1|x-c^*|^2$, $\al,\be\ge 1$. The number of queries to get $|c-c^*|\le \ep$ is $O(\ep^{-\al})$ with our method, $O(\ep^{-\al-2\be})$ using only labels.
+
+Summary: abstentions may help if erate increases close to decision boundary. We have algorithms for thresholds and smooth boundary fragments. We have work in progress in the PAC model.
+
+Conclusion: more complex feedback helps active learning under certain conditions. We need more sophisticated algorithms.
+
+Q: If you have an initial classifier, and want to adapt to specific tastes? Domain adaptation.  We are dealing with adaptation when labeling function changes. We don't deal with distribution changes.
+
+Q: What happens in higher dimensions? We look at smooth boundaries. Break into multiple 1-D problems; it's a nonparametric problem.
+%uncertainty regions can be
+
+Q: For 1-D, lower bound.
