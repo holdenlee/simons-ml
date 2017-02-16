@@ -1,0 +1,130 @@
+\section{Robots learning from human teachers (Andrea Thomaz, UT Austin)}
+
+Abstract: Our research aims to computationally model mechanisms of human social learning in order to build robots and other machines that are intuitive for people to teach. We take Machine Learning interactions and redesign interfaces and algorithms to support the collection of learning input from end users instead of ML experts. This talk covers results on building models of reciprocal interactions, high-level task goal learning, low-level skill learning, and active learning interactions using anthropomorphic robot platforms.
+
+%MIT media lab
+%Georgia Tech
+%UT Austin build new lab
+
+My lab is called the Socially Intelligent Machines Lab. We want to get robots out in the world interacting with people!
+
+A social robot is a robot who's functional goal involves interacting with people in an environment designed for humans.
+
+Many robot successes are in structured environments, program once and repeat. Humans and human environments are dynamic, and pre-programming controllers is not an option.
+
+One example is in manufacturing. We want robots to be flexible coworkers in manufacturing. A small factory may want robots learn to do new things. 
+
+Another is service robots. Every home is slightly different. Only the end-user knows what the robot should do.
+
+How do we get end-users to come into our lab and teach our robots to do stuff?
+Can we change anything about the interaction, algorithm to make things mesh?
+
+Ex. teaching Simon how to close a box. A standard approach is to get demonstration from a teacher as to what it's supposed to be doing.
+The whole thing was recorded; getting the whole trajectory is not ideal.
+
+Instead get \vocab{keyframes}.The person is figuring out the kinematics; we're not recording all of it.
+
+\begin{itemize}
+\item
+Good teachers were better at using trajectories and they preferred it.
+\item
+Bad teachers were better at using keyframes and they preferred it.
+\end{itemize}
+Students have developed this in various domains. I focus on B's work on keyframe vs. demonstration.
+
+Ask person: was that a good input? The person thinks it's an amazing demonstration. We have to build an algorithm that works with this terrible data!
+
+Users are goal-oriented: Concentrate on achieving the skill more than how to exactly do it. We have 2 learning problems.
+\begin{itemize}
+\item
+Goal model (what to do): monitor execution.
+\item
+Action model, execution: how to do it.
+\end{itemize}
+Robot says ``I see that it was successful.'' ``I see I failed.''
+
+Build an action model from motor data, and build a goal model that monitors execution. Keyframes highlight salient points in the skill.
+
+(What makes something a keyframe? Can you learn this?)
+
+Motor data is pose with respect to some target object. There is a depth camera extracting features related to bounding box, surface normals. Take both feature vectors, and build different models. Use hidden Markov models to get canonical keyframes. The hidden states are the true keyframes.
+The emission/observation space is larger. Use Baum-Welch algorithm.
+
+Add prior probabilities $p$ and terminal probabilities $\ze$ to the model. 
+%number of state, keyframe points.
+
+When executing, take learned action model and sample a path from prior to terminal states. Favor paths with lengths close to demonstrated number of keyframes. Look at emission states. To generate the canonical trajectory, take the true means of emission spaces as keyframes. Use a 5th order spline. 
+
+Having decided the trajectory, how to use the goal model to monitor it? While executing, take a snapshot of visual space that coincides with each keyframe. How likely is that this sequence represents a success or failure in the goal? We make sure that the last frame represents something in the terminal state.
+
+How well does this work with data we get from people? We had 8 people come to teach closing the box and pouring.
+
+``Start here, go here, go here, go here, end here.''
+Execute action model 5 times. 
+
+%single HMM from that person's data.
+Across people, ``close the box'' had 57.5\% execution success but 90\% monitoring success. Pouring had 75\% execution succeess but 90\% monitoring success.
+%some teachers be
+%goal is trajectory.
+
+Some teachers were better than others at teaching actions. How to bridge this gap?
+
+%interaction
+%\subsection{Self-improvement}
+
+Execute with some variance and monitor. Do the same kind of thing. Before we splined between canonical version. Now take multivariate gaussian as sampling mechanism. %7-D pose.
+Perturb the 7-D poses.
+
+(Can you use optimism? There's much more you can do to sample the space effectively.)
+
+We want to sample further away from the mean when we are bored (to broaden the applicability of something that works, or explore to fix).
+
+Each rollout of the skill is an execution and evaluation.
+In an episode do 5 rollouts. Put the positive examples back in and rebuild our new action model.
+%not good training for prediction model.b
+
+If a human watches the process, we can use the human's labels. This forgets the user data after having enough successful samples.
+
+%particular task: as a human expert, you want last keyframe to be centered on the goal.
+%other ways to directly communicate constraints.
+
+Depending on ratio of success over last few executions, expand how risky we're being in sampling behavior.
+
+%purposely failing action model.
+Experiment: first provide failing action model. Exploration fixed the model. You can get there faster by adaptive sampling.
+Can we do this with real people's data?
+
+Putting it all together. Have teacher provide labels during execution and recognition (verbal feedback)
+12 users teach 3 skills. Do 5 demonstrations, 3 executions. After 1st, 3rd, and 5th demo do executions. Watch 5 samples and hear goal output. The human gives feedback. The person leaves and do self-improvement for 9 more episodes.
+
+``Show me what you learned.'' ``I willl gladly.'' ``How did I do?'' ``Try it yourself.'' ``Here it goes.'' ``How did I do? I think I succeeded.''
+
+There was a lot of variance in action models. Opening the box was hard.
+
+Self-improvement helped.
+
+The action space is very small so it's surprising that after this process you get a skill that consistently succeeds. It started with always failing, but after rollouts, it succeeds every time.
+
+%How much the mean is changing (translation, rotation).
+It's surprising little you have to change to get the model to work. 
+
+Summary: human seeded action models improved with human taught goal models.
+
+Note we didn't give the robot any notion of the objective function! %We learned enough about the action model 
+
+%How did they generalize to slight variations (bigger/heavier box, etc.). 
+
+%Instead a teaching trajectory, teach the physics?
+%what use arm to do?
+%Tradeoff: the reason we want to do these demonstrations is that it's hard to write down what we want.
+%apply pressure at lid in this direction, this may not be all you need to write down
+Demonstrations are stand-in for the physics, the control equations.
+%tradeoff
+
+One limitation is that there is a better optimal way that people don't understand because they don't understand the physics of the robot. We're starting from the action model, assume it's in the basin of attraction. If we don't assume this, you can try to glean from objective function the core constraints. It is encoded in info we have.
+
+The goal is a trajectory vs. a state. Treating as state, I'm being agnostic. Trajectory helps by giving a sequence.
+We're assuming that something about the way you divided it up is important, salient in goal state.
+Some keyframes are superfluous, and you shouldn't think of them as hard constraints. 
+
+When you look at data, if human teachers have variability, in first few frames have variability; converge at end? Use this to drive info you want to get from people---maybe we can throw away the constraint, not worry about how you start!

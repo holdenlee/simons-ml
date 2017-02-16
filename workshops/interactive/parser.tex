@@ -1,0 +1,252 @@
+\section{Interactive Learning of Parsers from Weak Supervision (Luke Zettlemoyer, University of Washington)}
+
+Natural language parsers are widely used in applications such as question answering, information extraction and machine translation. In this talk, I will describe recent and ongoing work in the UW NLP group for learning CCG parsers that build relatively rich representations of the meaning of input texts. I will cover recent work on interactive approaches for improving both data collection and parsing algorithms. On the data side, we have introduced methods for gathering semantic supervision from non-expert annotators at a very large scale and using such supervision interactively, to label as little data as possible while still learning high quality models. For inference, we introduce new neural A* parsing algorithms that achieve state-of-the-art runtimes and accuracies, while also providing formal guarantees of optimality in inference, by learning to interactively focus on promising parts of the parsing search space. Finally, I will sketch some of our future directions where we aim to extend these ideas to build parsers that work well for any domain and any language, with as little engineering effort as possible.
+
+We are motivated by detailed semantic analysis. We need to pull out all our tricks to get this to work generally.
+
+Given a sentence, put it through a semantic parser, get meaning representation, put it through the executor, and get a response. If the response is good, then we are successful. 
+
+Ex. ``How many people live in Seattle?'' becomes a database query which returns an anwer.
+
+Ex. ``Go to the third junction and take a left.''
+
+There is some amount of syntactic and semantic information from each word. Build up compositionally.
+%If you understand the facts, if you only un
+Getting data for these detailed analyses is painful. How much can you get from latent variable learning---ex. just from anwers?
+
+We have done this for lots of applications: language to code, understanding cooking recipes,...
+%lin et al
+
+Challenge: gather data and learn from model from scratch in each case. Why can't we reuse parsers?
+I'll answer this in the context of converting a cooking recipe to a graph representing the flow of ingredients.
+
+These are simple sentences. Shouldn't an off-the-shelf parser nail this? It was an utter failure. We could design an unsupervised learning method that does better. 
+
+What does ``parsing'' mean? %Spanning tree roughly rep
+I view parsing as syntactic and semantics. Syntax is prerequisite for semantics. The hope is to reuse the syntactic parser.
+
+There is a simple reason why parsers don't work: they were trained on 1990's WSJ articles. There are something like 5 imperative sentences. It hasn't seen a verb in the first position. It turns those verbs into nouns.
+%in academic talks pieces don't quite piece together yet
+
+%broad coverage semantic parsing./
+We need to get data in new domains. 
+\begin{itemize}
+\item
+Can we crowdsource semantics?
+\item
+ Train latent models of syntax from this.
+\item
+Build fast and accurate parsers. A* search vaguely related to RL.
+\item
+Actively select which data to label.
+\end{itemize}•
+
+\subsection{Crowdsource semantics}
+
+Semantic role labeling (SRL): given sentence, find all verbs, find all arguments. 
+``They increased the rend drastically this year.'' 
+If you solve this, you've solved some percentage of other tasks.
+
+There is FrameNet with a large set of possible levels, PropBank (predicate-specific rules)... Roughly speaking, to annotate this requires a degree in linguistics and takes months to do well. It's a data bottleneck issue.
+
+For training parsers for the kinds of tasks we care about, can we do something easier?
+
+I can train any native speaker to label data for me!
+
+Given highlighted verb, ask question about verb.  Question needs to include the verb, phrase needs to be from sentence.
+
+``They increased the rent this year.''
+Who increased something? They. When is something increased? This year.
+
+This is as useful as the complex annotations. How to relate to FrameNet and PropBank? There is work on pooling data across approaches, mapping to same space.
+
+We haven't made ontological distinctions. We have attachment information; that's the hardest part.
+
+We worked on newswire, Wikipedia. Part-time freelancers from upwork.com, hourly rate \$10.
+
+%Wh-words vs. propbank roles.
+%There is aliasing, word-sense problems. 
+% 5 people, agreement. High
+%vary is exact wording (active/passing)
+%AM-PRD.
+
+%This is easily explained and generalizable
+
+What to do with these annotations? %Given cleaner supervision...
+
+What is success for broad coverage semantic parsing? Produce semantic represntation. Success if any sentence you hand, can produce right edges. In any domain, if you match it, 80\%. Out of domain, 30\%.
+
+It's tricky. John denied the report. John refused to deny the report.  John refused to confirm or deny the report.
+There can be an arbitrary long-distance relationship.
+Syntactic parsers such as Stanford NLP fail to give long-distance edges.
+
+Coreference resolution, pronoun resolution...
+
+I could analyze a sentence in isolation or in context of rest of document. Few models use context. No one knows how much context would help.
+
+\subsection{Latent models of syntax}
+
+Let's jointly model the semantic and syntactic part. 
+It's notoriously difficult to get joint modeling to help. It's not clear why. Probably semantic is harder, going back and fixing syntax messes things up.
+
+Our algorithm uses joint training. 
+CCG dependencies, Lewis et al. 2015. Rather than work on spanning tree, do a detailed analysis with CCG. It does tree-structured analysis, build graph structure dependencies. ``Wanted''  means 
+John wanted to confirm the report: ``John'' should connect to ``confirm''. CCG is thought to be harder to parse with. 
+
+%We have parsing algrorithms for this. We get
+ The algorithm gives syntactic dependencies. Joint training is just a matter of labeling edges.
+
+Learn latent CCG that recovers the SRL. Optimize for marginal likelihood. 
+It worked well out of domain too. 
+
+%hopefully all come together.
+
+CCG was designed by linguistics with semantic representations in mind. There are other kinds of semantics. 
+%domain is genre of text
+
+%Build parsers.
+
+%Noisy supervision, latent on top, parser on top. This is a nightmare.
+\subsection{Fast and accurate parsers}
+Assume we have labeled parse trees. (We would like to work without output of the previous step, but for now we have higher requirements for now.)
+
+We build parsers with global features, ex. feature for every subtree with some optimality guarantee. (Typically do greedy inference, and don't have guarantees.)
+
+Global models (e.g. recursive NNs) break dynamic programs. Our approach: combine local and global models in A* parser. We get accurate models with formal guarantees.
+
+Lee et al 2016, EMNLP best paper.
+
+Go from sentences to tree-structured representations. It's useful to have the notion of a hypergraph: show derivation structure to build parse. Combine pieces: ((Fruit flies) (like bananas)).
+
+There are in general exponentially many graphs. Each hyperedge is weighted with a score $g(\ep)$, some function of edge: look at details in nodes (features on subtrees, etc.). The score for a derivation is the sum of scores of edges.
+
+Collapse into one big hypergraph that represents all possible parses. We have sharing. Explore a small subset of it.
+Is this a tractable graph? We have complete parses as one whole node; there are exponentially many in sentence length. As defined this is expressive,  but finding the best derivation is not tractable.
+
+In practice there are 2 ways: approximate inference (greedy or beam search), or reranking (build simpler model, rescore according to more complicated model). 
+
+Redefine graph to further collapse node, assume a lot of equivalent. Ex. store root. Doing this cleverly, get polynomial number of nodes, and you get algorithms like CKY. These are local models, the dynamic programming signature. This is a tradeoff.
+
+Recursive neural networks break dynamic programs!
+I want different features depending on how I got to a node.
+
+Global model:
+$$
+y^*=\amax_y g_{global}(y)
+$$
+Intractable amax, expressive $g_{global}$. Vice versa for local.
+
+Combined:
+$$
+y^*=\amax_{y\in Y} (g_{local}(y) + g_{global}(y)).
+$$
+
+A* parsing: %search in thespace of partial parses
+Search space is partially built graphs (parses). 
+
+We need some guess about how good things could possibly be in the future. We have a scoring function giving exploration priority: how good is parse so far, upper bound on how good the rest could be (admissible A* heuristic). Search in the order of that function.
+
+In the end, when you get a complete parse, everything you didn't expand is provably worse.
+
+A* parsing has been done before. We have a particular way of doing this for CCG. 
+
+Depending on scoring, you need a different way of doing the bounding. One way: Entire parse scored by score of each word. (Supertag-factored A* parser.) This is a strong locality assumption but does state-of-the-art! (Lewis et al 2016) We get a trivial bound on how good everything else could be by taking maxes independently.
+
+How to not make  such strong assumptions and still get a bound?
+Use a fancier method: a neural net for scoring subtrees. Arbitrary scoring can care about any aspect. It's hard to bound.
+
+We did a sneaky trick: bound it loosely.
+
+Have a neural net compute some score, and constrain it to be negative. The loose bound is 0. This would work horribly because it's very loose. Observation: we had a local model that just couldn't make certain distinctions. Sum in with local heuristic.
+$$g(y) = g_{local}(y) + g_{global}(y)\le h_{local}(y)+0.$$
+The global part just corrects the local part.
+
+It's a standard neural net architecture.
+We use $\log \circ \si$ activation.
+How to set up learning scheme?
+
+We have a good local model. Correct mistakes in online method. Violation based loss: If you would have popped something off that didn't, it's a loss. Backprop through it. 
+$$L(A) = \sumo tT \max_{y\in A_t} f(y) -\max_{y\in GOLD(A_t)}f(y).$$
+Run through, collect all violations, do online update, go to next one.
+
+Wrinkle: set up backprop to reuse gradients in hypergraph, do backprop on hypergraph.
+
+Updates are aggressive, force the algorithm to be efficient. % (A* could recover by backtracking.
+We got a new state-of-the-art result.
+Certificate of optimality is almost always there.
+There are exponentially many parses but this explores only 190 partial parses on average (after learning). It hones in on the right analysis! The average sentence length is 35.
+
+Focusing is faster!
+
+\subsection{Actively select which data to label}
+
+Can we be more focused? For any particular sentence, can we pick just a few questions?  Can we use parsers to make multiple-choice questions, use that signal?
+
+``Pat ate the cake on the table that I baked last night.''
+A parser often gets this wrong. World knowledge (commonsense) about what can be baked helps.
+
+Can we use human judgments to improve parse?
+
+Run the parser. It will be the local model. Give parses from $n$-best list. Look for confusions where the parser isn't sure. Based on confusions, generate a multiple-choice question. ``What did someone bake?'' 1. table 2. cake.
+
+(If I had word embeddings, I could know bake and cake are more related.)
+We use state-of-the-art word embeddings but they don't magically solve the problem; you need commonsense. Get jugments and shove it back into the model.
+
+Pipeline:
+\begin{itemize}
+\item
+CCG parser (candidate dependencies from $n$-best list)
+\item
+question generator (heuristic)
+\item
+crowdsourcing platforms
+\item
+reparse with constraints, ex. Cpos (bake$\to$ cake)
+\item
+Re-parsed CCG dependency tree.
+\end{itemize}
+After you do reparsing, if the analysis is better, this provides a new labeled training example to train a better parser. The gains weren't big enough for us.
+%In a perfect work we can retrain with this new data and do better.
+
+Only 10\% data was changed.  We need more coverage by the heuristic question generator.
+
+Heuristics look at properties about CCG grammar. Come up with tuples. Collapse tuples. We have many different scores. Is the question grammatical, what is the entropy over results, etc. Combine all together. This drove annotation process.
+
+%Show sentence, ask question
+People can give more than 1 correct answer.
+
+This is fast and cheap. %Over 90\% absolute majority
+We get long-distance dependencies. 
+Sometimes there are 2 attachments.
+Coreference is tricky: people give antecedents. (Semantically this is fine for end tasks. For improving CCG parse, this would be a disaster.)
+
+%care less about improve parser.
+
+We also had Turkers look at bio texts.
+
+We only changed 10\% of sentences; on those we had respectable gains.
+
+%This raises all kinds of questions: structured prediction.
+% we just cared whether enough confusion.
+%46 cents per query
+%carefully select questions, look at right subset of questions.
+If we can label sentences for 50c each (as in here), we can get magnitudes more data than we have right now.
+
+Can we get the crowd to generate sentences? 
+Algorithmically produce fake sentences? This is very difficult. If you change distribution of natural sentences, you trained on stuff not in natural text.
+
+%easier to more difficult sequence. curriculum of sentences on which system was trained.
+
+Curriculum learning---start with simple sentences?  Trying to get a better and better parser, this is the way to go.
+
+%several times you tried to convince 
+How to get to general domain parsers?  One first step is to make a corpus with many domains. Get 20, 50 domains; do cross-validation... There hasn't been a focus on it. It's also possible we don't have the representational capacity---it's hard to get commonsense knowledge inside; you may need external information.
+
+Before we can get this massive dataset, I can provide a tool, turnkey: get anyone who understands the text, train with several thousand examples.
+
+In vision there is a lot of focus on transfer learning, learn general-purpose representations and then fine-tune. Is there a similar story here? I don't know. My cynical view is that it's a data issue. People do use parsers but it tends to be a struggle.
+
+
+
+
+

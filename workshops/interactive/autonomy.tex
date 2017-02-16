@@ -1,0 +1,148 @@
+\section{Robot Learning, Interaction and Reliable Autonomy (Sonia Chernova, Georgia Tech)}
+
+Robot autonomy and interactive learning (RAIL) lab.
+
+We spend a lot of time thinking about the arrows. There are lots of questions about the interaction. From user to robot learning:
+\begin{itemize}
+\item
+How to provide demonstrations? The power we give to the user influences the performance of learning algorithm.
+\item
+What examples to give?
+\item
+How to interpret demonstrations?
+\end{itemize}
+This is a 2-way process. 
+From robot to user:
+\begin{itemize}
+\item
+What to ask?
+\item
+When to interrupt? %anytime ask is interrupt%time q
+\item
+How to elicit information? %phrasing
+\end{itemize}
+I'll talk about 3 things:
+\begin{enumerate}
+\item
+Series of projects on remotely controlling robots. Teachers are remote. This is part of the downward arrow.
+\item
+Look at semantic reasoning and interpreting intent correctly.
+\item
+Return arrow: figure out timing of asking question, interruptability.
+\end{enumerate}•
+
+\subsection{Remote control}
+\url{robotwebtools.org}, \url{wiki.ros.org/rms} 
+
+Robot demonstration from data is starved for data. The main expense is time. We want to make our robot available through the web to make data collection easier. We made a browser interface. Anyone across the world can open a browser and have whatever control we give them. 
+
+%nasa
+
+User gets a camera view. (There are 7 cameras they can switch between.) They pick up objects.
+%interactive marker, 6.
+This is gamified. We give them points for picking up objects in a fixed amount of time. We learn 3-D object models using the Kinect camera, scanning laser. %perception
+
+Each example gives one view. If we take all examples and do iterative point cloud registration process we can build a 3-D model.
+%users oblivious.
+The models can now be mapped. 
+
+The robot explores, evaluates, and ranks the grasps. At the end we get close to 100\% performance. 
+
+If 2 users have different trajectories, averaging may not be good. % Imitate don't get exactly one or other.
+We only remember grasp locations. There are attempts at clustering, etc. Here we are using planning.
+
+We compared robotics graduate students and random crowd users. Statistically the crowd is indistinguishable from the graduate student!
+If we have access to more data, the benefit of crowdsourcing does filter to the robotic world!
+
+A negative aspect of gamification: a truck would roll away. People avoided the truck because everything else was easier. (Should give more points!)
+
+We had a goal of a complex domain. Open puzzle boxes, containers, etc. We had a major roadblock: the arrow marker requires 6 controls (3 for position, 3 for orientation, ring and arrow marker). Getting them to solve complicated tasks, even precision grasp took too long. The end we couldn't do learning because we recorded users' frustration.
+
+We had to back up, look at better ways of getting data from users in this setting. %This is from 
+%lfd
+We had an intermediate set of objects. 
+%small lip
+%cup of pens
+Grasp interfaces include
+\begin{itemize}
+\item
+free positioning (6 degrees of freedom, ring and arrow marker)
+\item
+constrained positioning (3 degrees of freedom, reduced degree of freedom, control approach angle). This gives 3-D data. Most time is spent refining how to align. Arm plans to the grasp location.
+%(Click to get sphere, then choose position on sphere.)
+\item
+point and click (antipodal grasp identification and learning, AGILE): analyze surface normals of 3-D surface. Algorithm figures out the lip and has a classifier that predicts where the best locations are to place the gripper. 
+\end{itemize}
+
+%A study with 45 people. 
+We went from something that was frustrating to use (6-D) to something much more user-friendly. The more degrees of freedom a user has to specify, the more clicks it takes to complete a task. As interfaces are simpler, the number of tasks completed goes up.
+
+For shiny objects (reflective surface), vision fails; fall back on free positioning.
+
+%plan move to harder
+All these tasks are object manipulation. We want to think about objects themselves, at a higher level.
+
+\subsection{Semantic reasoning}
+
+Task adaptation through analogical reasoning. We took pairs of words, fed them into conceptnet, tried to parse subgraphs to understand relationships. 
+%custom
+We want to generate explanation: society is based on customs, and a game is based on rules.
+
+This level of understanding is important.
+%boteanu, chernova AAAI15
+
+We can do all this, but this is a closed system. Take away the words and put in something else. For robotics there is a whole set of planning domains where the plans are in regular English. 
+Reading recipes/procedures online (ex. wikihow) and turn them into things a robot can do.
+
+Task: pack schoolbag. ``I couldn't find glue, can I substitute tape?''
+``I couldn't find a pencil, could I substitute a quill?'' ``No, that's not useful.'' ``Could I substitute a pen.'' ``I couldn't find an apple, could I substitute a banana?'' ``No, I don't like bananas.''
+
+Analogical reasoning can be used to substitute objects.
+
+Also pull words from vision, use WordNet, ConceptNet, ShapeNet. Combine abstract knowledge with environment. Use this to create a ``situated affordance network'' which combines ``quill is writing implement'' with ``there aren't any quills'', ``spatulas are generally in drawers,'' ``this user puts spatulas in a giant cup''.
+There are certain priors for locations of objects.
+
+We also do word sense disambiguation. Use use Bayesian logic networks. Add transitive properties. This gives more flexibility.
+We get good inference so far, 85\% accuracy in queries without situated information. We're pushing to incorporate observations into the model.
+Once we have this info, we want to look at the context of learning: if the human demonstrates something with cups, how do we generalize to similar objects?
+
+%perception
+Some information is from asking humans.
+
+\subsection{Classification of human interruptibility}
+
+Use gesture, activity recognition, etc. Interruptability is inverse of workload. We take this as granted as humans. We want to give this same power to robots.
+
+Use person descriptors and context descriptors (ex. holding a cell phone to ear) to estimate interruptility. Categories: 
+\begin{enumerate}
+\item[0.] No information. (ex. back to robot)
+\item busy, should not interrupt
+\item
+busy, may interrupt
+\item
+not busy, unaware
+\item
+not busy, aware of robot.
+\end{enumerate}•
+Traditionally people used HMMs. We use latent dynamic CRF. We took this from the gesture community. %It represents particularly well because th
+We tried different sets of features. Some are particularly noisy. HMMs struggle with noisy features. We compared HMMs, CRFs. 
+
+%confusion matrix of interruptibility.
+We are good at classifying most, but 3 can be confused with 2 and 4. 1 is recognized well.
+
+Ground truth comes from labelers coming in and labeling from scale of 1 to 4.
+
+%The robot would address the person looking directly at robot.
+
+Right now, we have lots of niche projects that look at subproblems separately. We hope to connect them in the future. Robot that's learning can figure out when to interrupt to ask for help, etc.
+
+Humans are amazing at improvising---replace spoon with fork, etc. Robots adapt very little. How do we repair plans, policies, to allow greater generalization? 
+
+%Annotate with features that influence how...
+We try to avoid hand-coding. We're working on a project with tactile sensors to detect wood, plastic, metal... ShapeNet, ConceptNet, WordNet: information has been encoded for other communities; we want to pull information from them. Data is overly general. The model says ``a cup is probably ceramic, metal, and wood!''
+
+%cf. robot car merge in lane? 
+Interruptability is framed as binary. Some tasks, you want to gauge how to interrupt the user. Scale is not only thing that informs interruptability. How urgent is the situation (ex. house on fire)? Smaller interruptions have less cost, etc.
+
+Implicit features: use ambient human substitution patterns? People in cooking shows engage in substitution activities. %What are the vectors 
+It would be nice to learn from ambient observations---watch cooking shows, humans in environment. We have a partnership with vision group. This is a core perception problem. Observing from a distance is an excellent way to get more data. Right now they need to be in your face because of range of 3-D sensors.

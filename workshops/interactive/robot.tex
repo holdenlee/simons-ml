@@ -1,0 +1,156 @@
+\section{Robot learning from motor-impaired teachers and task partners (Brenna Argall, Northwestern University)}
+
+Abstract:  
+It is an irony that often the more severe a person's motor impairment, the more assistance they require and yet the less able they are to operate the very machines created provide this assistance. A primary aim of my lab is to address this confound by incorporating robotics autonomy and intelligence into assistive machines to offload some of the control burden from the user. However, robots which do not adapt to the variable needs of their users when providing physical assistance will struggle to achieve widespread adoption and acceptance. Not only are the physical abilities of the user very non-static and therefore so also is their desired or needed amount of assistance but how the user operates the robot too will change over time. The fact that there is always a human in the loop offers an opportunity: to learn from the human, transforming into a problem of robot learning from human teachers. Which raises a significant question: how will the machine learning algorithm behave when being instructed by teachers who not only are not machine learning or robotics experts, but moreover have motor impairments that influence the learning signals which are provided? This talk will overview a new area beginning to be explored by my research group: that of robot learning from motor-impaired teachers and task partners. Our goal is to transform robotics autonomy in rehabilitation by designing algorithms that treat the constraints imposed by motor-impairments as advantages, rather than limitations.
+
+%PMR, rehabilitation.
+RIC (rehabilitation in Chicago). We have access to rich population of patients and to  expertise of therapists, so we can focus on solutions deployable immediately.
+There is robotics in rehabilitation (wearable robots such as prosthesis), but clinically there is not higher-level autonomy.
+
+Problem: Machines are difficult for people with motor impairments to control.
+
+Power wheelchair is 2-D . If you can operate a joystick, it becomes a natural extension of your body. For headrest, you get 1-D at a time and the signal is discrete. To go faster you have to navigate the interface to change the power level. Straw-based interface.
+Take 2-D and parse into 1-D controls.
+
+Robot arm. To just position end of arm is a 6-D problem. 2-D/3-D joystick only has a small part of control. If you need assistance from robotic arm, you don't have the ability to control the joystick! The more motor impaired you are, the less you are able to issue the more complex signal the machine requires.
+
+Control challenges:
+\begin{itemize}
+\item
+limited interfaces
+\item
+motor impairments
+\item
+machine complexity
+\item
+users have unique and non-static abilities (people have different personal preferences. They can be rehabilitating, have a degeneratie condition, have fatigue/pain throughout the day, etc.)
+\end{itemize}
+
+To turn an assistive machine into an assistive robot,
+\begin{itemize}
+\item
+add sensing
+\item
+add computing and AI to reason what it senses
+\end{itemize}•
+
+We prioritize customization and low cost for wheelchairs. We don't expect this to be covered by Medicaire/Medicaid anytime soon. A therapist has to justify every choice on the wheelchair to get it covered by insurance. When it shows up on reimbursement forms, I will consider it success.
+
+We have modular software and hardware. Someone comes with power wheelchair and control interface (widely vetted and covered by insurance). We want to do the best job in software.
+
+We draw from power on wheelchair to get computing, power, and electronics. Add RGD-B sensor, and maybe IR, ultrasonic sensors, IMU at additional cost and capability.
+
+Customize through control sharing. Robot has an idea of what it should do. To reason about those 2 signals and combine into a single one is  understudied and widely variable. It needs a lot of study. Ex. do too much for them or do something unanticipated, they reject the tech. This is the linchpin.
+
+We introduce tunable knobs. %We'd like part of .
+ It can't adapt too quickly (unanticipated) or slowly. We're gather teleoperation data to statistically analyze differences.
+ 
+\subsection{ Sharing control between human and assistive robots}
+
+%Sharing control between human and assistive robots: 
+Autonomy needs a goal. One way is to forward project into the future (.5 second into the future) with fewest assumptions on what the human wants to do. Can detect places where human needs assistance, ex. doorways can be detected. Docking locations at table, anchor to circular place settings. Check for clearance and safety. If there is more than 1 candidate location, do intent inference. Ex. video with 2 doorways. Perceive goal, choose between goal.
+
+Autonomy comes up with safe path that reaches the goal. This gives the autonomy-controlled signal. One way to decide is \vocab{filtering}. Cap user's control signal to not exceed autonomy control in either dimension.
+Look at how far, whether oriented in the direction, extent to which human signal agrees with going through the door. If human signal stops, then most of the time it stops. If really close, autonomy might take over. This is customizable. 
+
+This is not driverless cars---this is parking assist, etc. %We backpropagate to what humans might need.
+Can wheelchair tell human what its inferred goal is?  Getting this right: some information better than none, but not too much. This is another research area.
+
+Another paradigm is \vocab{blended}. Still check that the blended  signal is safe. Ex. driving towards obstacle, the robot swerves to avoid.
+
+
+Another way is \vocab{switch}: do blending, and take control when goal is unambiguous. Occasionally people want 100\% autonomy.
+
+There are so many different ways to formulate partial autonomy. Do people have preference; can they tell between them?
+We did a comparative study, 5 control paradigms, 2 interfaces, 2--4 sessions, 7 injured and 7 uninjured subjects. Task: 4-doorway traversals.
+
+Manually operating the interface is painstakingly slow to align.
+
+There's not a clear winner between the different paradigms (but they all do better than manual), but we see a clear preferences for most users. 
+\begin{itemize}
+\item
+No single control paradigm is most preferred across subjects or performs best with statistical significance.
+
+Filtering is a clear loser (number of interactions, time). This is capping the speeds to not exceed autonomy. 
+
+Preferences changed between sessions. We want to do a 30-session study. 
+
+This doesn't tell us about so much about individual paradigms; it tells us it's good to give options.
+
+It's hard to be statistically significant; do case studies.
+
+Q: How to differentiate paradigms vs. implementations of control paradigms? %not big deal at this level
+Ex. ``Wizard of Oz'' where a human, rather than computer, infers intent.
+Human vs. autonomy is more different than difference between autonomous methods.
+\item
+Both performance and preference change with control interface. Performance differences decrease with increasing autonomy.
+\item
+Performance changes across sessions (learning familiarity factor).
+
+SCI switch preference 58\% of the time with both interfaces. There is always a certain level of difficulty.
+
+Uninjured subjects switched much less with the joystick.
+\item
+Few differences between subject groups. Greatest differences are from command fluency. Zero differences are from distances to obstacle.
+\item
+We can model preferencec as a function of computable metrics. Not just time to completion, etc., but how the human is interacting. One metric is number of interface interactions. Fewer is better. Signal frequency, disfluency...
+\end{itemize}
+
+How to tune parameters? We explored with robot arm end-user customization. We had 4 SCI subjects and 13 uninjured subjects. 
+
+Many paradigms take the functional form of a piecewise linear function $0, \al c (x-x_0), \al$. We wanted people to customize the function. We had people verbally telling us how they wanted it to change (autonomy help faster, come in sooner...). 
+
+Experiment with robot arm: 
+For manual operation, need to change control modes. With assistance, don't need to switch when the control mode is very informative about which object you're going to. Current research: Automatic mode switches to maximally inform autonomy. Confidence of intent inference.
+%You need to remember button pre
+
+Unlike in navigation, what to do when you have the goal object could be varied. %Just infer the next subgoal.
+
+We're starting to consider voice commands. It's much more ambiguous. To give high-level goal it's better (go to kitchen). 20 years ago there was a commercial voice recognition that was dangerous. Ex. when people shout ``stop'' it didn't recognize the emergency tone of voice.
+
+%The assistive 
+Pilot: ``help me help you''. Try to seek out disambiguating information.
+
+%Voice continuous: paralinguistic cues?
+%BCI is a possibility.
+Once we get to robust BCI, that will be a game-changer in these domains. What what I've heard, we're 15 years away. For operation a wheelchair you can use EEG signals because it's discrete. 
+For arm control, people need an embedded BCI. 
+
+%Voice is an overloaded control channel. For sip/puff, can't carry on conversation at same time.
+
+Estimating intent based on distance is not rich enough. It may just need to be more richly formulated.
+
+Results: 
+\begin{itemize}
+\item
+Difference between SCI and uninjured subjects diminish with assistance and are eliminated with customization.
+\item
+SCI customized for more assistance, uninjured for less assistance.
+\item
+User-directed optimization considers something more than standard cost functions.
+7/34 customizations had greater completions, and 14/34 had more mode switches.
+\end{itemize}•
+
+\subsection{Robot learning}
+Future work is adaptations, robot learning from motor-impaired teachers. % Information is filtered 
+What does robot learning look like here? Tactile interface to provide corrections is not feasible here. You need a signal.  Where the signals come from is a big question. How do we define something from scratch? Try to define 15-D control signal. Outfit my arm and hand.
+
+Do we need new algorithms or reformulate existing ones.
+
+Gold standard: What would be great is if operating the device had motor learning benefits. If people can't get to fully capable, use assistive machine. What's great if the machine can help with rehabilitation, encourage using it less.
+
+Use shoulder movement. Can control 2-D; what about 6-D? Autonomy could be monitoring human performance. When people becomes more capable, unlock new dimension. 
+
+Motion calibration: move in all dimensions as much as they can. This defines variance; take dimensions where they have most movement for control. This encourages movement within full range of motor capability.
+
+%quadruplegic.
+%not as rich as BCI
+%BCI don't have physical benefit.
+
+%can op 2-D. Ope
+
+This uses robot machine learning to elicit human motor learning!
+%how to do control sharing? Unique and non-staic abilities autonomy
+%control share, customize, learn signal.
+
+%how to unlock control dimensions? Or start with weakest to force them to use it. Do a pilot study to see what range of parameters.

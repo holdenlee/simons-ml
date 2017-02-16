@@ -1,0 +1,258 @@
+\section{Reinforcement learning with rich observations (Alekh Agarwal, Microsoft Research New York)}
+
+Abstract: This talk considers a core question in reinforcement learning (RL): How can we tractably solve sequential decision making problems where the learning agent receives rich observations? We begin with a new model called Contextual Decision Processes (CDPs) for studying such problems, and show that it encompasses several prior setups to study RL such as MDPs and POMDPs. Several special cases of CDPs are, however, known to be provably intractable in their sample complexities. To overcome this challenge, we further propose a structural property of such processes, called the Bellman Rank. We find that the Bellman Rank of a CDP (and an associated class of functions) provides an intuitive measure of the hardness of a problem in terms of sample complexity and is small in several practical settings. In particular, we propose an algorithm, whose sample complexity scales with the Bellman Rank of the process, and is completely independent of the size of the observation space of the agent. We also show that our techniques are robust to our modeling assumptions, and make connections to several known results as well as highlight novel consequences of our results. This talk is based on joint work with Nan Jiang, Akshay Krishnamurthy, John Langford and Rob Schapire.
+
+RL: Unlike in other ML problems, actions have consequences. Actions modify state, which influences what rewards you can pick up in the future.
+ %position in maze, or visual perception.
+%influences how you design solution
+
+Ex. rat in maze. When it stumbles on the cheese, it knows there is something to be had! Before, it had no information and had to act to obtain information. There may be no intermediate reward (ex. until you get the finish point in the maze). You can take as a state the position in the maze, or the visual perception. If the maze is large enough, stumbling on the cheese is difficult. Just having powerful perceptive abilities may not be sufficient to solve the RL problem well.
+
+How to learn?
+\begin{itemize}
+\item
+Practice: 
+Powerful modeling, simple exploration (Atari Deep RL)
+\item
+Theory:
+Sophisticated exploration in small-state MDPs, e.g. $E^3$, R-MAX algorithms.
+
+There is limited theory for rich observations.
+\end{itemize}•
+Often the world is not a set of discrete cells; you perceive through various sensory inputs.
+
+The goal is to close this gap: develop RL approaches guaranteed to learn an optimal policy with small number of samples despite rich observations.
+
+We present a single formalism and algorithm that derives many RL models and solutions. 
+Results:
+\begin{itemize}
+\item
+Small state MDP's
+\item
+Structured large-state MDP's (new PAC guarantes): We focus on this.
+\item
+Reactive POMDP's
+\item
+Reactive PSR's (new)
+\item
+LQR (continuous actions)
+\end{itemize}•
+Key ideas:
+\begin{itemize}
+\item
+New measure of hardness of exploration: Bellman rank
+\item
+Algorithm with sample complexity scaling with this measure
+\item
+Applications in several RL settings.
+\end{itemize}•
+
+A Markov decision process (MDP) is a sequential process.
+\begin{itemize}
+\item
+$x_1\sim \Ga_1$ initial distribution of state. Think of $x$ as being continuous, high-dimensional.
+\item
+Take state $a_1$, observe $r_1(a_1)$.
+\item
+Induces distribution over next state $x_2\sim \Ga(x_1,a_1)$.
+\end{itemize}•
+
+Assume
+\begin{itemize}
+\item
+episodic: $H$ actions in trajectory.
+\item
+layered: distinct states at each level.
+\item
+Markovian: $x_h$ only depends on $(x_{h-1},a_{h-1})$, $r_h$ on $(x_h,a_h)$
+\end{itemize}•
+We maximize long-term reward using policies (mappings from states to actions)
+$$
+\sumo hH r_h(\pi(x_h)).
+$$
+
+Ex. Consider a robotic agent navigating in a gridworld.
+A more realistic setting is when you get images from a camera, and we reason based on those.
+
+Ex. Web search: User comes in with intent, issues query, receives ranked list of results, issues another query. 
+
+Existing results:
+\begin{itemize}
+\item
+Learn $\ep$-optimal policy using $\poly(|X|, A, H, \rc\ep)$ samples. 
+\item
+Small number of states necessary for learning.
+\end{itemize}
+There is a MDP with $|A|^H$ states where finding an $\ep$-optimal policy requires $\Om\pf{|A|^H}{\ep^2}$ trajectories. Inuition: embed a bandit problem with $|A|^H$ arms in a tree.
+
+A compact $F$ is not sufficient for generalization in RL; gathering the right data has large sample complexity.
+
+In large-state MDP's, there are too many unique states. We cannot reason separately for each state, so we need information sharing between similar states, generalization. This is typically done via value-function approximation.
+
+Let $Q^*$ be the optimal value function. It maps $(x,a)$ pair to the long-term reward when you take action $a$ in state $x$ and follow the optimal policy thereafter. 
+$$
+\pi^*(x) = \amax_a Q^*(x,a).
+$$
+Let's approximate it. Given a class $F$ of functions $X\times A\to R$, find a good approximation to $Q^*$ assuming $Q^*\in F$. The associated greedy policy is $\amax_af(x,a)$. 
+
+The key intuition is to use a class $F$ that generalizes well in supervised learning (small VC-dimension/Rademacher complexity/finite size).
+
+Here is a solution sketch.
+\begin{itemize}
+\item
+Start with initial guess $f_1\in F$ for $Q^*$.
+\item
+Act according to $f_1$ and collect trajectories, $(x_1,a_1,r_1,\ldots, x_H,a_H,r_H)$ where $a_h=\pi_{f_1}(x_h)$. 
+\item
+Use to obtain better estimate $f_2\in F$. (How to improve?)
+\item
+Repeat.
+\end{itemize}
+Use the Bellman equation
+$$
+\ep(f,\pi,h) = \E[f(x_h,a_h) - r_h - f(x_{h+1},a_{h+1})]
+$$
+where $a_1,\ldots, a_{h-1}\sim \pi$ and $a_h,a_{h+1}$ are according to $\pi_f$ ($h$ is the number of steps). Think of this as a consistency check. %ex what is distance to door, compared to distance after 1 step.
+For all $\pi$, $\ep (Q^*,\pi,h)=0$. This gives a test (1-sided certificate) for checking if $f\approx Q^*$.
+
+To use the Bellman equations, 
+\begin{itemize}
+\item
+given candidate $f\in \cal F$, check $\ep(f,\pi,h)$ for all $\pi,h$.
+\item
+Reject $f$ if $\ep(f,\pi,h)\gg 0$ for any $\pi,h$.
+\item
+Restrict to $\pi=\pi_g$ for $g\in F$. %(Call this the validity condition.)
+\end{itemize}
+Say $f$ if valid if it satisfies this. This is a necessary but not sufficient condition: it could be a bad policy and still be valid.
+
+The challenge is that computing $\ep(f,\pi,h)$ requires samples from $\pi$. Doing it for all $\pi_g$ requires $O(|F|)$ samples.
+
+We have no reason to expect data from one policy would help for another. There are too many functions in any interesting $F$, and data based on one $f$ might not prove suboptimality for another.
+
+Consider the $|F|\times|F|$ matrix
+$$
+\ep(F,h)_{f,g} = \ep(f,\pi_g,h).
+$$
+We have one such matrix at every level $h$.
+\begin{df}
+The \vocab{Bellman rank} of a MDP is the rank of $\ep(F,h)$.
+\end{df}
+Sample complexity will be polynomial in rank.
+
+If matrix is low-rank, we can use information about a subset of entries to propagate information to other entries.
+This is bounded by
+\begin{itemize}
+\item
+number of states
+\item
+rank of transition matrix $\Ga$
+\item
+number of ``hidden'' states (for reactive value functions that don't reason over histories).
+\end{itemize}
+It can be bounded by intrinsic structural parameters you don't necessarily observe but that represent the hardness of the problem.
+
+For continuous state space (LQR) we argued that the Bellman rank is at most $d^2$. Our algorithm does not directly apply to continuous actions.
+
+%Are there a finite number of value functions? Everything works for things qualitatively similar to VC classes.
+%Empirical? 
+%Want rank to be polynomial.
+
+The number of cells in the grid is a good upper bound on the rank, even if observations are in a larger space.
+
+Algorithm intuition:  low Bellman rank gives concise basis for checking validity (exploration). 
+%some underlying process.
+%It's not something you can do by observing some entries and factoring...
+
+Challenge: we don't know the basis, just its existence.
+
+Algorithm: Optimism Led Iterative Value-function Elimination (OLIVE)
+\begin{itemize}
+\item
+$F_0=F$.
+\item
+For $t=1,2,\ldots$,
+\begin{itemize}
+\item
+Choose $f_t$ to maximize $\wh V = \EE_{x\sim \Ga_1} [f(x,\pi_f(x))]$. Optimism under uncertainty. This is the guess for $V(\pi^*)$ if $f=Q^*$.
+\item
+Collect trajectories using $\pi_t=\pi_{f_t}$.
+%take greedy
+\item
+If $V(\pi_t) \ge \wh V-\ep$, return $\pi_t$. This is checking our optimistic belief.
+
+Otherwise it's not $Q^*$.  Eliminate it, and also:
+\item
+Reject all $f$ with large $\ep(f,\pi_t,h)$ for any $h$ (prune the possible solutions).
+\item
+Set $F_t$ to be the set of surviving $f$.
+\end{itemize}•
+\end{itemize}
+
+\begin{thm}[PAC guarantee]
+Suppose $Q^*\in F$. 
+Suppose Bellman rank is at most $M$. OLIVE returns $\pi$, $V(\pi)\ge V(\pi^*)-\ep$ and with probability $1-\de$, number of trajectories
+$$
+O\pf{M^2H^3|A|^2\ln \pf{|F|}{\de}}{\ep^{2}}
+$$
+\end{thm}
+This is probably suboptimal exponents on everything except $\ep$.
+
+This retains sample-efficiency for small-state MDPs, gives new results for several settings, and gives unifying treatment for sample-efficient RL.
+
+%Multiplicity automata.
+
+Proof intuition (correctness):
+\begin{itemize}
+\item
+Algorithm always retains $Q^*$, terminates when $V(\pi_t)\ge V^*-\ep$. %(\pi_t)
+\item
+Bellman error matrix has low rank.
+\item
+Each elimination step decreases rank by 1 if we check for $\ep(f,\pi,h)=0$. (For the noise-free case, this is just algebra.)
+\item
+Extension to noisy checking: ellipsoidal argument. Reduce the volume of Bellman error vectors by constant fraction each time.
+\end{itemize}
+
+
+%Proof intuition (sample complexity)
+%\begin{itemize}
+%\item
+%
+%
+%\end{itemize}•
+Extensions:
+\begin{itemize}
+\item
+Do not require $Q^*\in F$ (agnostic setting).
+
+Find the value $f$ with largest $V(\pi_f)$.
+\item
+Adapt to the knowledge of $M$.
+\item
+Allow errors in Bellman factorization and validity.
+\item
+Allow infinite classes $F$ with low VC-like dimension.
+\end{itemize}•
+
+
+Wrap-up:
+\begin{itemize}
+\item
+New structural condition for efficient exploration
+\item
+First sample-complexity results in broad setup called Contextual Decision Processes
+\item
+Algorithm robust to modeling assumptions
+\item
+Key open problem: computational efficiency. We rely on enumerating. We can't even make it efficient in tabular setting.
+\end{itemize}•
+
+
+Contextual bandits is the special case where the Bellman rank is 1.
+
+%
+
+Q: Practically optimism is overkill. Can you apply to Thompson sampling, etc?
+It might operate by inducing a distribution on policies.
+
