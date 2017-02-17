@@ -1,0 +1,695 @@
+\section{Talks 2/16/17}
+
+\subsection{Corralling a Band of Bandit Algorithms (Haipeng Luo, Microsoft Research)}
+
+MSN gives personalized news recommendations, through contextual bandits. It looks at a user's profile and site information to select what it things you like. It uses user feedback to learn about preferences and generalize.
+
+There are many contextual bandit algorithms. Which one should I use?
+\begin{itemize}
+\item
+No one single algorithm is guaranteed to be the best. 
+\item
+Naive approach: try all and pick the best. This is inefficient, wasteful, and nonadaptive.
+\item
+Hope: create master algorithm that selects base algorithms automatically and adaptively on the fly, performing closely to the best in the long run.
+\end{itemize}
+
+In the full information setting, run the ``expert'' algorithm like Hedge. But in the bandit setting, we can't do this. At first it looks like a multi-armed bandit algorithm, can we use EXP3?
+
+There is a serious flaw. The regret guarantee is only about the actual performance. The performance of base algorithms are significantly influenced due to lack of feedback. 
+
+Ex. If algorithm 1 does better on the first few runs, the master algorithm chooses algorithm 1, and algorithm 2 doesn't get the information it needs. 
+
+Right objective: Perform almost as well as the best base algorithm if ti was run on its own.
+
+Difficulties:
+\begin{itemize}
+\item
+worse performance $\lra$ less feedback
+\item
+requires better tradeoff between  exploration and exploitation.
+\end{itemize}
+
+Previous work: EXP3 with higher uniform exploration (Maillard, Munos (2011)), but get $T^{\fc 23}$ regret.
+
+We give a novel algorithm with more active and adaptive exploration, almost same regret as base algorithm
+
+Two applications:
+\begin{itemize}
+\item
+exploit easy environments while keeping worst case robustness
+\item
+select correct model automatically.
+\end{itemize}•
+
+General bandit problem: for $t=1:T$ do
+\begin{itemize}
+\item
+environment reveals side info $x_t\in X$
+\item
+Player picks $\te_t\in \Te$.
+\item
+environment decides loss function $f_t:\Te\times X\to [0,1]$.
+\item
+Player suffers and observes $f_t(\te_t,x_t)$.
+\end{itemize}•
+
+Contextual bandits: $x$ is context, $\te\in \Te$ policy, $f_t(\te, x)$ loss of arm $\te(x)$. 
+
+Environment is iid adversarial or hybrid.
+
+Pseudo-regret is difference between attained and best in hindsight.
+%$$
+%REG = \sup_{\te\in \Te}
+%$$
+
+Given $M$ base algorithms $B_i$, giving suggestions $\te_t^i$, create master algorithm.
+
+Suppose running $B_i$ alone gives $REG_{B_i}\le R_i(T)$. When running master with all base algorithms, we want
+$$
+REG_M\le O(\poly(M)R_i(T)).
+$$
+Ex. %if the environment 
+create one algorithm with worst-case guarantee, but can exploit the environment when easy.
+
+This is impossible in general: the guarantee when run separately tells you nothing about what happens when run with master. We need more assumptions.
+
+Typical strategy:
+\begin{itemize}
+\item
+sample base algorithm $i_t\sim p_t$.
+\item
+feed importance-weighted feedback to all $B_i$, $\fc{f_t(\te_t,x_t)}{p_{t,i}} \one_{i=i_t}$. 
+\end{itemize}•
+Assume $B_i$ ensures $REG_{B_i} \le \E[\pa{\max_t\rc{p_{t,i}}}^{\al_i}]R_i(T)$. $p_{t,i}$ is the probability that the master algorithm picks $t$ at step $i$.
+We want $REG_M\le O(\poly(M)R_i(T))$. EXP3 still doesn't work.
+
+3 ingredients
+\begin{itemize}
+\item
+Special OMD (online mirror descent): want $\rc{p_{t,j}}$ to be small.
+
+In EXP3 with Shannon entropy, $\rc{p_{t,i}}\approx \exp(\eta\pat{loss})$. Look at other entropies that make this smaller than exponential. Use log barrier as mirror map $-\rc{\eta}\sum_i \ln p_i$ to get $\eta\pat{loss}$.
+This algorithm provides the least extreme weighting. 
+\item
+Increasing learning rates schedule. We need to learn faster if a base algorithm has a low sampled probability. 
+
+We don't want the master to converge or be overcommitted. Allow individual learning rates $\sum_i\fc{-\ln p_i}{\eta_i}$ and increase learning rate when $\rc{p_{t,i}}$ is too large.
+\end{itemize}
+%Corral: initial learning rates $\eta_i=\eta$, initial thresholds $\rh_i=2M$.
+%\begin{enumerate}
+%\item
+%Observe $x_t$
+%\item
+%Receive suggested
+%Sample $i_t$, predict $\te_t=\te_t^{i_t}$, send to $B_i$.
+%\item
+%Update $p_{t+1}$ by log parrier OMD
+%\item
+%If $\rc{p_{i+1,t}}$
+%\end{enumerate}•
+
+%\begin{thm}
+%If $REG_{B_i}\le \E[\rh^{\al_i}_{T,i}]R_i(T)$, then
+%$$
+%REG_M = \wt O\pa{\fc M\eta + T\eta - \fc{\E \rh_{T,i}}{\eta}...}
+%$$
+%\end{thm}
+%Conclusion: 
+
+\subsection{The End of Optimism? An Asymptotic Analysis of Finite-Armed Linear Bandits
+(Csaba Szepesvari, University of Alberta)}
+
+%
+
+With Tor Lattimore, AISTATS 2017.
+
+One standard design for sequential decision making under uncertainty is optimism. 
+
+I show that the two standard design principles for stochastic multi-armed bandits have serious drawbacks beyond the simplest case, and offer some alternatives.
+
+Linear bandits: actions $A$, for each $x\in A$ reward distribution $P_\pi$. In each round choose $A_t\in A$, observe $Y_t\sim P_{A_t}$, maximize reward, total rounds $n$. 
+
+Ex. $A=[k]$ and $Y_t\sim B(\mu_{A_t})$ with $\mu\in [0,1]^k$. 
+
+Ex. $A\subeq \R^d$ and $Y_t=\an{A_t,\te}+\eta_t$ with $\te\in \R^d$ and $\eta_t$ noise. Let $\mu_x=\an{x,\te}$, $\mu^*=\max_{x\in A}\mu_x$, immediate regret $\De_x=\mu^*-\mu_x$.
+
+%Ex. watermelon, apple, kitkat
+Regret is $R_n= n\max_{x\in A} \mu_x - \E\ba{\sumo tn \mu_{A_t}} = 
+\E\ba{\sumo tn\De_{A_t}}$. 
+
+We concentrate on asymptotics. Strategy is consistent if $R_n=o(n^p)$ for $p>0$ (subpolynomial). 
+
+How small can we make the regret?  Optimism for linear bandits: in each round construct confidence set $C_t\subeq \R^d$ such that $\te\in C_t$ whp. Then choose 
+$$
+A_t = \amax_{x\in A} \max_{\wh \te\in C_t}\an{x,\wt\te}.
+$$
+Whp, 
+$$
+\De_{A_t}\le\an{A_t,\wt \te} - \an{A_t, \te} = 
+ \an{A_t, \wt \te - \te},
+$$
+width of confidence set in direction $A_t$.
+The width is decreased in this direction.
+%OFUL algorithm
+Gram matrix summarizes information you know about unknown parameter. %$A_t = \amax_{x\in A} \an{x,\hat \te_t}
+
+The regret of OFUL is bounded by $O(d\sqrt{n\poly\log n})$. This almost matches lower bound $\Om(d\sqrt n)$ so it looks like we are done. 
+
+Worst-case obscures instance-dependent structure.
+%instance-dependent.
+
+Lower bound: for any consistent strategy, confidence weights do not decrease too fast:
+$$
+\limsup_{n\to \iy}( \ln n) \ve{x}_{G_n^{-1}}^2 \le \fc{\De_x^2}2
+$$
+for all $x\in A$. Corollary: lower bound on regret $$\limsup_{n\to \iy} \fc{R_n}{\ln n} \ge c(\te, A)$$ 
+where $c(\te, A) = \inf_{\al \in [0,\iy)^k} \sum_{x\in A} \al(x) \De_x$ subject to $\ve{x}_{H_n^{-1}}^2 \le \fc{\De_x^2}2$, $H_\al = \sum_{x\in A} \al(x) xx^T$.
+It has to prove it knows which actions are suboptimal.
+
+Upper bound: there exists a strategy that matches, $\le$. 
+
+Why does optimism fail? 
+%1-\ep, 2\ep.
+%when exlude green region, don't pull $e_2$, don't shrink in that direction that much.
+Learning is slow once an action is not played; need $\Om\pf{\ln n}{\ep^2}$ plays of $x$ to learn sub-optimal. Regret is $\Om\pf{\ln n}{\ep}$ compared to optimal $O(\ln n)$. The algorithm should reason about info gain about actions that have been shown suboptimal!
+
+Thompson sampling fails the same way. 
+
+%Brace yourselves for the optimal algorithm
+Algorithm:
+\begin{enumerate}
+\item
+Find barycentric spanner $B\subeq A$.
+Choose $x\in B$ $\ce{\ln(x)^{\rc 2}}$ times.
+\item
+Anomaly detection: solve optimization problem to plan exploration. 
+Loop as long as new observations are not too consistent with $\hat \De$.
+\item
+Recover: switch to UCB
+\end{enumerate}
+%How does requirement of consistency compare to needing to know the horizon?
+%law of iterated logarithm.
+
+We need practical optimal algorithms, finite-time guarantees...
+%we don't have anything practical.
+
+Infinite-action spaces?
+
+Trading regret for information?
+
+\subsection{RL of Partially Observable Environments Using Spectral Methods
+(Kamyar Azizzadenesheli, UC Irvine)}
+
+RL: environment-agent interaction. At each step, environment gives state, agent chooses action, gets reward, get new state, etc. In RL the agent uses this information (reward, observation) to reinforce policy. Try to maximize reward. Evaluate performance by regret.
+
+Fully observable models: playing maze observing map, playing video game with access to state of emulator, and navigation with access to map. Here state equals observation. This is MDP which has been studied a lot. UCRL: whp regret bounded by $$Reg_N=\wt O(DY\sqrt{AN}),$$ $D=\max_{y,y'}\min_\pi \E[T(y\to y')|\ol M,\pi]$ (diameter, some measure of connectivity). 
+This is linear in number of observations.
+In some environments, the number of observations might be large. In large MDP's, suffering from linear regret is not practical.
+
+%Consider navigation problem. %The image 
+Structured MDP: the space of observations when navigating is large; the 2d location is enough. Solve in the smaller MDP!
+
+Partially observable MDP: Ex. maze: Instead of observing whole game, observe window. In video game, just have access to screen. In self-driving, get sensory observation of environment.
+
+Instead of a clean mapping, we have a messy mapping: given observation, we cannot infer hidden state.
+
+Most problems in RL are POMDPs. 
+
+Randomly generate: 2 hidden, 4 observed, 2 actions: MDP algorithms fail.
+
+Contextual MDP: We have sufficient information to infer hidden state. At some point the agent learns the mapping. In RL, at the beginning we don't have access to the mapping. What if we learn it? 
+
+If we partially learn the mapping, we can construct a smaller auxiliary MDP. How to even partially learn the mapping? We need to learn the latent structure of the model. Use the spectral method.
+
+Initialize with policy. Use spectral method to cluster the contexts. The agent uses the optimism principle. Apply the new policy for a longer time, etc.
+
+%When the agent learns the 
+
+This algorithm reaches regret which is linear in the number of hidden states, not observed states. Connectivity is in terms of the hidden states.
+
+Applying this to a simple MDP, $X=4$, $Y=20$, $A=4$, we got better performance. The algorithm quickly converges to the true MDP.
+
+POMDP: SM-UCRL-POMDP  algorithm: Estimate parameters. Choose policy wrt model (optimism). 
+
+Experiment on GridWorld.
+%change in conditions of problem. Add another state, reallocate to get richer space?
+
+\subsection{Safety in Exploration
+(Andreas Krause, ETH Zurich)
+}
+
+Trying to push RL closer to real world: driving, treating patients, etc. 
+%autonomous car, agressive enough?
+%german autonomous
+How do we think about safety in exploration? %Peter Abbeel's group. 
+How can learning system autonomously explore while guaranteeing safety?
+
+Think about optimizing reward function 
+$$
+\max_x f(x).
+$$
+%g(x) safety
+We can add a constraint, $g(x)\ge \tau$. If we know $g$ we can restrict the set of actions to meet those constraints. What happens if we know neither $f$ nor $g$? We interactively experiment with environment to learn both $f$ and $g$ from noisy data.
+
+%safe optimization: 
+Simplifying assumption: Reward and constraint function are the same. Assume $f$ is smooth, and you have a safe seed $x$. 
+What can you hope to get? We want to explore to get to global optimum but maybe that is too much to ask. We care about reachable optimum, in the connected component of $x$ in the feasible set.
+
+Starting point is Bayesian optimization, useful paradigm for interactive learning. Endow function $f$ with a prior, nonparametric like Gaussian process. It's important to keep track of uncertainty. 
+$$
+y_t=f(x_t)+\ep_t.
+$$
+Use a acquisition function. Mostly heuristic, but theory has been built up in recent rates. 
+%Safety with high probability.
+
+Suppose we have confidence intervals around the function. Best must be where possible value is above the best lower bound. UCB$\ge$ best lower bound.
+Statistically certify that an action is safe.
+
+Maximize acquisition function over certified safe domain.
+
+This simple modification doesn't work, you get stuck in local optimum. You have no incentive to explore at the boundary!
+
+Collect information not just to trade exploration/exploitation in area that's safe; collect info to certify a larger area is safe.
+
+Maintain classification of decision set. Keep track of potential expander: points where there's a reasonable chance that if you make an observation there, you can certify a larger region is safe. Do uncertainty sampling in this region. Pick the most uncertainty. Keep expanding. 
+
+\begin{thm}
+Under suitable conditions on the kernel and on $f$ there is a function $T(\ep,\de)$ such that for any $\ep,\de>0$, it holds wp $\ge1-\de$ that  SAFEOPT
+%barely feasible -careful - pad
+\begin{enumerate}
+\item
+never make unsafe decision
+\item
+after at most $T(\ep,\de)$, it found an a $\ep$-optimal reachable point
+\end{enumerate}•
+\end{thm}
+
+Ex. quadrocopter, without crash into wall.
+
+Extensions: beyond contextual bandits (NIPS16), combining virtual and physical experiments (ICRA17), guarantee stability of nonlinear dynamical systems (CDC16). 
+
+ 
+
+%Optimizing the Spec in RL
+\subsection{PAC Partially Observable RL
+(Emma Brunskill, Carnegie Mellon University)}
+
+Suppose the reward are a function of the state. Our goal is to maximize expected reward even though we can't directly observe the world. Policies are mappings from histories to actions.
+
+In PAC, on all but the (sample complexity number of steps/decisions), the algorithm selects an action for the current state that is at least $\ep$-optimal. We have a budget of mistakes.
+
+A POMDP is a latent variable model.
+
+ Control research: identify system and then act.
+ 
+Bayesian learning: We can be Bayesian about everything. If we can do full horizon planning, and maintain a distribution of worlds, we can choose the optimal tradeoff between exploration and exploitation. This is computationally intractable. Because of approximations, actual algorithms lose all guarantees. %roll out.
+
+We consider full-memory policies. 
+
+Prior work converts to a fully observable model. We can treat the history as a state, but the space is too large. This yields exponential bounds on data needed.
+
+We leverage progress on latent variable model estimation. This provides finite sample accuracy bounds on estimated parameters.
+
+
+But latent variable models haven't been used in control settings.
+
+We can take the same action multiple times for many episodes and use tensor decomposition to learn HMM parameters.
+
+Problem with tensor decompositions; The way it labels the hidden states, may not be the same across actions.
+%Registration problem
+
+We transform POMDP into a special form of HMM to solve. States in the HMM are pairs of states. Now learn the HMM.
+%how much data you would need
+%EM often more statistically efficient.
+
+
+Each episode, select trandomly for 4 actions and then use any policy.
+Estimate transformed HMM parameters using tensor decomposision.
+%instantiate bounds
+
+On all but a polynomial number of steps, take $\ep$-optimal action. (The bound has large exponents. It depends on constants depending on matrices we don't know in advance.)
+
+This is to my knowledge the first PAC algorithm. 
+%contrast with exponential lower bound
+
+Assumptions:
+\begin{itemize}
+\item
+nonzero probability of being in any state in 2 steps from start of episode. (Very fast mixing. Doesn't work for e.g. reachability.)
+\item
+Full rank models: transition model full rank per action, observation and reward matrices full column rank.
+
+(If you have large observation cases, this will almost always be true.)
+\end{itemize}
+%big mistake to think of actions as having identity from state to state. 
+
+One important class is exploration POMDPs. The state is static, and we want to gather information. Transition matrix is the identity.
+
+Potential improvement:
+\begin{itemize}
+\item
+Reduce computational expense
+\item
+Consider more general settings
+\item
+Beyond explore than exploit (this is too conservatie)
+\end{itemize}•
+Contributions:
+\begin{itemize}
+\item
+first PAC RL algorithm for POMDP
+\item
+applies to important subclass of POMDPs
+\item
+exponential improvement in sample complexity
+\end{itemize}
+
+%byron boots. spectral methods. dynamics. structure in dynamic setting. linear gaussian.
+
+\subsection{I-SED: An Interactive Sound Event Detector (Bongjun Kim, Northwestern University)}
+
+%interactive audio lab
+%IUI2017
+
+A speech and language pathologist wants to analyze the relationship between a kid's language development and their listening environment.
+
+%some cause delay
+
+Record a kid 16 hours a day for a month. 
+
+I sit down in the lab to find an interesting sound event.
+
+In Audacity, do manual annotation.
+But the audio track is days/weeks long!
+
+I want an automated annotation tool. TotalRecall, Sonic Visualizer, ASAnnotation, LENA. But the sound event I'm interested in is not in their model.
+
+Problem:
+\begin{enumerate}
+\item
+Predetermined sound classes or acoustic features
+\item
+Too unrealiable for mission critical tasks. (LENA agrees with human annotators only 76\% of the time.)
+%require domain knowledge.
+\item
+We do not have enough labeled training examples of the particular sound class (even hard to search). 
+\item
+The audio is credential (medical data) and we need expert-level ground truth annotation, which precludes crowdsourcing.
+\end{enumerate}
+%In images, foreground, background. 
+%Similar in audio?
+
+We need a tool (interface) that speeds up manual annotation of audio, allows us to define a target sound class on-the-fly, and does not require any knowledge about machine learning and audio signal processing.
+
+In I-SED, I'm still doing manual annotations, but I'm helped by a machine. Machine gives a suggestion (fast) and the human gives feedback (accurate). 
+
+\begin{enumerate}
+\item
+Select sound event by selecting region.
+\item
+System does segmentation and feature extraction, and highlights the $n$ closest regions. 
+$$
+Rel(s) = \fc{d(s,s_n)}{d(s,s_n)+d(s,s_p)}
+$$
+where $s_n$ is nearest negatively labeled, $s_p$ is nearest positively labeled.
+\item
+User adjusts region boundaries and labels these as positive/negative. 
+\item
+Update feature weight and relevance score.
+\end{enumerate}
+%not kind initially, but interesting. Multi-label?
+
+(Why just give $n$ closest? My goal is not to train classifier, just to finish the annotation.)
+
+%false negatives?
+
+Experiment: people found events faster interactively than manually.
+
+%patient eating habit
+
+\subsection{Data Dependent Hierarchical Interactive Classification Learning (Shai Ben-David, Univeristy of Waterloo)}
+
+%classification, batch statistically setting
+
+There is an unknown probability distribution $X\times\{0,1\}$. We get samples $S\sim P^m$, $(x_1,y_1),\ldots, (x_m,y_m)$.  We want $h:X\to \{0,1\}$ that has high probability of success.
+
+Instead of picking samples randomly, we pick which one to label.
+
+%partitition 
+
+In active annotation, we assume that for the input, we only see $(x_1,\ldots, x_m)$. 
+%sanjoy and daniel
+The algorithm can access a label oracle: what is the label $y_i$? The output is a set of labels $(x_1,A(x_1)),\ldots, (x_n,A(x_n))$.
+
+The goal of the algorithm is to make sure that $A$ errs on at most $\ep$ fraction of the labels. The algorithm can always achieve this by querying all the points. 
+
+We want to minimize the number of oracle queries.
+
+%Assume there is an unknown distribution over $X\times \{0,1\}$. 
+
+The Dasgupta-Hsu algorithm is based on hierchical clustering. %The datapoints are at the leaves of the tree. Start at the root node with all nodes. 
+Ask $\rc\ep$ queries. If homogeneous, guess that every point there is the same cluster. If heterogenous, split into children nodes and go down the tree.
+
+Keep going down until all leaves are heterogeneous.
+
+This is a luckiness bound. If you were lucky, you stopped ahead of bound and saved queries. See Dasgupta's webpage.
+%beats hell out of any other active learning algorithm
+		
+We want to give success guarantees based on some assumptions.
+\begin{enumerate}
+\item
+Probabilistic Lipschitzness: 
+$$
+\Pj_{x\sim X} [\exists y, x',y' \text{ s.t. } (x,y), (x',y') \text{ violates $\la$-Lipschitzness}] = \phi(\la).
+$$
+\item
+For nondeterministic labeling we introduce a more subtle measure.
+$$
+\Ga (n,x)=\Pj[B(x,r):|\eta_B-\rc 2|<\tau]
+%prob see 1 in ball..
+$$
+There are few balls with heterogeneity.
+\end{enumerate}
+These parameters can be thought of as formalization of the cluster assumptions. From this we bound the number of queries.
+
+		%talk backwards
+\subsection{Learning with Feature Feedback: From Theory to Practice (Stefanos Poulis, UC San Diego)}
+
+Joint work with Sanjoy Dasgupta.
+
+We look at human feedback beyond the label. Ex. Highlight keyworks in document.
+There is a lot of practical but little theoretical work.
+
+We want to understand and quantify the benefits. What can we learn, how quickly? 
+
+In any labeling situation there is vagueness in intent of labeler.  Ex. Document about politics. They highlight ``Obama'' but they may be thinking about a lot of words which co-occur with Obama.
+
+The human sees documents but the computer may have a different representation.
+
+We study 2 models.
+\begin{enumerate}
+\item
+Probabilistic generalization of disjunctions (or functions): PDM
+
+Instance space $X=\R^d$. Intermediate (topic) space $\Te=[0,1]^T$, label space $Y = [k]$. 
+
+Assume each topic has a label in $[k]$ or is ?.
+
+$P=\set{t}{l(t)\ne ?}$ is the set of predictive topics.
+
+Define a generative model
+\begin{enumerate}
+\item
+$\te=(\te_1,\ldots, \te_T)$ topic representation
+\item
+Pick $t\in P$ wp $\propto\te_t$.
+\item
+Label is $\ell(t)$.
+\end{enumerate}
+How to learn this? 
+
+Learning a PDM is (NP-)hard! Feature feedback makes learning tractable. 
+
+Initialize $n_{ty}$ for times that $t$ received label $y$.
+
+Repeat: receive next $x$. Receive label $y$ and predictive words $w_1,\ldots, w_c$. $S=$select-topics$(x,w_1,\ldots)$. For $t\in S$, increment counter $n_{ty}+=1$.
+
+Labeling: 
+Look at how pure a label is.
+If $n_{ty}\ge \la \sum_y n_{ty}$ then label, else ?.
+
+For any $t\in P$, the expected number of documents is $O(|P|\ln(Tk))$
+\item
+Linear separators. 
+$$
+\wh w = \amin_w \rc n\sumo in \ell(w\cdot x_i,y_i) + \eta\ve{w}^2.
+$$
+Incorporate feature feedback into regularization norm.
+
+Reduce degree of regularization on predictive features.
+
+Take $\ve{x}_A = \sqrt{x^TAx}$, $A_{jj}=\rc c$ for predictive features $j$, $c>1$, $A_{jj}=1$ otherwise.
+
+This has statistically guarantees. 
+
+Let $R=\set{j\in[p]}{w_i^*\ne 0}$ denote relevant features of target $w^*$. Write any $x$ in terms of relevant and other components, $x=(x_R,x_o)$. 
+
+For the family $F=\set{w}{\ve{w}_A\le \ve{w^*}_A}$, $R_n(F) \le \ve{w^*}\max_x\sqrt{\pa{\rc c\ve{x_o}_2^2 +\ve{x_R}_2^2}}\sfc 2n$.
+\end{enumerate}
+These are 2 types of feedback, vague and clear feature feedback. 
+
+In practice, combining is useful. 
+
+Future work: discriminative feedback.
+
+%topic modeling
+%1 richer mechanism feedback
+
+\subsection{Active Nearest Neighbors in Changing Environments (Ruth Urner, Max Planck Institute for Intelligent Systems, Tuebingen)}
+
+I'll ask a different question. Typically we get train and test data from one distribution.
+Here, use the active algorithm to adapt to a changing environment.
+
+Can we use the labeled data and active algorithm unlabeled data from the new distribution to learn?
+Ex. ask labels about pictures that are different from what it has seen.
+
+%Berlind, Urner, ICML 15
+
+We developed a new learning method ANDA: nearest neighbor query rule and nearest neighbor prediction. 
+
+$(k,k')$-query rule: look at point in unlabeled same, look at $k'$-nearest label. Do we have $k$ labels? If we do, then we are good. Otherwise, query.
+
+Abstract out the combinatorial property of the label that it chooses. 
+
+$R$ is $(k,k')$-NN cover for $T$ if $\forall x\in T$, $x\in R$ or there are $k$ elements from $R$ amount $k'$ nearest neighbors of $T\cup R$.
+
+Given labeled $S$, unlabeled $T$, $k,k'$, find $T'\subeq T$ such that $S\cup T'$ is $(k,k')$-NN-cover of $T$. Query labels of points in $T'$. Output $h^l_{S\cup T'}$ the $k$-NN classifier on $S\cup T'$.
+
+Same guarantees as if $T$ had been completely labeled. We can also bound the number of labeled queries.
+
+Key lemma: Let $R$ be $(k,k')$-NN-cover for $T$. For every $x$ the distance to the $k$ nearest labels (in $R$) is at most 3 times the distance to the $k'+1$ nearest target points.
+
+Labeled data behaves as if it comes from the distribution. Use NN to get guarantees.
+
+Converge to Bayes optimal. Doesn't have further assumptions on type of shift.
+
+Correctness of ANDA does not depend on relatedness assumptions of source and target marginals.
+However, the number of queries ANDA makes depends on a local relatedness measure. (How bad was shift between label and target distribution.)
+%converge indep of data assumption.
+
+
+Define weight ratio $\be(B)=D_S(B)/D_T(B)$. 
+
+With large enough sample size, ANDA-S will not query any points $x\in T$ with $\be(B_{Ck,T}(x))>w$. %uniform convergence over balls.
+
+If source and target distributions are the same, it will not query at all.
+Correctness always holds and the algorithms queries as much as it needs. 
+
+In the limit of large sample size, ANDA will not make any queries in the support of the source distribution.
+
+Lower bounds: If restricted to limited queries, then bound to fail. No DA learner with a fixed query budget (passive learner) is consistent.
+
+What other types of classification methods can we get similar adaptation behavior.
+
+%comp efficient as function of $k$?
+
+Finding the min cover is NP-hard. Use a greedy method. Bounds still work.
+%lose anything from $k$-NN. Lose a little bit, factor 3 in how close. Need more data to guarantee 
+%drift in labeling function too?
+%base stays the same - still robust.
+%arbitrary label shift is orthogonal
+
+\subsection{Interactive Learning Opportunities for the Air Force (Lee Seversky, Air Force Research Laboratory)}
+
+I'll focus on how we're using interactive learning, and some of the challenges we've faced.
+
+%I lead autonomy of control and command portfolio.
+%Interactive learning is in the middle. There's a growing need.
+\begin{enumerate}
+\item
+We're data-rich but label-scarce.  We have diverse platforms and modalities, continuous collection, and data at scale.
+\item
+We have complex tasks and dynamic environments. We have time constraints (changing mission requirements). Lots of times, the problem space is under-constrained, ill-posed (notify me before bad things happen). Context matters in planning and execution.
+\item
+We're human-driven. People are highly-trained and specialized.
+Military has a strong organizational hierarchy. 
+Trust and policy: a human has to be involved to some degree.
+\end{enumerate}•
+Why?
+\begin{enumerate}
+\item
+Objective: decision making at scale and speed: decrease human resource requirements, reduce uncertainty.
+\item
+Move from human in the loop to human on the loop to human outside the loop.
+\end{enumerate}
+How do we get outside the loop as quickly as possible.
+
+Highlights
+\begin{enumerate}
+\item
+Active learning for autonomous sUAV swarms. 
+Surveillance: detect, plan and sense ``interesting'' objects.
+
+Do active learning classification on the system. You don't have constant communication. What classes of objects do we care about. Selectively query about objects.
+
+Model swarm similarity for control model selection.
+\item
+Active classification/detection: image, signal
+\item
+Image captioning
+\item
+Active sampling (configuration and experimentation)
+
+Parameter space is large. 
+\item
+Triplet similarity learning
+\item
+Active learning with side info
+\item
+Zero-shot learning
+\item
+Active learning
+\item
+Learning by example
+\end{enumerate}•
+
+Challenges:
+\begin{enumerate}
+\item
+label scarcity: Go to the crowd. Use AMT, but we are limited to working with toy and public/open data.
+
+Look at the AF ``crowd''. There are 767,681 people in the AF. But all have full-time responsibilities; this is a very expensive crowd.
+
+People don't like nonsense data combinations, questions that are too easy.
+\item
+data sensitivity
+%limited data access, silos
+
+Task and data is only accessible to small groups of users.
+
+Go from source domain (turkable) to target domain  (sensitive).
+
+Do inductive transfer learning. This requires labeled data in the target domain. 
+
+What tasks maximize transfer? 
+
+How to actively select source and target labels jointly?
+
+Minimize source and target info exchange?
+
+LIDAR classification: classify interesting and not interesting LIDAR regions. Interesting is a function of current interests.
+\item
+costs of learning
+
+There are many additional costs: acquisition, transfer, pre-processing, computation, user expertise.
+\end{enumerate}
+Pool-based active learning algorithm: did we need every unlabeled instance in $D_u$?
+
+Spatial active multi-classification: reduce number of labels and instances. 
+
+Fill in gaps: interpolate over domain.
+
+Advanced Learning Algorithm Development \url{tinyurl.com/h2d7lgb}
+
+
