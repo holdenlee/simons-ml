@@ -1,0 +1,144 @@
+\section{Hierarchical learning for human-robot collaboration (Brian Scassellati)}
+
+\url{http://scazlab.yale.edu}
+
+We value the solutions to various problems. I will give you lots of problems and few solutions.
+
+Most of our ideas of robotics come from factory automation: repetitive tasks. We think of this as sequential manipulation task. Ex. observe humans assembling furniture, characterize as sequene of world states, model the transition between the world states. Build representations that are easy-to-derive from this kind of linear process. THis becomes a semi-Markove decision process that is a giant mess of states. To deal with the complexity, the states have to be precisely defined. We have lots of transitions even for relatively simple tasks.
+
+Look at this mess and find an execution policy: what to do in any of these states.
+
+This is our traditional method. We get better representations and mechanisms for reducing dimension and finding execution policies.
+
+As we reconsider what robots are doing in application domain, the kinds of problems we want to solve are changing.
+
+In manufacturing, we used to be able to define everything in the world. Now there's a desire to move towards collaborative manufacturing. They do wwell in high-precision tests, bad at dexterity, soft foldable materials. How to put humans and robots in the same space? What happens when we put humans in these well-constrained robotic domains? This changes assumptions.
+
+We want to keep the pillars that we have built:
+\begin{itemize}
+\item
+obseve and learn from sequential manipulation tasks.
+\item
+focus on execution policies.
+\end{itemize}•
+
+I make three points:
+\begin{enumerate}
+\item
+Move away from flat representations.
+\item
+Move away from divide-and-conquer planning mechanisms.
+\item
+Consider collaboration in a broad sense.
+\end{enumerate}
+
+\subsection{Move away from flat representations}
+
+As we start to interact in high-dimensions spaces, search space becomes terrible. If we can break the space up, reduce the dimensionality, that will be a giant benefit. Hierarchical structures allow us to break down dimensionality of problem. % contain subspaces
+
+We can talk about multi-agent task allocation: with a structured representation, we can identify portions of the task only performable by one agent (human, robot).  Think of it not as a single execution task, but something we can optimize the performance of by dividing up.
+
+We gain transparency: for flat state-based representations it's hard to describe what's happening at a point in time. Knowing you're assembling the back leg of a chair is useful information. 
+
+The disadvantage/problem: how do we build the hierarchy of observations?
+
+I show one simple technique: treat this as a discovery problem. Take the traditional models and consider the conjugate. Suppose we assemble a chair. Treat physical states of the world as nodes in a graph, actions as transitions.
+
+In the conjugate graphs, actions are the nodes, transitions are the worldstates that are required.
+We can do this for a SMDP. Look for structure in the graph; it becomes a recognition problem in the graph space.
+
+\begin{enumerate}
+\item
+Look for sequences/chains of states: sequences of actionts that have to be performed one after another.
+
+Ex. Get left peg, place left peg. 
+
+Get right peg, place right peg.
+
+Condense nodes in sequence.
+\item
+ Look for cliques: collections of activities that all must be performed but whose order is arbitrary.
+ 
+Ex. Left peg, right peg.
+\end{enumerate}•
+%preference one over another.
+%DAG?
+
+\section{Move away from divide-and-conquer planning mechanisms}
+
+We also need to move away from divide-and-conquer planning mechanism. Typical way to identify what the robot should do: identify which actions/subtasks the robot can perform, where every subtask is 1 step towards the goal. This is a limited way of thinking what can be done with teams.
+
+Example of supportive behaviors: 
+\begin{itemize}
+\item
+handing you material when you need it. 
+\item
+Handing you a screwdriver when you're having trouble.
+\item
+Holding the material in place for you.
+\item
+Clearing the workspace.
+\end{itemize}
+You can't find these through divide-and-conquer approaches.
+There's no level of granularity where we get all these behaviors.
+
+We preprogrammed certain behaviors, ex. when you're talking too long and fumble, it carries out specific actions.
+
+In most demonstration systems, the human tells the robot what to do and when to do it. Move to planning: robot figures out what to do and when to do it.
+Link a symbolic planner %(what supposed to do) 
+with motion planner (what to execute), and add perspective taking.
+
+Generate hypothetical future world states based on plans. Predict lead agent (user) behavior using a user model. Plan supportive actions that would simplify achieving this world state.
+
+Ex. assemling a bench. Robot offers to hold pieces in place while it offers another piece. We don't give explicit instructions  to the robot (ex. change hands, etc.). We can small changes to pieces and the robot can discriminate between them while the human can't.
+
+A human might decide a piece is faulty and the robot replans on the fly.
+
+% while the humans can't.
+Preferences in task assignment: humans might prefer to have robot hold a piece, vs. put it down.
+
+How to build a representation that allows the robot to learn to select the different type of support activities?
+
+Application domain: SnapCircuits. ``Construct a switched circuit with a power source and a LED. There are many valid solutions.
+
+%This uses:
+%\begin{itemize}
+%\item
+%resource allocation
+%\item 
+%parallelization
+%\end{itemize}•
+
+%weight policies
+Consider duration as our key metric.
+Choose the support policy that minimizes the duration. We change the weighting function. %duration for every fixed possible configuration.
+$w_\pi$ is uniform weighting function: make robot take some action that improves one of the possible plans.
+
+%powerful enough to tear itself off table.
+
+%Human is trying to build a switch to LED.
+
+Robot makes one possible plan better even though there is a better plan out there. Ex. bring piece closer to human even though there is one that is close.
+ %But offered part is not available
+
+Optimize over a different weighting. Weight plans proportional to similarity to best known solution. Favor making good plans even better. 
+%how similarity
+
+%Speech would be helpful.
+It's a hard domain to integrate speech recognition. Utterances are very difficult to ground. ``Get me the next piece,'' ``Help.''
+%interactivity helps here.
+
+Another way to modify weighting function is to penalize bad plans. Penalize the poor-performing plans (error mitigation weighting). This amounts to the robot assuming knows what is good for you, and not trusting you to choose the right plan. Ex. takes easily available and faulty piece away from you.
+Cleans up the workspace. If you trust the robot it's good; if you don't trust the robot it's terrible.
+%model of how expert system is and you are. 
+
+%teach sodder.
+%expesnive parts away from them
+
+Because things are represented in a non-flat system, we can ask the robot what it's doing. ``You look like you were having trouble, can I help?'' ``You really don't need this.''
+
+We're working with NL folks to produce those utterances.
+
+When robot doesn't know the goal, use active learning: figure out whether something is part of the task. Try to get rid of it. When you get stopped, it's important.
+
+Ideally, we do watch-1-do-1-teach-1 (cf. surgeons). How to build something that spans these 3 domains?

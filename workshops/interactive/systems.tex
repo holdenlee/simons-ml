@@ -1,0 +1,134 @@
+\section{Systems presentations}
+
+\subsection{A deployable decision service (Alekh Agarwal, Microsoft Research New York)}
+
+This is about a contextual bandit system.
+
+Contextual bandit:
+\begin{enumerate}
+\item
+observe state of world (context)
+\item
+choose action
+\item
+obtain feedback on chosen action
+\end{enumerate}
+
+This is used in MSN.
+
+Can we have a single system that addresses many problems? 
+
+Feedback is only on actions taken. We need to try every plausibly good action for every context.
+
+When doing randomization, record the probability distribution of choices. 
+
+Questions of interest
+\begin{itemize}
+\item
+on-policy: given problem instance, how to quickly learn a good policy while incurring little regret
+\item
+off-policy: How would have some other policy done if I had used it? Ex. inverse propensity scoring,
+$$
+V(\pi) = \rc n\sum_{(x,a,p,r)} \fc{rl(\pi(x)=a)}{p}
+$$
+\end{itemize}
+
+This fails:
+\begin{itemize}
+\item
+separate teams for each part of process: deploy, explore, log, learn.
+\item
+faulty logs. People drop the probabilities. They don't see why you need the distributions.
+\item
+runtime behavior incompatible with ML: Ex. business logic overriding randomization---promotional content in first position.
+\end{itemize}
+There are many subtle errors that are difficult to find in complex systems.
+
+App communicates with client library or web API. Send contexts, decisions, and rewards to join server. Do online learning, changing the model every 5 minutes. (This can respond to breaking news, etc.) Then snde back to client.
+
+Join server also sends training data to data store. Do offline learning, and send hyperparameter features back to online learning.
+
+For evaluation, given a policy, estimate its performance if deployed.
+
+%For optimization, frind a good 
+We use $\ep$-greedy exploration. Create a topic model for every document. Context: featurize history.
+
+\url{http://aka.ms/mwt}, \url{http://arxiv.org/abs/1606.03966}, \url{http://hunch.net/~vw}.
+
+\subsection{NEXT: Active learning in the wild (Lalit Jain, University of Michigan)}
+
+Challenge of implementing active learning the the real world: we have recruited participants and our coded up algorithms. In between we need
+\begin{enumerate}
+\item
+GUI for participants
+\item
+experiment monitoring
+\item
+traffic monitoring
+\item
+database
+\item
+computational backend
+\end{enumerate}
+Your algorithm is just the beginning; you need a real-time computation system!
+
+Work on laptops, then you need cloud computing and other techs.  Go to AMT, 6 months later, Docker changes its version, things break, you want to call your grad students but now they're working on their active learning startups.
+
+NEXT tries to fix this issue. We tried to build a general system. 
+
+Who is NEXT aimed at? The whole spectrum:
+\begin{itemize}
+\item
+ML researchers (ex. AFRL)
+\item
+Experimentalists (UW Psychology)
+\item
+Practitioners (New Yorker, crowd-source weekly cartoon caption contest)
+\end{itemize}•
+What Active Learning applications can NEXT support?
+For each application (classification, ranking, best arm) there are many algorithms. Have one main learning application and plug-and-play algorithms into that application.
+
+Out of the box:
+\begin{itemize}
+\item
+contextual bandits
+\item
+dueling bandits
+\item 
+cardinal bandits
+\item
+basic active classification
+\item
+ordinal embedding
+\item
+active ranking
+\item
+OFUL linear bandits.
+\end{itemize}
+It can be used for anything: clustering, metric learning...
+
+The only parts you want to implement are: what you need to start the algorithm (initExp), how to get a query (getQuery), how you process the answer around query (processAnswer), in the background you constantly update the model (updateModel). You have a way to get the model (getModel). 
+
+Triplets task: \url{nextml.org/simons} (Is the emotion in $i$ more like $j$ or $k$?) %Circular model?
+
+New Yorker caption contest: \url{nextml.org/captioncontest}
+
+How you choose to process the queries and order them is up to you.
+%low latency high throughput, no drift over time
+
+Next provides tools to track. 
+
+``Strange fruit'' The difference between any 2 shapes is at the limit of human perception. Can we recover the 1-dimensional manifold these shapes are lying on? We used active learning algorithms and other algorithms.
+Did active outperform random? We asked generalization error.
+
+Blake Mason and Martina Rau did a similar experiment with chemistry molecules.
+
+NLP annotation: ROCKET, Devin Conathan. 
+
+Personalized image search: Rob Nowak et al. Zappos 50k dataset. Given a red boot, ask ``is this similar to the red boot''? Active algorithms perform significantly better. %than %Caffe features.
+
+You can create your own UI.
+
+We don't create sessions to track who you are now, but it wouldn't be difficult to do that.
+%eye, mouse tracking
+
