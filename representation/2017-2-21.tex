@@ -1,0 +1,351 @@
+\section{What Non-Convex Functions Can We Optimize? (Rong Ge)}
+
+Many machine learning problems require optimizing a non-convex objective. In this talk we identify a class of non-convex functions where all local minima are also globally optimal. For such functions, stochastic gradient descent efficiently converges to the global optimum . Several interesting problems are known to have this property, and we will in particular show matrix completion has no spurious local minimum.
+
+Based on joing works with Furong Huang, Jason Lee, Chi Jin, Tengyu Ma, Yang Yuan
+
+Two results:
+\begin{enumerate}
+\item
+Gradient descent with strict saddles
+\item
+Matrix completion: all local optima are global
+\end{enumerate}•
+%strict saddle
+%matrix assumption : all local optima are global.
+
+The title is an open problem, a problem I'm hoping to understand better.
+
+Why nonconvex? Many ML problems are nonconvex, such as
+\begin{itemize}
+\item
+find the best clustering
+\item
+learn the best neural networks
+\item
+find communities in social networks.
+\end{itemize}•
+Convex relaxations sometimes work, but are too slow. In some problems (ex. neural networks) we don't have alternatives to nonconvex optimization.
+
+In theory nonconvex problems are NP-hard in worst case. In practice, SGD and tuning works okay; it finds solutions with reasonable quality.
+
+Why? In practice we are not in worst-case scenario; it is tractable for real-life instances. What properties of real-life instances can we use?
+
+What do we know in convex optimization? A convex function satisfies
+$$
+f\pf{x+y}2\le \fc{f(x)+f(y)}2.
+$$
+When strongly convex, there is a unique global optimum solution. Find by gradient descent (stochastic, accelerated) or second-order methods---Newton's algorithm (trust region, cubic regularization). They are guaranteed to find the global minimum. The geometry of convexity gives algorithms.
+
+In nonconvex optimization, we hope that we can do something similar. Find clean geometric properties for nonconvex functions that allow efficient solutions.
+
+Relaxations to convexity: Quasiconvexity, Convexity from any point to optimal point. These are not sufficient because they all still have one local/global optimum.
+
+This is not true for many problems because there are many symmetries in the objective function. 
+\begin{itemize}
+\item
+Problem asks for multiple components but the components have no ordering. 
+%ex. permute columns
+%location of k centers to how good it is.
+
+Different permutations are essentially the same solution.
+However, Gradient descent does not know the objective function has symmetry unless we find some way to give this information to the algorithm.
+
+A convex combination of 2 equivalent solutions is not optimal. The objective function has several equivalent global optima. 
+%The fact that they're multiple optima is not a problem 
+%rewrite
+There is no way to tell gradient descent to be invariant to the permutation group.
+%equivalence class? Optimize over manifold
+
+If we are at a saddle point---ex. take the average of solutions $(x_1,x_2,x_3,\ldots$, $(x_2,x_1,x_3,\ldots)$, $(\fc{x_1+x_2}2,\fc{x_1+x_2}2,x_3,\ldots)$. The first two coordinates will stay the same.
+%hard to define for manifold.
+%first and second order that are not optimal, and method that works.
+
+(Sometimes people reformulate with one global optima/do a convex relaxation but don't use this in practice because they would just like to use gradient descent.) 
+%probability distribution over solutions.
+\end{itemize}•
+Plan:
+\begin{enumerate}
+\item
+Geometry: identify property of objective function
+\item
+Algorithm: fast algorithm using the geometry
+\item
+Landscape: show specific problems have the geometric structure
+%avoid case-by-case analysis
+\end{enumerate}•
+\subsection{Geometry: Strict saddle functions}
+
+Problem: optimize a smooth function $f(x)$ with no constraints.
+%second-order derivative Lipschits
+
+We are worried about flat regions/saddle points (ex. the origin in $y=x_1^2-x_2^2$) and local optima. Local search can't get over local optima. So we ask:
+
+For what objective functions are all local optima global optima?
+
+%permutations
+
+It can be easy to find a local min even with saddle points. \cite{ge2015escaping} Sometimes all local min are permutations of global min.
+
+A strict saddle function is a function where all points are in one of three cases:
+\begin{enumerate}
+\item
+near a local minimum (in a strongly-convex ball)
+\item
+near a saddle point (Hessian has negative eigenvalue)
+\item
+has a large gradient
+\end{enumerate}
+
+Example: $f(x) = \sumo in x_i^4 - \sumo in x_i^2$.
+There are 4 equivalent local/global optima, $\pm(1,0),(0,1)$. Saddle points are $(0,0), \pm(1,1), \pm (1,-1)$.
+
+This function can be used to solve PCA.
+
+Other problems that satisfy strict saddle condition: 
+\begin{itemize}
+\item
+eigenvector, generalized eigenvector
+\item
+some tensor problems   \cite{ge2015escaping} 
+\item
+dictionary learning [Sun Qu Wright 15]
+\item
+Community/synchronization [Bandeira, Boumal, Voroninski]
+\item
+Matrix completion  \cite{ge2016matrix} [Bhojanapalli, Neyshabur, Srebro 16]
+\end{itemize}
+
+Open problem: How can we modify objectives to make them satisfy the strict saddle condition?
+Use re-parametrization, regularization, smoothing/homotopy. In homotopy, smooth by convolving with a Gaussian with large enough variance to make it convex. Then gradually reduce the radius of the Gaussian. Are there functions that have a bad optimization landscape but for which this helps? This works for a particular version of PCA.
+
+What other geometric properties can we use?
+\begin{enumerate}
+\item
+ Degenerate saddle \cite{anandkumar2016efficient} ``monkey saddle''---3rd order derivative is nonzero (it has 3 descreasing directions so a monkey can put its tail on the saddle), 
+ \item
+ most local minima are good \cite{choromanska2015loss}, based off spin-glass models.
+\end{enumerate}•
+For higher-order degeneracies, it can be NP-hard to even decide whether a point is a local min or a saddle.
+
+With probability 1 a random function doesn't have a degenerate saddle point. Perturbing, we get rid of them, but there may be other local min.
+
+What can we do on saddle points? 
+\begin{itemize}
+\item
+Rely on second-order information. 
+\item
+Find the negative eigenvector, go along that direction.
+\end{itemize}•
+Problem: requires us to compute the Hessian. $d$ can be large; we have to compute a $d\times d$ matrix. Can we do this without computing the Hessian?
+
+\begin{itemize}
+\item
+Frieze, Jerrum, Kannan 94, Learning linear transformations (specific objective function).  Considering first and second order conditions you can always find a global optimum
+\item
+Nesterov Polyak 03, Cubic regularization (needs 2nd order information)
+\item
+\cite{ge2015escaping} Stochastic gradient converges for strict-saddle function.
+\item
+Sun Qu Wright 15. Ridable functions, use trust region algorithm
+\item
+Lee Simchowitz Jordan Recht 16. Gradient descent also converges asymptotically. It doesn't bound the number of steps.
+\end{itemize}
+All of these assume the Hessian is Lipschitz. Assumptions are comparable. 
+
+
+\subsection{Algorithm: Noisy stochastic gradient}
+
+%only need one directoin.
+
+Idea: saddle points are not stable. Gradient at $X$ gives no information, but gradients nearby approximates Hessian. Random walk around $X$ should discover the descending direction.
+%stoch descent enuf?
+
+Consider a quadratic function $f(x) = \rc 2 x^THx$, where $H$ is the (constant) Hessian. $(0,0)$ is a saddle point. Assume the axis is aligned, so $H$ is diagonal $\mattn{\la_1}000{\ddots}000{\la_d}$.
+Assume $\la_d\le -\ga$ and for all $i$, $|\la_i|\le 1$. 
+
+Start from $x^0\sim N(0,\ep I)$.  Usually $\eta=1/$smoothness; smoothness is a constant here so think of $\eta=\rc2$.
+%1/smoothness.
+\begin{align}
+\nb f(x) &= Hx\\
+x^{(t+1)}  &= x^{(t)} - \eta \nb f(x^{(t)}) \\
+&= x^{(t) } - \eta Hx^{(t)}\\
+&= (I-\eta H)x^{(t)}\\
+x^{(t)} &= (I-\eta H)^t x^{(0)}.
+\end{align}
+In $\log (d)/(\eta\ga)$ steps the large direction blows up.
+%initial proof relies on coupling
+
+
+If objective method is quadratic function, this is a power method.
+
+Recent work:
+\begin{itemize}
+\item
+Agarwal et al 2016, Carmon Duchi Hinder Sidford 2016: find approximate local min in $O(\ep^{-1.75}\ln d)$ iterations. (Cubic regularization is $O(\ep^{-1.5})$, gradient descent (convex) is $O(\ep^{-2})$.) Try to solve the local problem by computing a Hessian-vector product.
+\item
+Jin et al 2017, Gradient descent with noise can also achieve $O(\ep^{-2} \poly(\ln d))$ for nonconvex functions.
+\end{itemize}•
+
+Tight analysis for gradient descent (Jin et al 2017): After adding noise, distance to saddle point is $\approx 1$ but correlation with negative direction is $d^{-.5}$. 
+But the Hessian can be heavily distorted. (Ex. If only $\la_d$ is negative, for what points can I escape? As long as there is enough correlation with $e_d$, i.e. the point is not in a narrow band.  For a general function it's much harder to characterize which points can escape; the band of bad points is distorted.)
+%some points no longer escape
+
+If a point is stuck at saddle, then moving in a negative-eigenvector directoin, we can escape. A random perturbation whp takes us outside of the band.
+
+We want faster algorithm in stochastic setting, simple accelerated algorithms (preferable stochastic). How to handle constraints?
+
+%planted clique is a hard problem.
+
+\subsection{Landscape: Matrix completion}
+
+Matrix completion: Given an unknown low rank matrix $M$, observe a random subset of the entries of $M$. The goal is to recover $M$. Typical applications include recommender systems and collaborative filtering. 
+Ex. factor a user-movie rating matrix (with missing entries) into user x Genre, Genre x movie matrices.
+
+Previous works:
+\begin{itemize}
+\item
+Convex relaxation (nuclear norm minimization): optimal sample complexity, but requires solving SDP.
+\item
+Non-convex optimization (most analyses is with good initialization)
+
+Known: initialization is sufficiently good so that the function is convex locally.
+\end{itemize}•
+We show that even if you don't do initialization, nonconvexity is still not a problem!
+
+Assume $M$ is of the form $M=ZZ^T$. Each entry is observed with probability $p$ independently. Let $\Om$ be the set of observed entries. The objective is
+$$
+\min_X \ub{\sum_{(i,j)\in \Om} (M_{ij} - (XX^T)_{ij})^2}{f(X)}.
+$$
+This is a degree 4 polynomial.
+
+\begin{thm}
+Understandard assumptions, with $\succsim dr^6$ observed entries, whp all local min are global minima.
+\end{thm}
+(Optimally, we we can hope for $dr$.)
+Note that $f$ is not convex (there are saddle points) and $f$ has no degenerate saddle points.
+
+%deterministic conditinos. expander plus?
+%bhoj. incoherence <> expander
+
+Warm-up: observe all entries
+$$
+g(X) =  {\sum_{(i,j)\in [d]\times [d]} (M_{ij} - (XX^T)_{ij})^2}.$$
+
+How to go from this to random observation case? 
+The eigenvectors could be very different in the partially observed matrix.
+Note that linear statements are preserved by subsampling the entries of the matrix 
+$$p\sum_{(i,j)\in [d]\times [d]} W_{ij}\approx \sum_{(i,j)\in \Om} W_{ij}$$
+and combinations of linear statements are still preserved. (``Linear'' means that we have sums $\sum_{(i,j)}$; it does not have to be linear in the $W_{ij}$.)
+This allows us to translate the full observation case proof to the partial observation case proof. Use concentration inequalities.
+
+%thompson rounding? not rounding
+
+Idea: Analyze the full observation case, redo step 1 by combining linear statements. Then proof generalizes to the partial observation case.
+%if you launch a satellite and all parts are linear it is robust.
+
+[Park Kyrillidis Caramanis Sanghavi 16] Asymmetrix matrix sensing. [Ge Jin Zheng 17] gives a framework for many matrix problems including asymmetric matrix sensing, completion, robust PCA with much simpler proof.
+
+Open problems:
+\begin{itemize}
+\item
+How to prove results on optimization landscape?
+\item
+Does over-parametrization help? (Hardt Ma Recht 16)
+\item
+Is the landscape robust against model misspecification?
+\item
+What is the optimization landscape for a random over-complete tensor?
+\end{itemize}•
+
+\subsubsection{Proof}
+
+Rank 1 case for matrix completion: The objective function for the full observation case is $g(x) = \ve{M-xx^T}_F^2$. 
+
+Lemma 1: $\nb g(x)=0$ implies $\an{x,z}^2=\ve{x}^4$. either $x$ is close to 0 or correlated with $z$.
+$\nb g(x)=0$ gives the linear property
+$$
+\an{x,\nb g(x)}=0\implies \an{x,(zz^T-xx^T)x}=0.
+$$
+
+Translate the the partial observation case: $\an{x,z}^2 \approx \ve{x}^4$. Use concentration to get $\an{x, (P_\Om(zz^T)-P_\Om(xx^T))x}=0$. Do  concentration inequality over all $x$. (This is why you need at least $dr$ entries.)
+%dr dimensions in lowrank matrices
+
+Lemma 2: $\nb^2 g(x)\succeq 0$ implies $\ve{x}^2\ge \rc 3$. %\an{z,\nb^2g(x)z}$.
+
+For the partial observation case, get $\ge \rc4$.
+
+Combining these two lemmas, cor. 3: $x$ is local min implies $\an{x,z}^2 \ge \rc 9$ ($\ge \rc{16}$). More similar steps will show that local min is actually one of $\pm z$.
+
+
+Matrix sensing: 
+\begin{itemize}
+\item
+Unknown matrix $M^* = (U^*)(U^*)^T$ where $M^*$ is $d\times d$ and $U^*$ is $d\times r$, $r<d$.
+%have one nonzero entry
+\item
+Known: sensing matrix $A_1,A_2,\ldots, A_m\in \R^{d\times d}$, $\an{A_i, M^*}=b_i$
+
+Matrix completion is the special case that the sensing matrices are $E_{jk}$.
+\item
+Objective: 
+\begin{equation}\label{eq:msense-obj}
+\min_U \rc{2m} \sumo im (\an{A_i, UU^T}-b_i)^2.
+\end{equation}
+\end{itemize}
+The RIP property:
+\begin{df}
+$\{A_1,\ldots, A_m\}$ is $(r,\de)$-RIP if for all $M$ or rank $r$, 
+$$
+\rc{m}\sumo im \an{A_i,M}^2 = (1\pm \de) \ve{M}_F^2.
+$$
+\end{df}
+\begin{thm}[Srebro et al]
+If $\{A_i\}$'s are $(4r, \rc{20})$-RIP, then all local optima of \eqref{eq:msense-obj}
+%srebro and students
+satisfy $UU^T = M^*$.
+\end{thm}
+
+Look at first and second-order optimality coneditions. Instantiate by taking the inner product with a gradient. Instantiate Hessian with some direction.
+
+Intuition: We want to choose $\De=U-U^*$. 
+
+Problem: $U,U^*$ are only unique up to rotations. 
+
+Define  $\De = U-U^*R$. Let 
+$$
+R=\amin_{R\text{ is rotation}} \ve{U-U^*R}.
+$$
+A useful property (which relies on this rotation)
+$$
+\ve{\De\De^T}_F^2\le 2\ve{UU^T - M^*}_F^2.
+$$
+Rewrite the objective
+$$
+f(M) = \min_{\rank(M)=r} \rc{2m}\sumo im (\an{A_i,M}-b_i)^2.
+$$
+The benefit of this is that this is a quadratic function over $M$. It has a fixed Hessian. The Hessian is a $d^2\times d^2$ matrix but we can rewrite it as $f(M) = \rc 2 (M-M^*):H:(M-M^*)$ where $:$ here means to treat the left and right matrices as vectors and do vector-matrix-vector multiplication like a quadratic form.
+So 
+$$
+M:H:N = \rc m \sumo im \an{A_i,M}\an{A_i,N}.
+$$
+
+Lemma: 
+\begin{align}
+\an{\nb f(U), \De}& = (UU^T - M^*) :H:(U\De^T + \De U^T)\\
+\De : \nb^2 f(U) : \De &= (U\De^T + \De U^T) : H : (U\De^T + \De U^T) + 2(UU^T - M^*) : H : \De \De^T\ge 0.
+\end{align}
+
+Goal: replace everything here with either $A=UU^T-M^*$ or $B=\De\De^T$. Replacing $A+B = U\De^T + \De U^T$, 
+\begin{align}
+A:H:(A+B) &= 0\\
+(A+B):H:(A+B) + 2A:H:B&\ge 0\\
+B:H:B-3A:H:A&\ge 0\\
+\De\De^T:H:\De\De^T - 3(UU^T - M^*) : H : (UU^T - M^*) &\ge 0.
+\end{align}•
+What does this mean? If $H=I$, this is just 
+$$
+\ve{\De\De^T}_F - 3\ve{UU^T-M^*}_F^2
+$$
+If $H$ is RIP, it is close to this. %\De\De^T 
+%For matrix completion, 

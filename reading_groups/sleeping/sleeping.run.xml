@@ -44,10 +44,10 @@
   <internal package="biblatex" priority="9" active="0">
     <generic>latex</generic>
     <provides type="dynamic">
-      <file>representation.bcf</file>
+      <file>sleeping.bcf</file>
     </provides>
     <requires type="dynamic">
-      <file>representation.bbl</file>
+      <file>sleeping.bbl</file>
     </requires>
     <requires type="static">
       <file>blx-dm.def</file>
@@ -64,22 +64,22 @@
     <generic>biber</generic>
     <cmdline>
       <binary>biber</binary>
-      <infile>representation</infile>
+      <infile>sleeping</infile>
     </cmdline>
     <input>
-      <file>representation.bcf</file>
+      <file>sleeping.bcf</file>
     </input>
     <output>
-      <file>representation.bbl</file>
+      <file>sleeping.bbl</file>
     </output>
     <provides type="dynamic">
-      <file>representation.bbl</file>
+      <file>sleeping.bbl</file>
     </provides>
     <requires type="dynamic">
-      <file>representation.bcf</file>
+      <file>sleeping.bcf</file>
     </requires>
     <requires type="editable">
-      <file>representation.bib</file>
+      <file>sleep.bib</file>
     </requires>
   </external>
 </requests>

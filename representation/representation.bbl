@@ -19,6 +19,73 @@
 
 \refsection{0}
   \sortlist[entry]{anyt/global/}
+    \entry{anandkumar2016efficient}{article}{}
+      \name{author}{2}{}{%
+        {{hash=bd4a2be6ede169a3c794a1cd7e3fb9a2}{%
+           family={Anandkumar},
+           familyi={A\bibinitperiod},
+           given={Anima},
+           giveni={A\bibinitperiod}}}%
+        {{hash=8c9aa6a2dc8a4dbb5506f9000137d183}{%
+           family={Ge},
+           familyi={G\bibinitperiod},
+           given={Rong},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{fa1cc67e55467c975533410cf890e796}
+      \strng{fullhash}{fa1cc67e55467c975533410cf890e796}
+      \strng{authornamehash}{fa1cc67e55467c975533410cf890e796}
+      \strng{authorfullhash}{fa1cc67e55467c975533410cf890e796}
+      \field{labelalpha}{AG16}
+      \field{sortinit}{A}
+      \field{sortinithash}{3248043b5fe8d0a34dab5ab6b8d4309b}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:1602.05908}
+      \field{title}{Efficient approaches for escaping higher order saddle points in non-convex optimization}
+      \field{year}{2016}
+    \endentry
+    \entry{choromanska2015loss}{inproceedings}{}
+      \name{author}{5}{}{%
+        {{hash=42734e7439f4dc927fc1e15d7379725e}{%
+           family={Choromanska},
+           familyi={C\bibinitperiod},
+           given={Anna},
+           giveni={A\bibinitperiod}}}%
+        {{hash=401562d96db136e78effff95552f584b}{%
+           family={Henaff},
+           familyi={H\bibinitperiod},
+           given={Mikael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=c8e0f85f89c92f05a8a7ee998755b202}{%
+           family={Mathieu},
+           familyi={M\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=cec6cbb0b89b078c9e64f902145c1be8}{%
+           family={Arous},
+           familyi={A\bibinitperiod},
+           given={G\'{e}rard\bibnamedelima Ben},
+           giveni={G\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+        {{hash=6a1aa6b7eab12b931ca7c7e3f927231d}{%
+           family={LeCun},
+           familyi={L\bibinitperiod},
+           given={Yann},
+           giveni={Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{391318cd13f20b8f5be00d1f414c9711}
+      \strng{fullhash}{f91d9fe4e3308eea03b24d2955ec9f2b}
+      \strng{authornamehash}{391318cd13f20b8f5be00d1f414c9711}
+      \strng{authorfullhash}{f91d9fe4e3308eea03b24d2955ec9f2b}
+      \field{labelalpha}{Cho+15}
+      \field{sortinit}{C}
+      \field{sortinithash}{095692fd22cc3c74d7fe223d02314dbd}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{AISTATS}
+      \field{title}{The Loss Surfaces of Multilayer Networks.}
+      \field{year}{2015}
+    \endentry
     \entry{cybenko1989approximation}{article}{}
       \name{author}{1}{}{%
         {{hash=5f82e084564c9fa2622446ae39f882ed}{%
@@ -100,6 +167,77 @@
       \field{year}{1989}
       \field{pages}{183\bibrangedash 192}
       \range{pages}{10}
+    \endentry
+    \entry{ge2015escaping}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=8c9aa6a2dc8a4dbb5506f9000137d183}{%
+           family={Ge},
+           familyi={G\bibinitperiod},
+           given={Rong},
+           giveni={R\bibinitperiod}}}%
+        {{hash=23118b73b64c99e8852504622b4b9eb3}{%
+           family={Huang},
+           familyi={H\bibinitperiod},
+           given={Furong},
+           giveni={F\bibinitperiod}}}%
+        {{hash=4064724d3727232708e3ee2304afce0e}{%
+           family={Jin},
+           familyi={J\bibinitperiod},
+           given={Chi},
+           giveni={C\bibinitperiod}}}%
+        {{hash=7f4bdfc46ec1f536d2518b86929790dc}{%
+           family={Yuan},
+           familyi={Y\bibinitperiod},
+           given={Yang},
+           giveni={Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{1cd7aeb6ff6744f3bf0bf8eb335ec1e7}
+      \strng{fullhash}{761cce6adfb2d96bf7819b96ea6de436}
+      \strng{authornamehash}{1cd7aeb6ff6744f3bf0bf8eb335ec1e7}
+      \strng{authorfullhash}{761cce6adfb2d96bf7819b96ea6de436}
+      \field{labelalpha}{Ge+15}
+      \field{sortinit}{G}
+      \field{sortinithash}{618d986594b7198ba52cf8b00d348f3f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{COLT}
+      \field{title}{Escaping From Saddle Points-Online Stochastic Gradient for Tensor Decomposition.}
+      \field{year}{2015}
+      \field{pages}{797\bibrangedash 842}
+      \range{pages}{46}
+    \endentry
+    \entry{ge2016matrix}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=8c9aa6a2dc8a4dbb5506f9000137d183}{%
+           family={Ge},
+           familyi={G\bibinitperiod},
+           given={Rong},
+           giveni={R\bibinitperiod}}}%
+        {{hash=f1ee7235ca7e12240673be03ed59c6b6}{%
+           family={Lee},
+           familyi={L\bibinitperiod},
+           given={Jason\bibnamedelima D},
+           giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=5bd4a91e09b499d15e82bc929acf1e34}{%
+           family={Ma},
+           familyi={M\bibinitperiod},
+           given={Tengyu},
+           giveni={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{a6f634e5655f382eeb71690d53667b5c}
+      \strng{fullhash}{a6f634e5655f382eeb71690d53667b5c}
+      \strng{authornamehash}{a6f634e5655f382eeb71690d53667b5c}
+      \strng{authorfullhash}{a6f634e5655f382eeb71690d53667b5c}
+      \field{labelalpha}{GLM16}
+      \field{sortinit}{G}
+      \field{sortinithash}{618d986594b7198ba52cf8b00d348f3f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Advances in Neural Information Processing Systems}
+      \field{title}{Matrix completion has no spurious local minimum}
+      \field{year}{2016}
+      \field{pages}{2973\bibrangedash 2981}
+      \range{pages}{9}
     \endentry
     \entry{hornik1989multilayer}{article}{}
       \name{author}{3}{}{%

@@ -1,0 +1,266 @@
+\section{Big picture}
+
+I'll talk about things which have different names in different fields. %guises 
+You probably know them, but don't know they are the same or related ideas that come up in different fields.
+
+
+\begin{tabular}{|p{25mm}|p{25mm}|p{25mm}|p{25mm}|p{25mm}|p{1mm}|}
+\hline 
+ & Boosting & Hard-core lemma & Dense model theorem & Weak regularity & ?\tabularnewline
+\hline 
+Area & ML & CC,  Derandom-ization & Additive combinatorics, CC & Graph theory & \tabularnewline
+\hline 
+Credit & Shapiro, Freund-Schapire & Impagliazzo, Holenstein & Green-Tao, Barak-Shaltiel-Wigderson & Szemeredi, Frieze-Kannan & \tabularnewline
+\hline 
+Get & Circuit computing $f$ $1-\delta$ of the time & '' & Proof that set isn't $\delta$-dense & '' & \tabularnewline
+\hline 
+Unless & Weak learner fails on distribution of density $\Omega(\delta)$ & Hard-core distribution  & $\Omega(\de)$-dense ``model'' indistinguishable from set & A model succinctly describing set & \tabularnewline
+\hline 
+Algorithm needed %to be const.
+ & Weak learner & '' & Distinguisher & '' & \tabularnewline
+\hline 
+\end{tabular}
+
+
+Implications are due to...
+\begin{enumerate}
+\item
+Boosting$\implies$Hard-core: 
+Klivans and Servedio.
+\item
+Hard-core$\implies$Dense model:
+Impagliazzo
+\item Dense model$\implies$Weak regularity:
+Trevisan-Tulsiani-Vadhan, Reingold-Trevisan-Tulsiani-Vadhan
+\item Weak regularity$\implies$boosting: Trevisan-Tulsiani-Vadhan
+\end{enumerate}•
+
+%Take a weak learner 
+%No small circuit, then there is some distribution about density $\de$, no algorithm gets any small advantage. Either you get circuit compute almost all the time, or distribution where very hard to 
+%either weak learner fails on some distribution, or strong learner computes almost all the time
+%Klivans Servedio.
+
+If set looks like might be dense, either succinct reason (proof) not $\de$-dense, or dense model (reason why it looks big to certain class of sets)
+%, as long as certain 
+
+Hard-core lemma implies dense model theorem.
+
+FK simpler argument with better quantitative bounds, weaker conclusion. Generalized to sparse graphs without giveaway cut (cut prove not dense).
+Either you get a proof that the cut isn't dense, or get a model that succinctly describes all cuts.
+
+Take a bunch of theorems we know are true and showing implications between them.
+Hope a lot to gain by looking at connections between them:
+\begin{enumerate}
+\item
+Versatility. Retrofit. Ex. there are many boosting algorithms. When you follow this progression, you get different quantitative and qualitative versions of dense model theorem and regularity.
+
+%I will pay attention to computability issues.
+
+Boosting is a particular proof for the min-max theorems.
+\item
+Algorithmic and constructive: 
+
+There are nonconstructive versions using the min-max theorem for boosting, hard-core lemma, dense model theorem.
+
+I care about algorithmic versions. 
+
+In ML we care about getting a function that computes a function much of the time. 
+
+On the other side, we're really after the distribution where the weak learner fails, the model that succinctly describes the set. We pay attention to do the reductions in an algorithmic, not just an existential way.
+\item
+Dense model theorem $\to$ learning. Take boosting technique and use it in an unsupervised way. 
+\item
+Generality: some things seem to be specific to a setting (density of graphs). Actually weak regularity doesn't have anything to do with graphs being dense. We can relativize it to subgraphs of any graph. You can look at subgraphs of expanders, bipartite graphs, etc. and plug it in the same machineary. If you want to look at spectral norms rather than cuts, you can plug into the same machinery.
+\end{enumerate}
+%optimizatoin
+
+%things that look different at heart are the same.
+
+
+Almost all arrows are trivial! Simple lines of high-school algebra.
+
+%No arrows going the other way? Bugs me.
+Weak regularity does imply dense model theorem and hard-core lemma.
+
+\section{Boosting}
+
+First we discuss the PAC learning model.
+
+Let $U$ be the universe---big set of possible inputs.There is a boolean function $f$ and we get points $(x,f(x))$ where $x\sim U$. The algorithm can request any number of such points. Our goal is to find a hypothesis $h$ such that 
+$$
+\Pj_{x\sim U} [h(x)=f(x)]\ge 1-\de.
+$$
+How do we get a hypothesis $h$? We assume we have a weak learner, which receives the same kind of input, but perhaps from some other distribution $\mu$, and gets something correlated with the right answer.
+$$
+\Pj_{x\sim \mu} [h_i(x)=f(x)] \ge \rc 2+\ep.
+$$
+(It has to work on any distribution $\mu$ satisfying some assumptions.)
+
+How do we use the weak learner?
+Give a routine that subsamples the distribution $U$ to pass to $\mu$. 
+We let $\mu:U\to [0,1]$. Keep something in $U$ and keeping it with probability in $[0,1]$, else throw it back (rejection sampling). This induces a probability distribution
+$$
+D_\mu(x) = \fc{\mu(x)}{\sum_{x'\in U}\mu(x')}.
+$$
+
+%Use samples from $U$ to generate samples from $\mu$ by picking $x_i\in U_i$ and keeping it with probability $\mu(x)$. 
+
+Let $|\mu| = \EE_{x\in U} \mu(x)$. Use this as a notion of density. %, the density of the measure. One condition 
+Condition: 
+\begin{enumerate}
+\item
+We will only run the weak learner on distributions of about the same density, $|\mu|\ge \Om(\de)$.
+
+We don't want to run it on something too puny, because the time to simulate the distribution is inversely proportional to the density.
+\item
+Each $h_i\in T$. Ex. $T$ is linear separators. 
+$$
+F_k T = \set{f(h_1,\ldots, h_k)}{f\in F, h_1,\ldots, h_k\in J}.
+$$
+It turns out that $\mu\in F_KT$: it's basically describable in the same class of functions. $h\in F_KT$.
+
+Pick one large sample, run on it as much as you'd like. Then the issues of what is $\mu$ disappears. 
+
+If you just care about ML we don't care about this details, but to go further, we do.
+
+The first boosting algorithm I'll give is totally ridiculous from the ML point of view. For people who work on weak regularity on graphs this is the natural version and leads to the standard versions of results.
+
+Suppose you just look at things information-theoretically. If I learn these hypotheses are relevant, how should I use them to predict the function? What's the best function that composes $k$ of these things and gives a predictor for $f$? 
+
+$h_1$ is either T or F, etc. This divides into $2^n$ buckets. Once you are in a bucket what should you do? When given the next $x$, all you know is which bucket it's in.
+
+To optimize, you predict the majority. Let $p_B$ be the probability of the majority; then $1-p_B$ is the minority. Let $H_i(x)$ be the majority answer in $B$.
+$B$ is distributed according to $B(x)$. 
+%Some probability $h_1(1)=1$. Look at conditional probability.
+%Design the distribution so it does no good to get $h_1$ again.
+%motivate majority vote
+It takes $2^i$ time to give a good estimate for the majority answer.
+\end{enumerate}•
+Let $\de_i = \E_{B\in B[x], x\in U} [1-p_B]$. If the majority $\to 1$ in every bucket, then our error probability is small. While it's big, we still need to learn.
+
+On the same biased distribution, get the same $h_1$. We want to make sure not boolean combination of previous $h_i$'s is a good predictor for the next distribution. 
+If $f(x)=\Maj_B$ , then $\mu(x) = \fc{1-p_B}{p_B}$ for $x\in B$. 
+%it has to be different from what we learned from the previous $h_i$'s.
+
+What is $|\mu|$?
+\begin{align}
+\EE_x |\mu| &= \EE_x \mu(x) = \EE_B[\EE_x[\mu(x) | x\in B]]\\
+& = \EE[1-p_B + 1-p_B] = 2\EE_B [1-p_B] = 2\de_i.
+\end{align}
+If measure small, then small failure probability.
+If haven't succeeded, then $\mu$ is large enough so we can continue learning on $\mu$.
+
+%I haven't shown decision trees are boosting, because I haven't showing it converges.
+Given previous functions, define candidate function. Either it has good success, or distribution has good density, and we continue. I need to show this process terminates within a reasonable amount of time.
+%Query complexity is exponential.
+
+We'll look at a potential function that measures how close we are to success. Our goal is to drive all $p_B$'s to 1. %\E B over square of $p_B$. 
+%identical to how we show decision trees are boosters.
+
+%look at oblivious decision trees./
+%gini index.
+
+Our potential function is 
+%$$\ph_i :=\EE_B P_B(1- p_B)
+%= \EE_B p_B - \EE_Bp_B^2
+%$$ 
+
+
+Flip a coin with expected probability. 
+\begin{align}
+\ph_i& = \EE_{p_\ph} p_1(1-p_1)  = \EE_B p_1 - p_1^2\\
+&=
+\EE_B p_{B,1} (1-p_{B,1})
+\end{align}
+%We can look at this 
+%$B$: $a_0$ are 1 and $1-a_0$ are 0. For 
+%$$p_{B,1} + \al_t p_{B,1}-\al_ - 
+
+Land in $B_1$ with probabilty $q$, $B_0$ with probabilty $1-q$. 
+$f=1$, $p_{B,1}+\al_+$,  $p_{B,1} - \al_-$. $q\al_t  = (1-q)\al$. 
+
+???
+\begin{align}
+q(p_{B_1}+\al_+)^2 + (1-q) (p_{N,1}-\al_-)^2 &= (q+1-q) p_{B,1}^2 + (\al_t q - (1-q) \al - 1) p_{B,1} + q\al_t^2 + (1-q) \al_{-i}^2.\\
+\EE_x [\mu(x) (-1)^{f(x)\opl h_{i+1}(x)}] &\ge \ep|\mu|\\
+& = \EE_{ B\in B(x)}  \EE_{x\in B} \mu(x) (-1)^{f(x)\opl h_{i+1}(x)}\\
+&\quad q\pa{\fc{1-p_B}{p_B} (p_B + \al_t) - (1-p_B+\al_-)} \\
+&\quad (1-q)\pa{\fc{1-p_B}{p_B} (1 - p_B + \al_-) - (p_B+...)}
+\end{align}•
+%know nonneglible
+
+Prob $h$ on $B$ is $q$. 
+For $f=1$, $q+\al_+$. For $f=-1$, $q-\al_-$. Then 
+$$
+p\al_+ = (1-p)\al_-.
+$$
+Then 
+\begin{align}
+\EE_\mu \mu(x)(-1)^{f(x) \opl h(x)} &= \ep_B = p \fc{1-p}p (q+\al_+-(1-q-\al_+))...\\
+%h=1 given $f=1$ 
+&\quad (1-q-\al_-) - (1-\al_-)\\
+&\quad (1-q) (2\al_++2\al_-).
+\end{align}
+On the other hand the expectation 
+\begin{align}
+p_{B, 1} &= q\pf{p(q+\al_+)}q^2 - (1-q) \pf{p(1-q - \al)}{1-q}^2\\
+&= p^2\pa{q + \fc{2\al_+}{q} + \fc{\al_+^2}q}
+\pa{}
+\end{align}
+%3 distrbutions. amplify.
+%mike kearns
+Try to make an energy increment argument.
+
+It matters that the weak learner only looks at distributions with density $\ge 2\de$. From boosting to hard-core: 
+\begin{lem}
+Let $f$ be any function on $U$ and $T$ any class of tests. Either there exists $H\in F_K T$, $H(x)=f(x)$ with probability $1-\de$, or there exists $\mu$, $|\mu|\ge 2\de$ , $\forall h\in T$, 
+$$
+\Pj_{x\in \mu} [h(x) = f(x)] \le \rc2 + \ep,
+$$
+$k=O\prc{\ep^2\de^2}$.
+\end{lem}
+
+\begin{proof}
+Let weak learner be exhaustive search. get sequence of distribution, all of $\ge 2\de$. See if any of them have a good bias. If we always get something with bias $\ge \rc 2$, continue in the strong learner, until we get $H(x)=f(x)$ with probability $1-\de$. If at some point our exhaustive search algorithm gets stuck, we have a distribution that's hard core.
+\end{proof}
+Region where very hard, indistinguishable from random.
+
+Why have to keep track: we want size of hard-core to be what it should be. $2\de$ is what it should be. 
+
+%You can't expect to have both. 
+
+A lot of times we want to compute one or the other. Then we need to use the boosting algorithm. By using the boosting algorithm we get something stronger. We get that the hardcore distribution doesn't have unlimited complexity. It's describable by the function we want to compute, $
+\mu \in F_{k+1} (J\cup \{f\})$. 
+
+
+Let $S\subeq U$. We have some tests $T$ that don't reveal that it's small. If big, then $\de$ fraction of whole thing.
+\begin{df}
+Let $S\subeq U$. Let $\cal T$ be a class of tests. For $T\in \cal T$, $\EE_{x\in S} T(x)$. 
+$S$ is $(\ep,\de)$-pseudo-dense for $\cal T$ if for all $T\in J$, $T(U) \ge \de T(S) - \ep$.  This is written as $S\sim_{\ep,\de} U$.
+%if close to 0 not interesting, can't test it efficiently. 
+\end{df}
+One way to be pseudo-dense it to be dense. Another, one step removed,  is that there's $R$ that's indistinguishable from the whole distribution, and it's dense in $R$. and $T(U)$ and $T(R)$ are within $\de$ fraction of each other. 
+\begin{thm}[Dense model theorem]
+There exists $\mu$, $|\mu|\ge \de$ and $S \sim_{\ep,,\de} D_\mu$. 
+
+If $S$ is $(\ep,\de)$-pseudodense vs $F_k\cal T$, $k=O\prc{\ep^2\de^2}$ then there exists $\mu$, $\mu\in F_k\cal T$, $|\mu|\ge \de-\ep$, $D_\mu\sim_{\cal T} S$ to within $O(\ep/\de)$. 
+\end{thm}
+By going through boosting and hard-core, we get characterization of $\mu$, describable using original tests.
+
+Hard function should be membership in $S$. This happens almost never, so we have to blow up membership to make it comparable to what it should be.
+\begin{proof}
+Let $U'$ be: $\de'$ fraction is $(0,x), x\in S$, while $1-\de'$ is $(1,x), x\in U$.  Let $\de'=\fc{\de}{1+\de}$.  Let $f(b,x)=b$, $T((b,x)) = f(b,x)$ with probability $1-\de'$.
+
+The tests are just applied to the $x$ part. 
+
+\begin{align}
+\de' T(S) + (1-\de') (1-T(U))
+&= 1-\de' + \de' (T(S)) - (1-\de') T(U)\\
+&= 1-\de' + \rc{1+\de} (\de T(S) - T(U))\le 1-\de'+\ep.
+\end{align}
+This distribution has a hardcore subdistribution on which is as hard as a random coin flip. 
+With $\de'$ probability., sample from $S$, $f=1$. with $1-\de'$ probability, sample from $U$, $f=0$.
+The subset has size $2\de'$, in order to be hard, half comes from $S$ (all of it), half from $U$. $f$ hard to predict means the 2 sides indistinguishable. %$\fc{de'}{1-\de'}=\de$.
+
+The model depends on $k$ and $f$. Magically when we apply it we only want the part of the model where $f=0$. It's definable with $k$ things from $\cal T$. No membership oracle required. 
+\end{proof}

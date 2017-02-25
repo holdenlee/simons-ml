@@ -1,0 +1,302 @@
+\section{}
+
+% Preview source code for paragraph 0
+
+
+
+I'll start with motivation: one thing we could hope to get from this.
+
+\begin{enumerate}
+\item
+Let $X$ be a set, e.g. a distribution of points in the square. %in $\R^n$.
+%a distribution of points in the square.
+
+Let $S$ be some distribution on points in $X$.
+
+Let $\mathcal T$ be a set of classifiers, ex. a set of half-planes.
+
+Let $\mathcal F_K\mathcal T$ be boolean functions on $K$ functions in $\mathcal T$; here, partitions into polygonal regions by $k$ half-planes.
+
+We want to pre-process the distribution to be able to answer queries in $\mathcal F_K\mathcal T$.
+\item
+A violation of pseudo-density in this setting means there is a polygonal region with many more points from $S$ than its volume, a ``hot spot''.
+%relatively small poly with few sides, vastly overrepresented. 
+\item
+A model is a partition into polygonal regions, with a probability distribution on regions. Estimate half-space probabilities (Given any half-space, what proportion of points of $S$ are on one side of it?) by treating the points as if uniform within regions.
+
+A simple model is defined by at most $k$ lines. 
+%Uniformly sample within region. 
+$$
+Area\pat{region}< \de \Pj_S\pat{region}-\ep.
+$$
+``Given any half-space, how many points are on one side of it?''
+%triple number of lines faces
+\item
+Algorithmic requirement: given points from subsample of $S$, points from subsample of $U$, find a half-space that approximately maximizes the difference in red probabilities and blue probabilities.
+
+When using boosting, the equivalent is a distinguishing algorithm.
+Find a separating halfspace that approximately maximizes the probability distribution under the two distributions.
+
+%low vc dimension: best line for finite passes through 2 points. move until...
+%poly whose degree is dimension. 
+%If you have  a hypo for more complicated things
+\end{enumerate}
+%can have small density but still be pseudo-dense wrt universe
+%maybe not realized as part of general picture.
+``Using boosting in unsupervised context'': not told what we want to learn about distribution. Just have model to address queries later on. You need tests in mind. %the category of things y
+
+
+
+\begin{tabular}{|c|c|c|c|}
+\hline 
+Setting & Boosting & Hard-core measure & DMT/transference principle\tabularnewline
+\hline 
+\hline 
+ & WL: $|\mu_{i}|\ge2\delta,\mu_{i}=g(h_{1,}\ldots,h_{K},f)$,$h_{i+1}\in\mathcal{T}$,$K$
+iterations & Hardcore measure: $\mu_{K}=g(h_{1},\ldots,h_{K},f)$, $|\mu_{K}|\ge2\delta$ & Model: $\mu_{K}=g(h_{1},\ldots,h_{K},o)$, $|\mu_{K}|\ge\delta$\tabularnewline
+\hline 
+ & SL: $H=G(h_{1},\ldots,h_{K})$,$\Pj[H=f]\ge1-\delta$ & Violation of hardness: $H=G(h_{1},\ldots,h_{K})$, $\Pj[H=f]>1-\delta$ & Violation of pseudo-density $H=G(h_{1},\ldots,h_{K})$, $H(U)\le\delta H(S)-\ep$\tabularnewline
+\hline 
+Assumption & WL never fails & Violation is impossible & Violation of pseudo-density is impossible\tabularnewline
+\hline 
+Conclusion & SL works & Hard-core measure exists. Same $K,G,g$ & Model exists. \tabularnewline
+\hline 
+Algorithmic & Weak learner requirement & Approximately optimal weak learner & Approximately optimal distinguisher\tabularnewline
+\hline 
+\end{tabular}
+
+Weak regularity: Same as above
+
+Assumptions: Actually dense
+
+Conclusion: model exists
+
+Notes:
+\begin{enumerate}
+\item
+Boosting: $\de$ is the same.
+Many boosting algorithms meet this criterion.
+%twist
+
+``Either weak learner fails or strong learner works.'' In boosting we think of weak learner as never failing.
+\item
+For hard-core measure lemma: we want to come up with the measure. Either we can find hard-core measure: no compute more than $\rc2+\de$ of time, or find a function computing $1-\de$ of time.
+
+The only change is psychological: we assume violations never happen. The logical format is the same.
+\item
+Every boosting gives hard-core measure lemma. It gives a hard-core measure lemma with the same parameters. The way we glue the functions is exactly the same. 
+%get function computes $f$ or hard-core measure.
+
+We have different hard-core measure lemmas with different gluing. Sometime you care about computational complexity of $G$ but not of $g$, etc. Or it could be the other way around.
+\item
+Convert to dense model theorem/transference principle (Tao and Ziegler). Either we have a distribution we're trying to model, distribution has pseudo-density property: there won't be a violation that's definable from $K$ different properties from hypothesis class, where violation means that it's much smaller on $U$ than on $S$.
+We get model of density $2\de$. %Even if $\de$-dense, the best we
+Get model definable in terms of $K$ hypotheses from class. Assume violation of pseudo-density does not happen, then we get a model.
+\item
+Weak regularity: is just DMT except the distribution actually is dense. It's not so interesting that it has a dense model. But what this says is that the dense model you get is simple, definable in terms of a small number of basic hypotheses. 
+
+applying to actually dense, so you don't worry about violation of pseudo-density.
+
+Sometimes we care about simplicity in model, sometimes in $G$.
+%point is to have a delta: HC
+%and point is to be a delta.
+\item
+Note the $k$ is the same. Reductions preserves $k$, and the functions $h_i, G$. When I talk about an implication, not jsut known boosting gives known hard-core lemma, regularity lemma, I mean whatever boosting algorithm you give me, it gives me a hard-core lemma, regularity lemma with the same parameters. We can immediately jump to whatever we're interested in.
+Pick the one that gives the best results.
+\end{enumerate}
+%any tests, underlying dist, boosting alg
+%applications of strong regularity going other way?
+%can use to prove strong reg, but don't know generic
+%how to define properties particular algorithm has and see if it's interesting for boosting itself. 
+Boosting with oblivious decision trees. 
+%not so great as a boosting algorithm, although other assm make it feasible
+
+Let
+\begin{itemize}
+\item
+$f$ be function we want to learn, $f:\chi\to \{0,1\}$.
+\item
+$\cal T$ class of Boolean functions we use as basic hypotheses.
+\item
+$F_k\cal T$ compositions of $\le k$ functions in $\cal T$.
+\end{itemize}•
+Measure $\mu:X\to [0,1]$, $|\mu|=\EE_{x\in X}\mu(x)$, $D_\mu(x)=\fc{\mu(x)}{|\mu||X|}$ induced distribution: pick $x$, keep with probability $\mu(x)$, else repeat. 
+
+
+\begin{itemize}
+\item
+Weak learner: If $\mu\in F_k\cal T$ and $|\mu|\ge 2\de$, whp returns $h\in \cal J$ so that $\Pj_{x\sim D_\mu}[h(x) = f(x)] \ge \rc2+\ep$.
+\item
+Strong learner: whp, finds $H\in F_k \cal T$, $\Pj_{x\in X} (H(x) = f(x)) \ge 1-\de$. 
+%still get weak learner up to $2\de$, can't get less.
+\end{itemize}•
+
+Let $\mu_0$ be constant 1. 
+
+While $|\mu_i|\ge 2\de$ do
+\begin{itemize}
+\item
+$h_{i+1}\mapsfrom WL(\mu_i)$
+\item
+Partition $X$ according to values of $h_1,\ldots,h_i$
+%define the next distribution and hypothesis at end
+into ``blocks'' $B$, $\Maj_B$ most likely value in $\de$.
+%
+\item
+$H_{i+1}=$ output $\Maj_{B(x)}$, $$\mu_{i+1} = \begin{cases}
+\fc{1-p_{\Maj}}{p_{\Maj}},&\text{if } f(x)=\Maj\\
+1,&\text{otherwise}
+\end{cases}• $$
+\end{itemize}
+cost exponential in $k$ in most circumstances. under what circumstances not exp in $k$? If VC dimension small.
+
+%how many possib among hypo
+number of boolean comb. Grows at most order $k^d$.
+
+Induce new distribution, make $f$ unbiased within each block. 
+
+%1 more likely, otherwise flip 0 and 1. bias of $f$ for what maj is
+Total probability: on $1-p_{\Maj}$, $f=1$, make $p_{\Maj}$. $f=0$, $1-p_{\Maj}$.
+
+(Last time: if $|\mu_i|\le 2\de$, $\Pj_{x\in X}[H_i=f]\ge 1-\de$.)
+
+We need to show this method terminates.
+
+Consider the potential function
+$$
+\ph = \E_{x\in_U X, B\leftarrow B(x)} [(\Pj[f=1|B])^2]
+$$
+Closer to 1, closer it is to boolean. This is maximized if every bucket/block is either constantly 1 or 0.
+
+We need to show every iteration increases this potential 
+function.
+
+
+
+
+WTS: In every iteration $\ph$ increases by $\Om((\ep \de)^2)$. 
+
+Fix $B$. 
+\begin{align}
+p&=\Pj[f=1|B]\\
+q&=\Pj[h_{i+1} = 1|B]\\ %split into 2 halves, q overall prob next fun is 1 on block
+q+\al_+ &= \Pj[h_{i+1}=1|B, f=1]\\ %correlated with $f$. slightly higher
+q-\al_- &= \Pj[h_{i+1}=1|B, f=0]\\ %cond on 0, slightly lower
+%on some blocks it could flip. On average >0
+\al_+p &= \al_-(1-p) \text{ by conservation}\\
+B&\mapsfrom \al_-(1-p)\\
+p_0&= \Pj[f=1|B_0] = \fc{\Pj[f=1\wedge h=0]}{\Pj[h=0]} = \fc{p(1-q-\al_+)}{1-q}\\
+p_1&= \Pj[f=1|B_1] = \fc{\Pj[f=1\wedge h=1]}{\Pj[h=1]} = \fc{p(q+\al_+)}{q}\\
+\pat{Value of potential}&=qp_1^2 + (1-q)p_0^2 = p^2 \pa{\fc{(q+\al_+)^2}{q} + \fc{(1-q-\al_+)^2}{1-q}} \\
+&=p^2\pa{
+\pa{q+2\al_+ + \fc{\al_+^2}{q}}
++
+\pa{1-q-2\al_+ + \fc{\al_+^2}{1-q}}
+}
+\\
+&=p^2\pa{1+\fc{\al_+^2}{q} + \fc{\al_+^2}{1-q}}\\
+&\ge p^2 + 4p^2 \al_+^2 \ge
+%p^2+
+ \al_+^2
+ %multiplicative increase by $1+\al$?
+\end{align}
+%\al_+ cancel
+%worst case $q=\rc 2$
+if $\Maj=1$.
+%retro assume majority block 1
+
+%instead of look at induced prob take exp %measure of $\mu$ times advantage
+Assume $\Maj_B=1$. 
+\begin{align}
+\EE_{x\in B}[\mu(x) ((-1)^{(h(x)\ne f(x))})]
+&=\quad (f=1) p\pf{1-p}{p} \ba{(q+\al_+) - (1-q-\al_+)}\\
+&\quad + (f=0) (1-p) 1 [1-(1-\al_-) - (q-\al_-)]\\
+&=(1-p) [\cancel{2\eta - 1 + 1-2 \eta} + 2\al_++2\al_-]
+ + 2\al_+(1-p) + 2\al_+p=2\al_+\\
+\EE_{x\in B} ... &= \EE_x \EE_{B= B(x)} \mu(x) (-1)^{(f(x)\ne h_{i+1}(x))}\\
+&= \EE_B 2\al_+ \ge \ep |\mu| = 2\de \ep\\
+\De \ph &= \EE_B \al_t^2 \ge (\de\ep)^2.
+\end{align}•
+%Expected increase is at least $(\de\ep)^2$.
+%got rid of $p^2$, assume $p\ge \rc 2$.
+
+Every step don't terminate, potential function increases by $(\de\ep)^2$. It's a number in $[0,1]$, so the number of iterations is at most $k\le O\prc{(\de \ep)^2}$.
+At most polynomial in parameters. 
+%More sophisticated analysis give better?
+
+%sometimes better corrlation, sometimes negative. negative is just as good as positive. If 0 correlation, maybe don't increase, but don't decrease. Maybe next time!
+
+%weak learner for much smaller distributions?
+%where plug in decision tree?
+All you get from this is a decision tree. Brute force. Complexity is exponential in $k$. This is a bug, not a feature.
+
+Can always convert sign into decision tree. On hard-core, DMT give same thing. Incomplexity terms, we don't get good hard-core, because circuit size $2^k$ circuit size. Better boosting algorithm makes $G$ have smaller complexity. If stopping point is HCL, not boosting you want. In dense model theorem, fine because all you care about is size of $k$ not complexity of $G$.
+
+This potential function matches this boosting algorithm. Other boosting algorithms  you can analyze with other potential functions.
+%binary entropy
+
+Why I want to do this way with this potential function:
+\begin{itemize}
+\item
+Like potential function used most in graph theory. Property: you can't make negative progress, you always go forwards.
+\item Translated get usual Sz, except don't get equal size partitions. %break as last step?
+\end{itemize}•
+
+We have different batches/blocks that we're partitioning to. Suppose we get stuck: no function that correlates globally, but there are many blocks where we can find functions that correlate with the function inside that block. If $\ep$ fraction of blocks find functions that correlate, query them all. That's going to be our next round.
+
+$2^k$ functions correlating. Now $2^{2^k}$ buckets, but increased potential function by poly in terms of $\ep,\de$. This is a familiar argument, we can only go $\rc{\ep}$ iterations before we terminate. 
+
+We've increased everything a tower depending on $\ep$. $\ep$ had better be a big constant. We have a hard-core defined in terms of $k$ things. Hard-core looks like: partition. $1-\de$ fraction where have answer correct. Boolean combinations of $k$ things you've learned. Except for $\ep$ fraction, each part: no better method than predict constant function.
+
+Terminate: on most blocks we can't beat majority answer.
+
+%construction with $k$ blocks: get better?
+Bounds: you need a tower. No avoidance of tower in some contexts.
+Graphs are not the same context.
+
+strong hardcore, or strong dense model. 
+I don't know the formulation let alone the proof. I have the proof I need the formuation.
+
+Take any boolean function. Any class of tests. Partition, $\forall \ep$ exists k, partition into $k$, such that in almost all partitions you can't do better than constant function in predicting it.
+
+Fix set of vertices $V$ of set $n$. Let $U$ be edges in complete graph on $V$.
+(Interesting if $U$ is not the complete graph, ex. $U$ is the edges in $d$-regular expander on $V$.)
+
+Let $\tau$ be the set of cuts defined by $A,B\subeq V$. WLOG $A\cap B=\phi$.
+
+Directed edge is $e=\{a,b\}$. $T(e) = 1$ iff $a\in A$ and $b\in B$. Apply this chain to this class of tests. 
+
+What does $F_KT$ look like? You have a bunch of sets $A,B$ and you're defined by which sets they go between. Or think of it as: for every test you have 3 regions: those in $A$, $B$, neither. When you look at all of $k$ things, split vertices into $3^k$ regions. A little overkill, but all the tests, can split into $3^k$. Knowing region of endpoints tells you which subset of tests are true. 
+
+This looks not quite quivalent. Here test sets are combinatorial rectangles. Sz: partition of left and right such that every rectangle works. That's a more structured version that what you want?
+One gives you the other?
+
+If you use this kind of boosting, you don't get much better than this. If you use other types, you get more structured. 
+%We might get something stronger but we don't care.
+%original version: not get something stronger?
+
+Plugging into the generic regularity lemma, $|E|\ge \de \binom n2$. This says there exists $\mu=G(T_1,\ldots, T_k)$, where $k=O\prc{\ep^2\de^2}$ good predictor for any cut in the graph. This is the weak regularity of Kannan-Frieze. For Szemeredi we need the stronger boosting lemma.
+
+Use the $T$'s to divide vertices into $3^k$ subsets such that $\mu$ is a constant on every pair of subsets. Which sets you're in dictate which is true. 
+
+$3^k$.  If you want to know how many edges between $A$ and $B$, this is 
+$$
+\fc{E_G(A,B)}{|E_G|}
+\approx_\ep \sum_{i,j} 
+\mu_{ij}
+\fc{|A\cap A_i||B\cap B_i|}{|V|^2}.
+$$
+Constantly much information. You can't recover original set of edges, but can approximate any cut by knowing how big the  intersections are relatively.
+
+If we do this with $G$ a subset of an expander, we get the same thing except 
+$$
+\fc{E_G(A,B)}{|E_{G'}|} = 
+$$
+Use expander mixing, with error term of expander mixing, get same thing.
+
+
+
+
+
+
+

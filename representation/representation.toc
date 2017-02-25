@@ -4,7 +4,7 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {1}Representation and unsupervised learning: Introduction (Sanjeev Arora)}{1}{section.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {2}Apocryphal Results, Recent Results, and Open Problems in Neural Network Representations, Matus Telgarsky (UIUC)}{3}{section.2}
+\contentsline {section}{\numberline {2}Apocryphal Results, Recent Results, and Open Problems in Neural Network Representations, (Matus Telgarsky, UIUC)}{3}{section.2}
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {2.1}Representation}{4}{subsection.2.1}
 \defcounter {refsection}{0}\relax 
@@ -17,4 +17,14 @@
 \contentsline {subsection}{\numberline {2.5}$k$ to $k+1$}{8}{subsection.2.5}
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {2.6}Recurrent networks}{9}{subsection.2.6}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3}What Non-Convex Functions Can We Optimize? (Rong Ge)}{9}{section.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.1}Geometry: Strict saddle functions}{11}{subsection.3.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.2}Algorithm: Noisy stochastic gradient}{12}{subsection.3.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.3}Landscape: Matrix completion}{13}{subsection.3.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{\numberline {3.3.1}Proof}{14}{subsubsection.3.3.1}
 \contentsfinish 
