@@ -13,6 +13,8 @@ Let $X$ be a set, e.g. a distribution of points in the square. %in $\R^n$.
 
 Let $S$ be some distribution on points in $X$.
 
+\ig{edited/pic1}{0.5}
+
 Let $\mathcal T$ be a set of classifiers, ex. a set of half-planes.
 
 Let $\mathcal F_K\mathcal T$ be boolean functions on $K$ functions in $\mathcal T$; here, partitions into polygonal regions by $k$ half-planes.
@@ -20,48 +22,55 @@ Let $\mathcal F_K\mathcal T$ be boolean functions on $K$ functions in $\mathcal 
 We want to pre-process the distribution to be able to answer queries in $\mathcal F_K\mathcal T$.
 \item
 A violation of pseudo-density in this setting means there is a polygonal region with many more points from $S$ than its volume, a ``hot spot''.
+
+
+\ig{edited/pic2}{0.5}
+
+$$
+\text{Area}\pat{region}< \de \Pj_S\pat{region}-\ep.
+$$
 %relatively small poly with few sides, vastly overrepresented. 
 \item
-A model is a partition into polygonal regions, with a probability distribution on regions. Estimate half-space probabilities (Given any half-space, what proportion of points of $S$ are on one side of it?) by treating the points as if uniform within regions.
+A model is a partition into polygonal regions, with a probability distribution on regions. A simple model is defined by at most $k$ lines. 
 
-A simple model is defined by at most $k$ lines. 
+The property of a model is that we can estimate half-space probabilities (``given any half-space, what proportion of points of $S$ are on one side of it?'') by treating the points as if uniform within regions.
+
+\ig{edited/pic3}{0.5}
+
 %Uniformly sample within region. 
-$$
-Area\pat{region}< \de \Pj_S\pat{region}-\ep.
-$$
-``Given any half-space, how many points are on one side of it?''
+%``Given any half-space, how many points are on one side of it?''
 %triple number of lines faces
 \item
-Algorithmic requirement: given points from subsample of $S$, points from subsample of $U$, find a half-space that approximately maximizes the difference in red probabilities and blue probabilities.
-
-When using boosting, the equivalent is a distinguishing algorithm.
-Find a separating halfspace that approximately maximizes the probability distribution under the two distributions.
-
+The algorithmic requirement in order to process the points to answer queries in $\mathcal F_K\mathcal T$ is:  given a set of points sampled from $S$, and a set of points sampled from $U$, find a half-space that approximately maximizes the difference in probabilities for these two sets. The equivalent in boosting is a distinguishing algorithm.
+%When using boosting, the equivalent is a distinguishing algorithm.
+%Find a separating halfspace that approximately maximizes the probability distribution under the two distributions.
 %low vc dimension: best line for finite passes through 2 points. move until...
 %poly whose degree is dimension. 
 %If you have  a hypo for more complicated things
 \end{enumerate}
 %can have small density but still be pseudo-dense wrt universe
 %maybe not realized as part of general picture.
-``Using boosting in unsupervised context'': not told what we want to learn about distribution. Just have model to address queries later on. You need tests in mind. %the category of things y
+%``Using boosting in unsupervised context'': not told what we want to learn about distribution. Just have model to address queries later on. You need tests in mind.\\ %the category of things y
 
+\noindent
+\begin{tabular}{|p{20mm}|p{35mm}|p{35mm}|p{35mm}|p{15mm}|}
+\hline 
+Setting & Boosting & Hard-core measure & DMT/transference principle & Weak regularity\tabularnewline
 
-
-\begin{tabular}{|c|c|c|c|}
 \hline 
-Setting & Boosting & Hard-core measure & DMT/transference principle\tabularnewline
+ & WL: $|\mu_{i}|\ge2\delta$, $\mu_{i}=g(h_{1,}\ldots,h_{i},f)$, $h_{i+1}\in\mathcal{T}$, $k$
+iterations & Hardcore measure: $\mu_{k}=g(h_{1},\ldots,h_{k},f)$, $|\mu_{k}|\ge2\delta$ & Model: $\mu_{k}=g(h_{1},\ldots,h_{k},o)$, $|\mu_{k}|\ge\delta$& \tabularnewline 
 \hline 
+ & SL: $H=G(h_{1},\ldots,h_{k})$, $\Pj[H=f]\ge1-\delta$ & Violation of hardness: $H=G(h_{1},\ldots,h_{k})$, $\Pj[H=f]>1-\delta$ & Violation of pseudo-density $H=G(h_{1},\ldots,h_{k})$, $H(U)\le\delta H(S)-\ep$& 
+ \tabularnewline
 \hline 
- & WL: $|\mu_{i}|\ge2\delta,\mu_{i}=g(h_{1,}\ldots,h_{K},f)$,$h_{i+1}\in\mathcal{T}$,$K$
-iterations & Hardcore measure: $\mu_{K}=g(h_{1},\ldots,h_{K},f)$, $|\mu_{K}|\ge2\delta$ & Model: $\mu_{K}=g(h_{1},\ldots,h_{K},o)$, $|\mu_{K}|\ge\delta$\tabularnewline
+Assumption & WL never fails & Violation is impossible & Violation of pseudo-density is impossible
+& Actually dense \tabularnewline
 \hline 
- & SL: $H=G(h_{1},\ldots,h_{K})$,$\Pj[H=f]\ge1-\delta$ & Violation of hardness: $H=G(h_{1},\ldots,h_{K})$, $\Pj[H=f]>1-\delta$ & Violation of pseudo-density $H=G(h_{1},\ldots,h_{K})$, $H(U)\le\delta H(S)-\ep$\tabularnewline
+Conclusion & SL works & Hard-core measure exists, with same $k$, $G$, $g$ & Model exists & Model exists
+\tabularnewline
 \hline 
-Assumption & WL never fails & Violation is impossible & Violation of pseudo-density is impossible\tabularnewline
-\hline 
-Conclusion & SL works & Hard-core measure exists. Same $K,G,g$ & Model exists. \tabularnewline
-\hline 
-Algorithmic & Weak learner requirement & Approximately optimal weak learner & Approximately optimal distinguisher\tabularnewline
+Algorithmic & Weak learner requirement & Approximately optimal weak learner & Approximately optimal distinguisher & \tabularnewline
 \hline 
 \end{tabular}
 
@@ -71,38 +80,51 @@ Assumptions: Actually dense
 
 Conclusion: model exists
 
-Notes:
+Some comments:
 \begin{enumerate}
 \item
-Boosting: $\de$ is the same.
-Many boosting algorithms meet this criterion.
+Boosting: %$\de$ is the same.
+Note it's important that the $\de$ here is the same; many boosting algorithms meet this criterion.
 %twist
 
-``Either weak learner fails or strong learner works.'' In boosting we think of weak learner as never failing.
-\item
-For hard-core measure lemma: we want to come up with the measure. Either we can find hard-core measure: no compute more than $\rc2+\de$ of time, or find a function computing $1-\de$ of time.
+The theorem says that ``either weak learner fails or strong learner works.'' 
 
-The only change is psychological: we assume violations never happen. The logical format is the same.
+In boosting, we think of weak learner as never failing.
 \item
-Every boosting gives hard-core measure lemma. It gives a hard-core measure lemma with the same parameters. The way we glue the functions is exactly the same. 
+Hard-core measure lemma:  The lemma says that either we can find hard-core measure, on which no function can compute the function $f$ more than $\rc2+\de$ of time; or find a function computing $f$ $1-\de$ of the time.
+
+Here, we want to come up with the measure. Although the logical format is the same as boosting, here we assume that the violations never happen (there is no strong learner).
+%The only change is psychological: we assume violations never happen. The logical format is the same.
+
+Every boosting algorithm gives hard-core measure lemma with the same parameters, and with exactly the same way of ``gluing'' the functions. 
+%the functions is exactly the same. 
 %get function computes $f$ or hard-core measure.
 
-We have different hard-core measure lemmas with different gluing. Sometime you care about computational complexity of $G$ but not of $g$, etc. Or it could be the other way around.
+%We have different hard-core measure lemmas with different gluing. 
+Sometime you care about computational complexity of $G$ but not of $g$, or vice versa. 
+%, etc. Or it could be the other way around.
 \item
-Convert to dense model theorem/transference principle (Tao and Ziegler). Either we have a distribution we're trying to model, distribution has pseudo-density property: there won't be a violation that's definable from $K$ different properties from hypothesis class, where violation means that it's much smaller on $U$ than on $S$.
-We get model of density $2\de$. %Even if $\de$-dense, the best we
-Get model definable in terms of $K$ hypotheses from class. Assume violation of pseudo-density does not happen, then we get a model.
+We can convert the hard-core measure theorem into the dense model theorem/transference principle (Tao and Ziegler).
+
+Here, we have a distribution we're trying to model. 
+Either the distribution has pseudo-density property--- there isn't a violation that's definable from $k$ different properties from hypothesis class, where violation means that the expected value is much smaller on $U$ than on $S$---or we get a model of density $\ge \de$. %Even if $\de$-dense, the best we
+%Get model definable in terms of $K$ hypotheses from class. 
+
+Assuming that violation of pseudo-density does not happen, we get a model.
 \item
-Weak regularity: is just DMT except the distribution actually is dense. It's not so interesting that it has a dense model. But what this says is that the dense model you get is simple, definable in terms of a small number of basic hypotheses. 
+Weak regularity is just DMT except the distribution actually is dense. It's not so interesting that it has a dense model. 
 
-applying to actually dense, so you don't worry about violation of pseudo-density.
+What we get is that the dense model you get is simple, definable in terms of a small number of basic hypotheses. 
 
-Sometimes we care about simplicity in model, sometimes in $G$.
+%applying to actually dense, so you don't worry about violation of pseudo-density.
+Sometimes we care about simplicity in the model, and sometimes simplicity in $G$.
 %point is to have a delta: HC
 %and point is to be a delta.
 \item
-Note the $k$ is the same. Reductions preserves $k$, and the functions $h_i, G$. When I talk about an implication, not jsut known boosting gives known hard-core lemma, regularity lemma, I mean whatever boosting algorithm you give me, it gives me a hard-core lemma, regularity lemma with the same parameters. We can immediately jump to whatever we're interested in.
-Pick the one that gives the best results.
+Note the $k$ is the same throughout. Reductions preserves $k$, and the functions $h_i, G$. 
+
+We don't only have the fact that boosting implies hard-core lemma implies regularity lemma. We have the stronger result that whatever boosting algorithm you give me, I get a hard-core lemma and regularity lemma with the same parameters and algorithm. %We can immediately jump to whatever we're interested in.
+Thus we can pick the boosting algorithm that gives the best results for our application.
 \end{enumerate}
 %any tests, underlying dist, boosting alg
 %applications of strong regularity going other way?
