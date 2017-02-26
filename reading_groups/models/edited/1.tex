@@ -5,18 +5,18 @@ You probably know them, but don't know the same or related idea comes up in the 
 
 \begin{tabular}{|p{25mm}|p{25mm}|p{25mm}|p{25mm}|p{25mm}|p{1mm}|}
 \hline 
- & Boosting & Hard-core lemma & Dense model theorem & Weak regularity & ?\tabularnewline
+ & Boosting & Hard-core lemma & Dense model theorem & Weak regularity & ?\\
 \hline 
-Area & ML & CC,  Derandom-ization & Additive combinatorics, CC & Graph theory & \tabularnewline
+Area & ML & CC,  Derandom-ization & Additive combinatorics, CC & Graph theory & \\
 \hline 
-Credit & Shapiro, Freund-Schapire & Impagliazzo, Holenstein & Green-Tao, Barak-Shaltiel-Wigderson & Szemeredi, Frieze-Kannan & \tabularnewline
+Credit & Shapiro, Freund-Schapire & Impagliazzo, Holenstein & Green-Tao, Barak-Shaltiel-Wigderson & Szemeredi, Frieze-Kannan & \\
 \hline 
-Get & Circuit computing $f$ $1-\delta$ of the time & '' & Proof that set isn't $\delta$-dense & '' & \tabularnewline
+Get & Circuit computing $f$ $1-\delta$ of the time & '' & Proof that set isn't $\delta$-dense & '' & \\
 \hline 
-Unless & Weak learner fails on distribution of density $\Omega(\delta)$ & Hard-core distribution  & $\Omega(\de)$-dense ``model'' indistinguishable from set & A model succinctly describing set & \tabularnewline
+Unless & Weak learner fails on distribution of density $\Omega(\delta)$ & Hard-core distribution  & $\Omega(\delta)$-dense ``model'' indistinguishable from set & A model succinctly describing set & \\
 \hline 
 Algorithm needed %to be const.
- & Weak learner & '' & Distinguisher & '' & \tabularnewline
+ & Weak learner & '' & Distinguisher & '' & \\
 \hline 
 \end{tabular}
 
@@ -81,7 +81,7 @@ A violation of pseudo-density in this setting means there is a polygonal region 
 \ig{pic2}{0.5}
 
 $$
-\text{Area}\pat{region}< \de \Pj_S\pat{region}-\ep.
+\text{Area}(\text{region})< \delta \Pr_S (\text{region})-\varepsilon.
 $$
 %relatively small poly with few sides, vastly overrepresented. 
 \item
@@ -109,60 +109,63 @@ The algorithmic requirement in order to process the points to answer queries in 
 \noindent
 \begin{tabular}{|p{20mm}|p{35mm}|p{35mm}|p{35mm}|p{15mm}|}
 \hline 
-Setting & Boosting & Hard-core measure & DMT/transference principle & Weak regularity\tabularnewline
+Setting & Boosting & Hard-core measure & DMT/transference principle & Weak regularity\\
 
 \hline 
  & WL: $|\mu_{i}|\ge2\delta$, $\mu_{i}=g(h_{1,}\ldots,h_{i},f)$, $h_{i+1}\in\mathcal{T}$, $k$
-iterations & Hardcore measure: $\mu_{k}=g(h_{1},\ldots,h_{k},f)$, $|\mu_{k}|\ge2\delta$ & Model: $\mu_{k}=g(h_{1},\ldots,h_{k},o)$, $|\mu_{k}|\ge\delta$& \tabularnewline 
+iterations & Hardcore measure: $\mu_{k}=g(h_{1},\ldots,h_{k},f)$, $|\mu_{k}|\ge2\delta$ & Model: $\mu_{k}=g(h_{1},\ldots,h_{k},o)$, $|\mu_{k}|\ge\delta$& \\ 
 \hline 
- & SL: $H=G(h_{1},\ldots,h_{k})$, $\Pj[H=f]\ge1-\delta$ & Violation of hardness: $H=G(h_{1},\ldots,h_{k})$, $\Pj[H=f]>1-\delta$ & Violation of pseudo-density $H=G(h_{1},\ldots,h_{k})$, $H(U)\le\delta H(S)-\ep$& 
- \tabularnewline
+ & SL: $H=G(h_{1},\ldots,h_{k})$, $\Pr[H=f]\ge1-\delta$ & Violation of hardness: $H=G(h_{1},\ldots,h_{k})$, $\Pr[H=f]>1-\delta$ & Violation of pseudo-density $H=G(h_{1},\ldots,h_{k})$, $H(U)\le\delta H(S)-\varepsilon$& 
+ \\
 \hline 
 Assumption & WL never fails & Violation is impossible & Violation of pseudo-density is impossible
-& Actually dense \tabularnewline
+& Actually dense \\
 \hline 
 Conclusion & SL works & Hard-core measure exists, with same $k$, $G$, $g$ & Model exists & Model exists
-\tabularnewline
+\\
 \hline 
-Algorithmic & Weak learner requirement & Approximately optimal weak learner & Approximately optimal distinguisher & \tabularnewline
+Algorithmic & Weak learner requirement & Approximately optimal weak learner & Approximately optimal distinguisher & \\
 \hline 
 \end{tabular}
 
 \noindent
 \begin{tabular}{|p{20mm}|p{35mm}|p{35mm}|p{35mm}|p{15mm}|}
 \hline 
-Setting & Boosting & Hard-core measure & DMT/transference principle & Weak regularity\tabularnewline
+Setting & Boosting & Hard-core measure & DMT/transference principle & Weak regularity\\
 
 \hline 
  & WL: $|\mu_{i}|\ge2\delta$, $\mu_{i}=g(h_{1,}\ldots,h_{i},f)$, $h_{i+1}\in\mathcal{T}$, $k$
-iterations & Hardcore measure: $\mu_{k}=g(h_{1},\ldots,h_{k},f)$, $|\mu_{k}|\ge2\delta$ & Model: $\mu_{k}=g(h_{1},\ldots,h_{k},o)$, $|\mu_{k}|\ge\delta$& \tabularnewline 
+iterations & Hardcore measure: $\mu_{k}=g(h_{1},\ldots,h_{k},f)$, $|\mu_{k}|\ge2\delta$ & Model: $\mu_{k}=g(h_{1},\ldots,h_{k},o)$, $|\mu_{k}|\ge\delta$& \\ 
 \hline 
- & SL: $H=G(h_{1},\ldots,h_{k})$, $\Pj[H=f]\ge1-\delta$ & Violation of hardness: $H=G(h_{1},\ldots,h_{k})$, $\Pj[H=f]>1-\delta$ & Violation of pseudo-density $H=G(h_{1},\ldots,h_{k})$, $H(U)\le\delta H(S)-\ep$& 
- \tabularnewline
+ & SL: $H=G(h_{1},\ldots,h_{k})$, $\Pr[H=f]\ge1-\delta$ & Violation of hardness: $H=G(h_{1},\ldots,h_{k})$, $\Pr[H=f]>1-\delta$ & Violation of pseudo-density $H=G(h_{1},\ldots,h_{k})$, $H(U)\le\delta H(S)-\varepsilon$& 
+ \\
 \hline 
 Assumption & WL never fails & Violation is impossible & Violation of pseudo-density is impossible
-& Actually dense \tabularnewline
+& Actually dense \\
 \hline 
 Conclusion & SL works & Hard-core measure exists, with same $k$, $G$, $g$ & Model exists & Model exists
-\tabularnewline
+\\
 \hline 
-Algorithmic & Weak learner requirement & Approximately optimal weak learner & Approximately optimal distinguisher & \tabularnewline
+Algorithmic & Weak learner requirement & Approximately optimal weak learner & Approximately optimal distinguisher & \\
 \hline 
 \end{tabular}
 
 
 Some comments:
+
 \begin{enumerate}
 \item
-Boosting: %$\de$ is the same.
-Note it's important that the $\de$ here is the same; many boosting algorithms meet this criterion.
+Boosting: %$\delta$ is the same.
+Note it's important that the $\delta$ here is the same; many boosting algorithms meet this criterion.
 %twist
 
 The theorem says that ``either weak learner fails or strong learner works.'' 
 
 In boosting, we think of weak learner as never failing.
-\item
-Hard-core measure lemma:  The lemma says that either we can find hard-core measure, on which no function can compute the function $f$ more than $\rc2+\de$ of time; or find a function computing $f$ $1-\de$ of the time.
+
+\item Hard-core measure lemma:  The lemma says that either we can find hard-core
+measure, on which no function can compute the function $f$ more than $1/2 +\delta$
+of time; or find a function computing $f$ $1-\delta$ of the time.
 
 Here, we want to come up with the measure. Although the logical format is the same as boosting, here we assume that the violations never happen (there is no strong learner).
 %The only change is psychological: we assume violations never happen. The logical format is the same.
@@ -178,7 +181,7 @@ Sometime you care about computational complexity of $G$ but not of $g$, or vice 
 We can convert the hard-core measure theorem into the dense model theorem/transference principle (Tao and Ziegler).
 
 Here, we have a distribution we're trying to model. 
-Either the distribution has pseudo-density property--- there isn't a violation that's definable from $k$ different properties from hypothesis class, where violation means that the expected value is much smaller on $U$ than on $S$---or we get a model of density $\ge \de$. %Even if $\de$-dense, the best we
+Either the distribution has pseudo-density property--- there isn't a violation that's definable from $k$ different properties from hypothesis class, where violation means that the expected value is much smaller on $U$ than on $S$---or we get a model of density $\ge \delta$. %Even if $\delta$-dense, the best we
 %Get model definable in terms of $K$ hypotheses from class. 
 
 Assuming that violation of pseudo-density does not happen, we get a model.
@@ -206,20 +209,20 @@ Let $U$ be a set, and by abuse of notation, also a distribution on that set. (Th
 Let $f:U\to \{0,1\}$ be a boolean function.
 A learning algorithm can request any number of points $(x,f(x))$ where $x\sim U$. The goal is to find a hypothesis $h$ such that 
 $$
-\Pj_{x\sim U} [h(x)=f(x)]\ge 1-\de.
+\Pr_{x\sim U} [h(x)=f(x)]\ge 1-\delta.
 $$
 \begin{thm}
 A \vocab{strong learner} for $(U,f)$ with hypothesis class $\mathcal H$ is an algorithm such that given samples $(x,f(x)), x\sim U$, outputs $h\in \mathcal H$ (with high probability) such that 
-$$\Pj_{x\sim U}[h(x)=f(x)]\ge 1-\de.$$
+$$\Pr_{x\sim U}[h(x)=f(x)]\ge 1-\delta.$$
 
-(Typically, we say that the probability of success is $1-\ep$, ask for a strong learner for all $f\in \mathcal F$, and require it to run in time $\poly(\rc \ep, \rc \de)$.) 
+(Typically, we say that the probability of success is $1-\varepsilon$, ask for a strong learner for all $f\in \mathcal F$, and require it to run in time $\operatorname{poly}(1/\varepsilon, 1/\delta)$.) 
 \end{thm}
 
 In boosting, we assume that we have weak learners.
 \begin{thm}
-A $\ep$-\vocab{weak learner} for $(\mu, f)$ with hypothesis class $\mathcal H$ is an algorithm such that given $(x,f(x)), x\sim \mu$, outputs $h$ (with high probability) such that
+A $\varepsilon$-\vocab{weak learner} for $(\mu, f)$ with hypothesis class $\mathcal H$ is an algorithm such that given $(x,f(x)), x\sim \mu$, outputs $h$ (with high probability) such that
 $$
-\Pj_{x\sim \mu} [h(x)=f(x)] \ge \rc 2+\ep.
+\Pr_{x\sim \mu} [h(x)=f(x)] \ge \frac{1}{2}+\varepsilon.
 $$
 \end{thm}
 It only has to output a function that is somewhat correlated with the right answer.
@@ -227,25 +230,24 @@ Typically, we ask the weak learner to work on any distribution $\mu$ satisfying 
 
 In order to use a weak learner, we construct a routine that subsamples the distribution $U$ to pass to pass to the weak learner.
 \begin{df}
-Let $\mu:U\to [0,1]$. Define the probability distribution 
+Let $\mu:U\to [0,1]$. Define the probability distribution\footnote{When $U$ is not uniform and has distribution $u(x)$, this is $\frac{\mu(x)u(x)}{\sum_{x'\in U} \mu(x')u(x')}$.}
 $$
-D_\mu(x) = \fc{\mu(x)}{\sum_{x'\in U}\mu(x')}.
+D_\mu(x) = \frac{\mu(x)}{\sum_{x'\in U}\mu(x')}.
 $$
-\footnote{When $U$ is not uniform and has distribution $u(x)$, this is $\fc{\mu(x)u(x)}{\sum_{x'\in U} \mu(x')u(x')}$.}
 \end{df}
 Think of this as rejection sampling: pick $x\sim U$, keep it with probability in $[0,1]$, or else throw if back and repeat.
 
 In order for this sampling to be efficient, we need $\mu$ to not be too small.
 \begin{df}
 Define the \vocab{density} of $\mu$ in $U$ to be
-$$|\mu| = \EE_{x\in U} \mu(x).$$ 
+$$|\mu| = \operatorname{E}_{x\in U} \mu(x).$$ 
 \end{df}
 %Think of this as a notion of density. 
 
 We will use weak learners in the following context. 
 \begin{enumerate}
 \item
-We will only run weak learners on distributions whose density is not too small (the dependence on $\de$ is $|\mu|=\Om(\de)$). We don't want to run a weak learner on a distribution of very low density, because the time to simulate  the distribution is inversely proportional to the density.
+We will only run weak learners on distributions whose density is not too small (the dependence on $\delta$ is $|\mu|=\Omega(\delta)$). We don't want to run a weak learner on a distribution of very low density, because the time to simulate  the distribution is inversely proportional to the density.
 \item
 We ask the weak learners to output a function in a given class $h\in \mathcal T$. 
 
@@ -257,7 +259,7 @@ Say that a set $\mathcal T$ of functions $U\to \{0,1\}$ form a class if $f\in \m
 
 Let $\mathcal F$ be a class of boolean functions. Define the class of functions
 $$
-\mathcal F_k \mathcal T = \set{f(h_1(x),\ldots, h_k(x))}{f\in\mathcal F, h_1,\ldots, h_k\in \mathcal T}.
+\mathcal F_k \mathcal T = \{f(h_1(x),\ldots, h_k(x)) : f\in\mathcal F, h_1,\ldots, h_k\in \mathcal T\}.
 $$
 \end{df}
 
@@ -276,19 +278,18 @@ Let $f:U\to \{0,1\}$ be a given function (which we are trying to learn).
 
 \begin{enumerate}
 \item
-Suppose that there is a $\de$-weak learner such that given any distribution $\mu$ on $U$ with $|\mu|\ge 2\de$, it produces $h\in \mathcal T$ such that 
+Suppose that there is a $\delta$-weak learner such that given any distribution $\mu$ on $U$ with $|\mu|\ge 2\delta$, it produces $h\in \mathcal T$ such that 
 $$
-\Pj_{x\sim \mu} [h(x) = f(x)] \ge \rc 2+ \ep.
+\Pr_{x\sim \mu} [h(x) = f(x)] \ge \frac{1}{2}+ \varepsilon.
 $$
 %with hypothesis class $\mathcal H$ 
 \item
-Then there is a strong learner that produces $h\in \mathcal F_k\mathcal T$ with $k\le\ce{\rc{\ep^2\de^2}}$ such that 
-$$
-\Pj_{x\sim U} [h(x) = f(x)]\ge 1-\de.
-$$
-\footnote{
+Then there is a strong learner that produces $h\in \mathcal F_k\mathcal T$ with $k\le\lceil 1/\varepsilon^2\delta^2\rceil$ such that\footnote{
 We ignore sample complexity here. In reality, because we only see $U$ from samples, we need to think about generalization. If the VC-dimension of $\mathcal T$ is $d$, then the VC-dimension of $\mathcal F_k\mathcal H$ is at most $k^d$. In ML we don't want to take $\mathcal F$ to be the class of all boolean functions. For this theorem, let's just assume we are actually given all pairs $(x,f(x))$.
 }
+$$
+\Pr_{x\sim U} [h(x) = f(x)]\ge 1-\delta.
+$$
 \end{enumerate}
 \end{thm}
 
@@ -300,24 +301,25 @@ Then either
 \begin{enumerate}
 \item %(Function is \fixme{...})
 There exists $h\in \mathcal F_k \mathcal T$ such that 
+
 $$
-\Pj_{x\sim U} [h(x)=f(x)] \ge 1-\de,
+\Pr_{x\sim U} [h(x)=f(x)] \ge 1-\delta,
 $$
-where $k\le\rc{\ep^2\de^2}$,
-or
+
+where $k \le 1/\varepsilon^2\delta^2$, or
 \item (There exists a hard-core distribution.)
-There exists $|\mu|\ge 2\de$ on $U$, such that for all $h\in \mathcal T$, 
+There exists $|\mu|\ge 2\delta$ on $U$, such that for all $h\in \mathcal T$, 
 $$
-\Pj_{x\sim \mu}[h(x) = f(x)] \le \rc 2+\ep.
+\Pr_{x\sim \mu}[h(x) = f(x)] \le \frac{1}{2}+\varepsilon.
 $$
 \end{enumerate}
 \end{thm}
 
-Note it is important for us to keep track of the size of the hardcore distribution, which is $\ge 2\de$ here.
+Note it is important for us to keep track of the size of the hardcore distribution, which is $\ge 2\delta$ here.
 Different boosting algorithms will give the result for different classes of functions $\mathcal F$.
 
 \begin{proof}[Proof of hard-core lemma~\ref{thm:hardcore} from boosting~\ref{thm:boosting}]
-Let weak learner be exhaustive search over $\mathcal T$. The weak learner operates on distributions $|\mu_i|\ge 2\de$. If it always produces $h_i$ with bias $\ge \de$, then continue  and obtain the strong learner: we get some $H\in \mathcal F_k \mathcal T$ such that  $H(x)=f(x)$ with probability $1-\de$. 
+Let weak learner be exhaustive search over $\mathcal T$. The weak learner operates on distributions $|\mu_i|\ge 2\delta$. If it always produces $h_i$ with bias $\ge \delta$, then continue  and obtain the strong learner: we get some $H\in \mathcal F_k \mathcal T$ such that  $H(x)=f(x)$ with probability $1-\delta$. 
 
 If at some step $i$ our exhaustive search algorithm gets stuck, we get a distribution $\mu_i$ that's hard-core.
 \end{proof}
@@ -328,11 +330,11 @@ If at some step $i$ our exhaustive search algorithm gets stuck, we get a distrib
 \section{Dense model theorem}
 
 \begin{df}
-For a set $S\subeq U$ and a function $T:U \to \{0,1\}$,  let $T(S):=\E_{x\in S} T(x)$. (For a measure $\mu: U\to [0,1]$, also write $T(\mu) = \E_{x\sim \mu} T(x)$.)
+For a set $S\subseteq U$ and a function $T:U \to \{0,1\}$,  let $T(S):=\operatorname{E}_{x\in S} T(x)$. (For a measure $\mu: U\to [0,1]$, also write $T(\mu) = \operatorname{E}_{x\sim \mu} T(x)$.)
 
-Let $S\subeq U$ be a subset, and let $\mathcal T$ be a set of tests. $S$ is \vocab{$(\ep,\de)$-pseudo-dense against $\mathcal T$} if for all $T\in \mathcal T$, 
+Let $S\subseteq U$ be a subset, and let $\mathcal T$ be a set of tests. $S$ is \vocab{$(\varepsilon,\delta)$-pseudo-dense against $\mathcal T$} if for all $T\in \mathcal T$, 
 $$
-T(U) \ge \de T(S)-\ep.
+T(U) \ge \delta T(S)-\varepsilon.
 $$
 \end{df}
 Think of saying that the tests $\mathcal T$ don't reveal that the set $S$ is small. 
@@ -341,45 +343,46 @@ Think of saying that the tests $\mathcal T$ don't reveal that the set $S$ is sma
 One way of being pseudo-dense is to actually be dense.
 \item
 Another, one step removed, is that there's a set $R$ (or more generally, a measure $\mu$) that's
-indistibguishable from $S$ by $\mathcal T$, and such that $R$ occupies at least a $\de$ fraction of $U$.
-% indistinguishable from the whole distribution (in the sense of being at least about $\de$ fraction of it), and the set is dense in $R$.
+indistibguishable from $S$ by $\mathcal T$, and such that $R$ occupies at least a $\delta$ fraction of $U$.
+% indistinguishable from the whole distribution (in the sense of being at least about $\delta$ fraction of it), and the set is dense in $R$.
 \end{enumerate}•
 \begin{df}
-For two distributions $\mu_1,\mu_2$ on $U$, we say that $\mu_1,\mu_2$ are indistinguishable by tests in  $\mathcal T$ up to $\ep$, written $\mu_1 \sim_{\mathcal T} \mu_2$ within $\ep$, if for every $T\in \mathcal T$, 
+For two distributions $\mu_1,\mu_2$ on $U$, we say that $\mu_1,\mu_2$ are indistinguishable by tests in  $\mathcal T$ up to $\varepsilon$, written $\mu_1 \sim_{\mathcal T} \mu_2$ within $\varepsilon$, if for every $T\in \mathcal T$, 
 $$
-|\E_{\mu_1}T - \E_{\mu_2} T| \le \ep.
+|\operatorname{E}_{\mu_1}T - \operatorname{E}_{\mu_2} T| \le \varepsilon.
 $$
 \end{df}
 \begin{thm}[Dense model theorem]\label{thm:dmt}
 Let $\mathcal T$ be a class of tests $U\to \{0,1\}$. 
 
-If $S$ is $(\ep,\de)$-pseudodense against $F_k\mathcal T$, $k=O\prc{\ep^2\de^2}$ then there exists $\mu$, $\mu\in F_k\cal T$ such that $|\mu|\ge \fc{\de}{1+\de}-O(\ep)$ and $D_\mu\sim_{\cal T} S$ to within $O(\ep/\de)$. 
+If $S$ is $(\varepsilon,\delta)$-pseudodense against $F_k\mathcal T$, $k=O(1/\varepsilon^2\delta^2)$ then there exists $\mu$, $\mu\in F_k\cal T$ such that $|\mu|\ge \frac{\delta}{1+\delta}-O(\varepsilon)$ and $D_\mu\sim_{\cal T} S$ to within $O(\varepsilon/\delta)$. 
 \end{thm}
 The idea in the proof is to use the Hard-core lemma, with the hard function being membership in $S$.
 \begin{proof}
-Let $U'$ be the following distribution: let $\de'=\fc{\de}{1+\de}$ and 
+Let $U'$ be the following distribution: let $\delta'=\frac{\delta}{1+\delta}$ and 
 \begin{enumerate}
 \item
-with probability $\de'$, take $x\in S$ and output $(0,x)$
+with probability $\delta'$, take $x\in S$ and output $(0,x)$
 \item
-with probability $1-\de'$, take $x\in U$ and output $(1,x)$.
+with probability $1-\delta'$, take $x\in U$ and output $(1,x)$.
 \end{enumerate}
 Define a test $T\in \mathcal T$ to operate on an example $(y, x)$ by $T(y,x)=T(x)$. For $T\in \mathcal F_k \mathcal T$, 
 \begin{align}
-\Pj_{U'}[T((y,x))=y] = 
-\de' T(S) + (1-\de') (1-T(U))
-&= 1-\de' + \de' (T(S)) - (1-\de') T(U)\\
-&= 1-\de' + \rc{1+\de} (\de T(S) - T(U))\le 1-\de'+\ep.
+\Pr_{U'}[T((y,x))=y] &= \delta' T(S) + (1-\delta') (1-T(U)) \\
+   &= 1-\delta' + \delta' (T(S)) - (1-\delta') T(U)\\
+   &= 1-\delta' + \frac{1}{1+\delta} (\delta T(S) - T(U))\\
+   &\le 1-\delta'+\varepsilon.
 \end{align}
-No test in $\mathcal F_k \mathcal T$ can be correct with probability $>\de'-\ep$. By the Hard-core Lemma~\ref{thm:hardcore}, there exists $|\mu'|\ge 2(\de'-\ep)$ such that for any $T\in \mathcal T$, $\Pj_{(x,y) \sim U'}[T(x)=y]\le  \rc2+\ep$.
 
-In order for $\mu'$ to be hardcore, it must be split approximately evenly between $U$ and $S$ (up to $\ep$); otherwise; we could have an advantage by predicting constant 0 or 1. 
-Thus each part has at least $2(\de'-\ep) \pa{\rc 2 - \ep} = \de'\pa{1-O\pf{\ep}{\de}}$ of the mass. Then
-$$D_{\mu'|_U}\sim_{O(\ep)} D_{\mu'|_S}\sim_{O\pf{\ep}{\de}} S.$$
+No test in $\mathcal F_k \mathcal T$ can be correct with probability $>\delta'-\varepsilon$. By the Hard-core Lemma~\ref{thm:hardcore}, there exists $|\mu'|\ge 2(\delta'-\varepsilon)$ such that for any $T\in \mathcal T$, $\Pr_{(x,y) \sim U'}[T(x)=y]\le  \frac{1}{2}+\varepsilon$.
+
+In order for $\mu'$ to be hardcore, it must be split approximately evenly between $U$ and $S$ (up to $\varepsilon$); otherwise; we could have an advantage by predicting constant 0 or 1. 
+Thus each part has at least $2(\delta'-\varepsilon) (1/2 - \varepsilon) = \delta'(1-O(\varepsilon/\delta))$ of the mass. Then
+$$D_{\mu'|_U}\sim_{O(\varepsilon)} D_{\mu'|_S}\sim_{O(\varepsilon/\delta)} S.$$
 %. Now 
-%$$\EE_{(y,x)\sim U'} \one_{S}(x)\mu'(x) \ge 2(\de'-\ep)(\rc 2- \ep') \ge \de\pa{1-O(\de)-O\pf{\ep}{\de}}$$ 
-%so $D_{\mu'|_S}\sim_{O\pf{\ep}{\de}} S$. 
-%Putting this together gives $D_{\mu'|_U} \sim_{O\pf{\ep}{\de}} S$.
+%$$\operatorname{E}_{(y,x)\sim U'} \mathbf{1}_{S}(x)\mu'(x) \ge 2(\delta'-\varepsilon)(\rc 2- \varepsilon') \ge \delta\pa{1-O(\delta)-O\pf{\varepsilon}{\delta}}$$ 
+%so $D_{\mu'|_S}\sim_{O\pf{\varepsilon}{\delta}} S$. 
+%Putting this together gives $D_{\mu'|_U} \sim_{O\pf{\varepsilon}{\delta}} S$.
 \end{proof}
 
 \section{Proof for boosting}
@@ -395,7 +398,7 @@ The algorithm is as follows. Let $WL(\mu)$ denote the weak learner operating on 
 
 Let $\mu_0$ be constant 1, $i=0$.
 
-While $|\mu_i|\ge 2\de$, do
+While $|\mu_i|\ge 2\delta$, do
 \begin{itemize}
 \item
 $h_{i+1}\mapsfrom WL(\mu_i)$.
@@ -403,112 +406,117 @@ $h_{i+1}\mapsfrom WL(\mu_i)$.
 Partition $U$ according to values of $h_1,\ldots,h_i$.
 
 Let $h_{1:i}(x):= (h_1(x),\ldots, h_i(x))\in \{0,1\}^i$, and let $B_i(x)$ be the ``block'' that $x$ is in, 
-$$B_i(x) = h_{1:i}^{-1}(h_{1:i}(x)) = \set{y\in U}{h_{1:i}(x)=h_{1:i}(y)}.$$ 
-%For a function $f$, let $\Maj(f)$ denote the majority value of $f$.
-For a set $B$, let $\Maj(B)$ denote the majority value of $f$ on $B$. 
+$$B_i(x) = h_{1:i}^{-1}(h_{1:i}(x)) = \{y\in U : h_{1:i}(x)=h_{1:i}(y)\}.$$ 
+
+%For a function $f$, let $\operatorname{Maj}(f)$ denote the majority value of $f$.
+For a set $B$, let $\operatorname{Maj}(B)$ denote the majority value of $f$ on $B$. 
 \item
 Define $\mu_{i+1}$ by 
 %
 $$\mu_{i+1}(x) = \begin{cases}
-\fc{1-p_{\Maj, B_i(x)}}{p_{\Maj, B_i(x)}},&\text{if } f(x)=\Maj(B_i(x))\\
+\frac{1-p_{\operatorname{Maj}, B_i(x)}}{p_{\operatorname{Maj}, B_i(x)}},&\text{if } f(x)=\operatorname{Maj}(B_i(x))\\
 1,&\text{otherwise}
 \end{cases}• $$
-%where $p_{\Maj} = \Pj(h_{i+1}(x)= \Maj(h_{i+1}))$.
-where $p_{\Maj,B} = \Pj(f(y) = \Maj(B)| y\in B)$, the proportion of the majority in $B$.
+
+%where $p_{\operatorname{Maj}} = \Pr(h_{i+1}(x)= \operatorname{Maj}(h_{i+1}))$.
+where $p_{\operatorname{Maj},B} = \Pr(f(y) = \operatorname{Maj}(B)| y\in B)$, the proportion of the majority in $B$.
+
 \item
 $i\mapsfrom i+1$.
 \end{itemize}
-Finally, return $H_{i}(x) = \Maj({B_{i}(x)})$, i.e., look at the block that $x$ is in, and choose the majority value.
+Finally, return $H_{i}(x) = \operatorname{Maj}({B_{i}(x)})$, i.e., look at the block that $x$ is in, and choose the majority value.
 
-Note that the measure $\mu_{i+1}$ rebalances %so that $\Pj_{\mu_{i+1}}(h_{i+1}(x) = 1)= \Pj_{\mu_{i+1}}(h_{i+1}(x)=0)=\rc2.$
+Note that the measure $\mu_{i+1}$ rebalances %so that $\Pr_{\mu_{i+1}}(h_{i+1}(x) = 1)= \Pr_{\mu_{i+1}}(h_{i+1}(x)=0)=\rc2.$
 each block $B_i$ such that conditioned on $y$ being in a block $B_i(x)$, 
-$$\Pj_{y\sim \mu_{i+1}}(f(y)=1|y\in B_i(x)) = \Pj_{y \sim \mu_{i+1}}(f(y)=0|y\in B_i(x))=\rc 2.$$
+$$\Pr_{y\sim \mu_{i+1}}(f(y)=1|y\in B_i(x)) = \Pr_{y \sim \mu_{i+1}}(f(y)=0|y\in B_i(x))=\frac{1}{2}.$$
+
 Indeed, we have
+
 \begin{align}
-\EE_{y\sim U}[\one_{f(y)=1} 
+\operatorname{E}_{y\sim U}[\mathbf{1}_{f(y)=1} 
 %\sum_{y\in B_i(x), f(y)=1}
  \mu_{i+1}(y) |y\in B_i(x)]
- &=p_{\Maj, B_i(x)} \fc{1-p_{\Maj, B_i(x)}}{p_{\Maj, B_i(x)}} = 1-p_{\Maj, B_i(x)}\\
- \EE_{y\sim U}[\one_{f(y)=0} 
+ &=p_{\operatorname{Maj}, B_i(x)} \frac{1-p_{\operatorname{Maj}, B_i(x)}}{p_{\operatorname{Maj}, B_i(x)}} = 1-p_{\operatorname{Maj}, B_i(x)}\\
+ \operatorname{E}_{y\sim U}[\mathbf{1}_{f(y)=0} 
 %\sum_{y\in B_i(x), f(y)=1}
  \mu_{i+1}(y) |y\in B_i(x)]
- &=\pa{1-p_{\Maj, B_i(x)}}\cdot 1 = 1-p_{\Maj, B_i(x)}\\
-|\mu_{i+1}| =  \EE_{y\sim U}[
- \mu_{i+1}(y)]&=\sum_{\text{block }B_i} [2(1-p_{\Maj, B_i}) \Pj(B_i)]\\
- & \ge 2(1-p_{\Maj,U}).
+ &=\left(1-p_{\operatorname{Maj}, B_i(x)}\right)\cdot 1 = 1-p_{\operatorname{Maj}, B_i(x)}\\
+|\mu_{i+1}| =  \operatorname{E}_{y\sim U}[
+ \mu_{i+1}(y)]&=\sum_{\text{block }B_i} [2(1-p_{\operatorname{Maj}, B_i}) \Pr(B_i)]\\
+ & \ge 2(1-p_{\operatorname{Maj},U}).
 \end{align}
 
-%Note that $p_{\Maj} \ge 1-\de$ iff for $x$ in the majority, $\mu_{i+1}(x) \le \fc{\de}{1-\de}$. Thus if 
-Note that if $|\mu_{i+1}|\le 2\de$, then $\Pj_{x\in X}[H_i=f]\ge 1-\de$, and we are done. (We stop before we have to apply the weak learner to a distribution of density $<\de$.)
+%Note that $p_{\operatorname{Maj}} \ge 1-\delta$ iff for $x$ in the majority, $\mu_{i+1}(x) \le \frac{\delta}{1-\delta}$. Thus if 
+Note that if $|\mu_{i+1}|\le 2\delta$, then $\Pr_{x\in X}[H_i=f]\ge 1-\delta$, and we are done. (We stop before we have to apply the weak learner to a distribution of density $<\delta$.)
 
 We need to show this method terminates in a bounded number of steps.
 
 Consider the potential function
 $$
-\ph_i = \E_{x\sim U} [(\Pj[f=1|B_i(x)])^2]
- = \E_{x\sim U} [\E[ f|B_i]^2]
+\varphi_i = \operatorname{E}_{x\sim U} [(\Pr[f=1|B_i(x)])^2]
+ = \operatorname{E}_{x\sim U} [\operatorname{E}[ f|B_i]^2]
 $$
-(Think of $B_i$ as a partition; for a partition, $\E[f|P]$ is a function of $x$ that takes $x$ to the average value in the atom of the partition that contains $x$.)
+
+(Think of $B_i$ as a partition; for a partition, $\operatorname{E}[f|P]$ is a function of $x$ that takes $x$ to the average value in the atom of the partition that contains $x$.)
 %Closer to 1, closer it is to boolean. This is maximized if every bucket/block is either constantly 1 or 0.
 Note this have value in $[0,1]$ and is maximized if $f$ is constant on every block. We show every iteration increases this potential 
-function by at least a fixed amount, $(\ep\de)^2$.
-%$\Om((\ep \de)^2)$. 
+function by at least a fixed amount, $(\varepsilon\delta)^2$.
+%$\Omega((\varepsilon \delta)^2)$. 
 
-Fix a block $B$ in the partition. Define $p,q,\al_+,\al_-,p_0,p_1$ as follows. 
+Fix a block $B$ in the partition. Define $p,q,\alpha_+,\alpha_-,p_0,p_1$ as follows. 
 \begin{align}
-p&=\Pj[f=1|B]\\
-q&=\Pj[h_{i+1} = 1|B]\\ %split into 2 halves, q overall prob next fun is 1 on block
-q+\al_+ &= \Pj[h_{i+1}=1|B, f=1]\\ %correlated with $f$. slightly higher
-q-\al_- &= \Pj[h_{i+1}=1|B, f=0]\\ %cond on 0, slightly lower
+p&=\Pr[f=1|B]\\
+q&=\Pr[h_{i+1} = 1|B]\\ %split into 2 halves, q overall prob next fun is 1 on block
+q+\alpha_+ &= \Pr[h_{i+1}=1|B, f=1]\\ %correlated with $f$. slightly higher
+q-\alpha_- &= \Pr[h_{i+1}=1|B, f=0]\\ %cond on 0, slightly lower
 %on some blocks it could flip. On average >0
-\al_+p &= \al_-(1-p) \text{ by conservation}\\
-%B&\mapsfrom \al_-(1-p)\\
+\alpha_+p &= \alpha_-(1-p) \text{ by conservation}\\
+%B&\mapsfrom \alpha_-(1-p)\\
 %B_i&=B\cap \{h=i\}\\
-p_0&= \Pj[f=1|h=0,B] = \fc{\Pj[f=1\wedge h=0|B]}{\Pj[h=0|B]} = \fc{p(1-q-\al_+)}{1-q}\\
-p_1&= \Pj[f=1|h=1,B] = \fc{\Pj[f=1\wedge h=1|B]}{\Pj[h=1|B]} = \fc{p(q+\al_+)}{q}\\
-\E_{x\in B} [\E[f|B_{i+1}]^2]&=qp_1^2 + (1-q)p_0^2 = p^2 \pa{\fc{(q+\al_+)^2}{q} + \fc{(1-q-\al_+)^2}{1-q}} \\
-&=p^2\pa{
-\pa{q+2\al_+ + \fc{\al_+^2}{q}}
+p_0&= \Pr[f=1|h=0,B] = \frac{\Pr[f=1\wedge h=0|B]}{\Pr[h=0|B]} = \frac{p(1-q-\alpha_+)}{1-q}\\
+p_1&= \Pr[f=1|h=1,B] = \frac{\Pr[f=1\wedge h=1|B]}{\Pr[h=1|B]} = \frac{p(q+\alpha_+)}{q}\\
+\operatorname{E}_{x\in B} [\operatorname{E}[f|B_{i+1}]^2]&=qp_1^2 + (1-q)p_0^2 = p^2 \left(\frac{(q+\alpha_+)^2}{q} + \frac{(1-q-\alpha_+)^2}{1-q}\right) \\
+&=p^2\left(
+\left(q+2\alpha_+ + \frac{\alpha_+^2}{q}\right)
 +
-\pa{1-q-2\al_+ + \fc{\al_+^2}{1-q}}
-}
+\left(1-q-2\alpha_+ + \frac{\alpha_+^2}{1-q}\right)\right)
 \\
-&=p^2\pa{1+\fc{\al_+^2}{q} + \fc{\al_+^2}{1-q}}\\
-&\ge p^2 + 4p^2 \al_+^2 \ge
+&=p^2\left(1+\frac{\alpha_+^2}{q} + \frac{\alpha_+^2}{1-q}\right)\\
+&\ge p^2 + 4p^2 \alpha_+^2 \ge
 p^2+
- \al_+^2\\
- %multiplicative increase by $1+\al$?
-% \EE_{x\sim U} [
-\E[f|B_{i+1}]^2 - \E[f|B_i]^2%]
-&=\al_+^2(B_i(x)).
+ \alpha_+^2\\
+ %multiplicative increase by $1+\alpha$?
+% \operatorname{E}_{x\sim U} [
+\operatorname{E}[f|B_{i+1}]^2 - \operatorname{E}[f|B_i]^2%]
+&=\alpha_+^2(B_i(x)).
 \end{align}
 
-%\al_+ cancel
+%\alpha_+ cancel
 %worst case $q=\rc 2$
-%if $\Maj=1$.
+%if $\operatorname{Maj}=1$.
 %retro assume majority block 1
 
 %instead of look at induced prob take exp %measure of $\mu$ times advantage
-Assume WLOG that $\Maj(B_i(x))=1$.  (Otherwise the LHS is smaller.)
+Assume WLOG that $\operatorname{Maj}(B_i(x))=1$.  (Otherwise the LHS is smaller.)
 \begin{align}
-\EE_{x\in B}[\mu(x) ((-1)^{(h(x)\ne f(x))})]
-&=\quad p\pf{1-p}{p} \ba{(q+\al_+) - (1-q-\al_+)}&(f=1)\\
-&\quad +(1-p) 1 [1-(1-\al_-) - (q-\al_-)]&(f=0)\\
-&=(1-p) (2\al_++2\al_-)\\
-&= 2\al_+(1-p) + 2\al_+p=2\al_+\\
-\EE_{x\sim U} 2\al_+(B_i(x)) 
-&=\EE_{x\sim U} [\mu(x) ((-1)^{h(x)\ne f(x)})]\\
-&\ge \ep|\mu| \ge 2\de \ep\\
-\ph_{i+1}-\ph_i &\ge 
-\EE_{x\sim U} [\E[f|B_{i+1}]^2 - \E[f|B_i]^2]\\
+\operatorname{E}_{x\in B}[\mu(x) ((-1)^{(h(x)\ne f(x))})]
+&=\quad p\left(\frac{1-p}{p}\right) \left[(q+\alpha_+) - (1-q-\alpha_+)\right]&(f=1)\\
+&\quad +(1-p) 1 [1-(1-\alpha_-) - (q-\alpha_-)]&(f=0)\\
+&=(1-p) (2\alpha_++2\alpha_-)\\
+&= 2\alpha_+(1-p) + 2\alpha_+p=2\alpha_+\\
+\operatorname{E}_{x\sim U} 2\alpha_+(B_i(x)) 
+&=\operatorname{E}_{x\sim U} [\mu(x) ((-1)^{h(x)\ne f(x)})]\\
+&\ge \varepsilon|\mu| \ge 2\delta \varepsilon\\
+\varphi_{i+1}-\varphi_i &\ge 
+\operatorname{E}_{x\sim U} [\operatorname{E}[f|B_{i+1}]^2 - \operatorname{E}[f|B_i]^2]\\
 &\ge 
-\EE_{x\sim U} \al_+^2(B_i(x))\ge  (\de\ep)^2.
+\operatorname{E}_{x\sim U} \alpha_+^2(B_i(x))\ge  (\delta\varepsilon)^2.
 \end{align}•
-%Expected increase is at least $(\de\ep)^2$.
+%Expected increase is at least $(\delta\varepsilon)^2$.
 %got rid of $p^2$, assume $p\ge \rc 2$.
 
-%Every step don't terminate, potential function increases by $(\de\ep)^2$. It's a number in 
-Because $\ph_i$ is always in $[0,1]$, the number of iterations is at most $k\le (\de \ep)^2$.
+%Every step don't terminate, potential function increases by $(\delta\varepsilon)^2$. It's a number in 
+Because $\varphi_i$ is always in $[0,1]$, the number of iterations is at most $k\le (\delta \varepsilon)^2$.
 \end{proof}
 
 \section{Comments, Regularity lemmas}
@@ -530,24 +538,24 @@ This potential function matches this boosting algorithm. Other boosting algorith
 This is like the potential function used most in graph theory. Key property: you can't make negative progress; you always go forwards.
 %Translating this to graph theory, you get the usual Szemeredi Theorem except without equal partitions.
 \item 
-For Szemeredi regularity, we need a stronger boosting theorem. Suppose we get stuck at some step: no function correlates globally, but there are many blocks where we can find functions that correlate with the function inside that block. If in $\ep$ fraction of blocks we find functions that correlate, partition them based on all the values of these functions, and repeat.
+For Szemeredi regularity, we need a stronger boosting theorem. Suppose we get stuck at some step: no function correlates globally, but there are many blocks where we can find functions that correlate with the function inside that block. If in $\varepsilon$ fraction of blocks we find functions that correlate, partition them based on all the values of these functions, and repeat.
 
-In one step we've gone from order of $2^k$ to order of $2^{2^k}$ buckets, and increased the potential function by a polynomial in terms of $\ep,\de$. This is a familiar argument; we can only go $\rc{\ep}$ iterations before we terminate. This time, the number of sets is a tower depending on $\ep$.
+In one step we've gone from order of $2^k$ to order of $2^{2^k}$ buckets, and increased the potential function by a polynomial in terms of $\varepsilon,\delta$. This is a familiar argument; we can only go $\frac{1}{\varepsilon}$ iterations before we terminate. This time, the number of sets is a tower depending on $\varepsilon$.
 \item
 Regularity lemmas: 
 
 Fix a set of vertices $V$ of set $n$. Let $U$ be edges in complete graph on $V$.
 (We can also consider the case when $U$ is not the complete graph, ex. $U$ is the edges in $d$-regular expander on $V$.)
 
-The underlying set we care about is the set of cuts defined by $A,B\subeq V$ where $A\cap B=\phi$; there are $3^k$ of them.
+The underlying set we care about is the set of cuts defined by $A,B\subseteq V$ where $A\cap B=\phi$; there are $3^k$ of them.
 
-If $|E|\ge \de \binom n2$, the generic regularity lemma says there exists $\mu=G(T_1,\ldots, T_k)$, where $k=O\prc{\ep^2\de^2}$, that is a good predictor the number of edges of any cut in the graph. 
+If $|E|\ge \delta \binom n2$, the generic regularity lemma says there exists $\mu=G(T_1,\ldots, T_k)$, where $k=O(1/\varepsilon^2\delta^2)$, that is a good predictor the number of edges of any cut in the graph. 
 Use the $T$'s to divide the vertices into $3^k$ subsets such that $\mu$ is a constant on every pair of subsets.
 $$
-\fc{E_G(A,B)}{|E_G|}
-\approx_\ep \sum_{i,j} 
+\frac{E_G(A,B)}{|E_G|}
+\approx_\varepsilon \sum_{i,j} 
 \mu_{ij}
-\fc{|A\cap A_i||B\cap B_j|}{|V|^2}.
+\frac{|A\cap A_i||B\cap B_j|}{|V|^2}.
 $$
 
 This is the weak regularity of Frieze-Kannan. For Szemeredi we need the stronger boosting lemma (see previous point).
