@@ -1,0 +1,274 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Combining Adversarial Guarantees and Fast Rates in Online Learning}
+\chead{} 
+\rhead{Simons Institute, Spring 2017} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+
+%\tableofcontents
+
+\section{Combining Adversarial Guarantees and Fast Rates in Online Learning (Wouter Koolen, CWI)}
+
+I will give a research talk about methods for online convex optimization
+that are robust and adapt to a spectrum of ``Easy Data".
+
+We consider online learning algorithms that guarantee worst-case
+regret rates in adversarial environments (so they can be deployed safely
+and will perform robustly), yet adapt optimally to favorable
+environments (so they will perform well in a variety of settings of
+practical importance). In this talk we introduce the MetaGrad algorithm
+for online convex optimization, its luckiness bound, and consequent
+unified adaptivity to two common scenarios:
+\begin{itemize}
+\item
+curvature : we show that MetaGrad exploits exp-concavity
+\item
+stochastic case: we show that MetaGrad adapts to the Bernstein 
+exponent (generalization of Tsybakov margin condition). MetaGrad's
+computational efficiency is comparable to AdaGrad's. We expect its new
+adaptivity to be especially useful in practice.
+\end{itemize}•
+
+%illegible bound
+%
+%illegible bound $\implies$ exp-concave
+%
+%illegible bound $\implies Bernstein stochastic
+
+We have nice algorithms designed with worst-case ideas. Very often people stop there, ``practitioners should just do this.'' Practitioners say, ``I played with the parameter, changed it from the value you said it should be, and it does better.'' The theoreticians say, ``Don't do that!''
+
+We show two problems where you should set your parameters differently from what theoreticians have recommended.
+
+%stochastic that applies in practice. 
+%explanation for why in practical problems should do something different.
+
+I'll tell you the MetaGrad algorithm for online optimization. It covers worst-case, stochastic data, and curved cases
+ %curvature
+
+%FOUR-LEGGED OCTOPUS
+
+We will optimize $\min_w \sumo tT f_t(w)$ where $f_t$ are convex. This could be for batch training (for classification), time series (for investment), or big data.
+
+We have a learner and environment. The learner picks a parameter setting $w_1$. %how you split ...
+Receive loss and gradient $f_1(w_1)$, $\nb f_1(w_1)$. Repeat.
+
+We care about regret $\sumo tT f_t(w_t) - \min_u \sumo tT f_t(u)$. %single fixed portfolio all the time.
+The typical vanilla algorithm is online gradient descent. Choose a starting parameter $w_0$ and let
+$$
+w_{t+1} = w_t - \eta_t \nb f_t(w_t).
+$$
+For a single fixed function, it's reasonable that you approach the optimum. It's not immediately obvious that it extends to the case the $f_t$ change, but this is true. In the worst case, $R_T=O(\sqrt T)$. (Assumptions: Bounded domain, bounded gradient norm, measured in $L_2$.)
+
+But there is a hierarchy of loss functions; if we assume more about the loss functions we can do better. 
+\begin{enumerate}
+\item
+convex (ex. linear, hinge absolute) $\sqrt T$
+\item
+exp-concave (ex. logistic squared) $d\ln T$: I can extrapolate in a quadratic way.
+\item
+strongly convex (ex. squared distance) $\ln T$: I can extrapolate in every direction.
+\end{enumerate}•
+
+How to exploit those losses. For exp-concave, run online Newton step. For strongly convex, run online gradient descent but with the parameters tuned differently.
+
+Can we make adaptive methods for online convex optimization that are 
+\begin{itemize}
+\item
+worst-case safe, 
+\item 
+exploit curvature automatically, and 
+\item 
+is computationally efficient? 
+\end{itemize}•
+Can we adapt to other important regimes,
+\begin{itemize}
+\item
+mixed or in-between cases
+\item
+stochastic data
+\item
+absence of curvature
+\end{itemize}
+Sometime we can get the rates in the taxonomy without the assumptions.
+
+Main idea: for every optimization the algorithm tuning is crucial: regularization, step size, learning rate, modal complexity. Let's learn optimal tuning from data. The key obstacle is to avoid learning $\eta$ at a slow rate. Otherwise the learning of the learning rate is going to kill any benefit you get!
+
+%constant learning rate
+
+(Competing with constant rates is enough. We don't need to compete with other schedules. The decaying rate $\rc T$ is a confusion; it can be thought of as a constant learning rate plus quadratic losses.)
+
+It will maintain a collection of learning rates: multiple eta gradient algorithm.
+
+Here is a description. There are several viewpoints. 
+
+%You don't want to know where everything came from, you just want the most concise story of what 
+
+Maintain a grid of learning rates. For each run a certain algorithm. A master algorithm takes the outputs of the ``slave'' algorithms and makes a prediction without too much overhead.
+Each algorithm is a variant of online %gradient descent/
+online Newton step. Algorithm $i$ maintains parameters $\Si_i, w_i$ and has learning rate $\eta_i$. The master maintains weights $\eta_i$. We need $\ln (T)$ subalgorithms with different learning rates.
+
+The master algorithm takes an average $w=\fc{\sum_i \pi_i \eta_i w_i}{\sum_i \pi_i \eta_i}$. Note we need to include the learning rate $\eta_i$ in the weighting.
+
+%slaves produce w, master has to make one
+
+The master plays $w$. 
+We only get the gradient at the point the master played, $g=\nb f(w)$. Make updates (cf. multiplicative weights)
+$$
+\pi_i \mapsfrom \pi_e e^{_-\eta_i r_i - \eta_i^2r_i^2}
+$$
+where 
+$$
+r_i=(w_i-w)^Tg.
+$$
+Note it's important that
+\begin{enumerate}
+\item
+we use the regret $r_i$ rather than the loss (there isn't a difference for a single algorithm, but there is a difference here) (actually  the lower bound on regret using the linear expansion)
+\item
+we have a quadratic term. 
+\end{enumerate}•
+We call this ``tilted exponential weights.'' It's similar to Squint (COLT 2015: track one or several numbers for each expert---this is intractable when e.g. the experts are all the points in the plane), ABProp. 
+%squint with all the points in the plane.
+
+The slaves have a information problem; they don't get the gradient of the point they play. 
+Update
+\begin{align}
+\Si_i &\mapsfrom (\Si_i^{-1} + 2\eta_i^2gg^T)^{-1}\\
+w_i &\mapsfrom w_i-\eta_i \Si_i g(1+\eta_ir_i.
+\end{align}•
+$\pi$ determines whose weights get used, but the algorithms don't see $\pi$.
+%if you don't know where gradient evaluated, how do you use it?
+
+%This applies to cases where we can only query the gradient.
+%This is the minimal assumption version.
+%we have true loss, and we use a lower bound.
+
+Q: if you don't know where the gradient is evaluated, how do you use it?
+Even if you get a lower bound in the wrong spot, it's still a lower bound on the function everywhere. All the algorithms can use the lower bound to reason on the quality of the $w$'s.
+
+%different evidence in different curvature.
+%last point from where all the lucky cases follow
+%best thing we offer that is still general.
+
+Slaves assume curvature even if it isn't there. We show it doesn't hurt if they are wrong. (We only need to compare with the slave that got it right.) Even if there is no curvature, he best slave might be one that assumes there is curvature.
+
+%suggested that bandit problem
+%not suffer from lack of exploration
+%make lower bounds that work everywhere
+%only compare with slave that got it right.
+
+%do what need to do if there is curavture.
+
+Now we need to maintain the matrices; this is the bottleneck. The compexity is $d^2$; you can use Sherman-Morrison to update the inverse, but this breaks the relationship between the different $\Si_i$.
+
+\begin{thm}
+The regret of MetaGrad is bounded by 
+$$
+R_T = O\pa{
+\min\bc{\sqrt T, \sqrt{V_T d\ln T}}
+}
+$$
+where 
+$$
+V_T =\sumo tT ((w_t-u^*)^T \nb f_t(w_t))^2.
+$$
+\end{thm}
+The $V$'s are sums over rounds of the difference between what the learner played the the best in hindsight, times the gradient, squared. $V$ measures variance compared to the offline optimum $u^*=\amin_u \sumo tT f_t(u)$.
+
+%Typically we need to tune the learning rate; 
+Here the $V_T$ is unknown and could change. This makes the tuning tricky.
+%T, complexity
+
+\begin{cor}
+For $\al$-exp-concave or $\al$-strongly convex losses, MetaGrad ensures $R_T=O(d\ln T)$ without knowing $\al$. 
+\end{cor}
+This is because the curvature implies $\Om(V_T)$ cumulative slack between loss and its tangent lower bound.
+
+One consequence of this argument is that it applies for a fixed function. We get the same result for fixed $f_t=f$ (classical optimization) even without curvature via derivative condition. 
+
+(If you knew exp-concave, you could do grad descent with learning rate instead. Add a second family of slaves that do gradient descent with different learning rate. Some voices in ML community tell me strongly convex losses don't exist.)
+
+One example: if you're obtimizing $|x-a|$, our algorithm gets close to the bottom and makes smaller error than typical gradient descent.
+
+Now consider the stochastic case. When you design algorithms that are supposed to work in practice, you should test on the stochastic case! Many adaptive algorithms don't think this is special. This is closest model to what is encountered in practice.
+
+Consider iid losses $f_t\sim \Pj$ with stochastic optimum $u^*=\amin_u \E f(u)$. The goal is small pseudo-regret (compared to $u^*$)
+$$
+R_T^* = \sumo tT f_t(w_t) = \sumo tT f_t(u^*).
+$$
+
+The assumption is that the loss of a point close to the optimum is not too different from the loss at the optimum. The higher the parameter, the more severe the condition, the easier the data is.
+\begin{cor}
+For any $\be$-Bernstein $\Pj$, MetaGrad keeps the expected regret below
+$$
+\E R_T \le O((d\ln T)^{\rc{2-\be}} T^{\fc{1-\be}{2-\be}}).
+$$
+\end{cor}
+This is because Bernstein bounds $\E[V_T^*]$ above by $\E[R_T^*]$. 
+%get fast rates without ...
+
+There are cases where AdaGrad gets worst case $O(\sqrt T)$ rate while MetaGrad gives $O(\ln T)$, ex. $f_t(u) = |u-\rc 4|$ for the offline case or $f_t(u) = |u-x_t|$ where $x_t=\pm \rc2$ iid with probabilities $0.4,0.6$ for the online case.
+
+The gradients are not going to 0; the point jumps from left to right. 
+
+Summary: we get $\sqrt T$ in worst case $T^{\fc{1-\be}{2-\be}}$ for stochastic, $d\ln T$ for curved.
+
+Code: \url{http://bitbucket.org/wmkoolen/metagrad}
+
+\subsection{Proofs}
+
+\begin{enumerate}
+\item
+illegible bound
+\item
+illegible bound $\implies$ exp-concave
+\item
+illegible bound $\implies$ Bernstein stochastic
+\end{enumerate}•
+
+%squint on continuum of points.
+%we use jensen-like inequalities
+
+%not simpler if just B
+%difference between experts and
+%trivial give no info, or full Bernstein.
+
+\begin{align}
+R_T^u &= \sum_t f_t(w_t) - f_t(u)\\
+&\le R_T^u = \sum_t \an{w_t-u,\nb f_t(w_t)}\\
+&\le \sqrt{V_T^u d\ln T}\\
+V_T^u &=\sum_t \an{w_t-u, \nb f_t(w_t)}^2
+\end{align}
+%The first rule of exp-concavity is that it doesn't really matter. 
+The first thing you do with exp-concavity is convert it in a quadratic lower bound. For all $u$,
+\begin{align}
+f(u) &\ge f(w) + \an{u-w,\nb f(w_t)} + \be \an{u-w, \nb f(w_t)}^2
+\end{align}•
+Take linear approximation and add something that curves in one direction (gradient direction). It looks liek a gutter. This is different from strong convexity where you have a vase. %lemma 1 in exp-concavity paper.
+\begin{align}
+R_T &= \sum_t f_t(v_t) - f_t(u)\\
+&\le \wt R_T - \be \sum_t \an{u-w,\nb f(w_t)}^2\\
+%reverse hedge tuning
+&\le V_\be - V_\be + \fc{d\ln T}{\be}
+\end{align}•
+using $2\sqrt{Vd \ln T} \le V_\be + \fc{d\ln T}{\be}$. Similar arguments work in the stochastic case.
+
+\printbibliography
+
+
+\end{document}
