@@ -1,0 +1,258 @@
+\section{Improved boosting algorithms and implications}
+
+Based on Holenstein, simplified.
+
+We had a generic reduction from boosting algorithms to dense model theorems to regularity lemmas. Today I'll discuss how to get different intermediate results from boosting algorithms. I'll sample the variety of boosting results and see what kind of dense model theorems/regularity lemmas they give. I'll talk about recursive uses of dense model theorems to give decompositions.
+
+I'll start with the standard algorithms and then use a modification from Holenstein necessary for the dense model theorem. The modification is fairly generic; it's about one parameterthat  is not important for boosting but important for dense model theorems.
+%dense model theorems and regularity
+
+A weak learner is given $\mu_t$ and produces $h_t$ that has some advantage on the subdistribution (normalize by expectation of the weight $\mu_i$ to get the probability)
+%weight: number between 0 and 1. normalize by expectation of weight to get probability. 
+\footnote{I think of $U$ as uniform but it doesn't matter.}
+%If you want a boosting algorithm it needs to be sampleable, if you just want regularity, no.
+%as long as size of measure isn't so small, we can induce a sampler.
+\begin{align}
+\EE_{x\sim_D U} (-1)^{h_t(x) =f(x)} \mu_t(x) &\ge \ep |\mu_i|\\
+\iff \Pj_{x\sim D_{\mu_i}} [h_t(x) = f(x)]&\ge \rc 2+\ep\end{align}
+Here
+\begin{align}
+|\mu_t| &= \E_x|\mu_t(x)|\\
+N_t(x) &=\sumo {t'}t  (-1)^{h_{t'}(x)=f(x)}\\
+I&=N_t(x).
+\end{align}
+If $I$ is negative (we're not doing so well), we weight $x$ more; the better we're doing, the less important it is to continue doing well on the data point $x$.
+
+
+$M_I$ is a function that starts with 1, and goes to 0 gradually, for example, linear.
+\begin{align}
+M_I &= \begin{cases}
+1,&\text{if }I\le 0\\
+1-\ga I, &0\le I \le \rc{\ga}\\
+0,&\text{if }I\ge \rc{\ga}
+\end{cases}•\\
+\ga &= \rc 4 \ep \de.
+\end{align}
+AdaBoost works better:
+\begin{align}
+M_I &= \begin{cases}
+1, &\text{if }I\le 0\\
+(1+\ga)^{-I},&I>0
+\end{cases}\\
+\ga &= \rc{4t}.
+\end{align}•
+We need $\ga$ small because we need the slope to be small relative to the value.
+
+Let $A_I=\sum_{J\ge I} M_J$. 
+$$A_t=\EE_{x\sim U} A_{N_t(x)}$$
+is our generic potential function.
+\begin{align}
+\De_I &=M_{I-1}-M_I\\
+\De_t &= \EE_{x\sim U} \De_{N_t(x)}
+\end{align}
+%N_t'
+
+How we picked $1+\ga$: to make slope proportional to value with small constant of proportionality.
+\begin{align}
+\De_I &=\begin{cases}
+0&\text{if }I\le 0\\
+\ga&\text{if }0\le I \le \rc{\ga}\\
+0&\text{if }I>\rc{\ga}
+\end{cases}\\
+\De_I &= \begin{cases}
+0&\text{if }I<0\\
+\ga M_I&\text{if }I>0.
+\end{cases}•
+\end{align}
+\fixme{``Move things from the negative zone to the safe region.'' %Get a point
+Potential function is how many credit we could get ourselves in the future.
+if nothing to give credit left to, done.}
+
+\begin{alg}[Basic boosting]
+\begin{itemize}
+\item
+$\mu_0=1$
+\item
+Repeat until $|\mu_t|\le 2\de$.
+\begin{itemize}
+\item
+$h_{t+1}\mapsfrom WL(\mu_t)$
+\item
+Increase when right, decrease when wrong:
+$w_{t+1}(x) = M_{N_{t+1}(x)}$.
+($N_t(x)$ increases or decreases by 1 depending on whether it is right at $t$.)
+\end{itemize}
+\item
+Return $H\in \Maj(h_1,\ldots, h_t)$, $1-2\de$. 
+\end{itemize}
+\end{alg}
+We'll modify this later to get $1-\de$.
+($1-2\de$ is not good enough because of the 2. For learning purposes, you just replace $\de$ by $\fc{\de}2$, but with the 2, it doesn't imply the hard-core set lemma or dense model theorem.) 
+%\ep is adv of weak. strong is supposed to be right 1-\de. 
+
+%\ka=1
+\begin{align}
+N_t(x) &= \sumo{t'}t (-1)^{h_{t'}(x)=f(x)}
+\end{align}
+\fixme{
+The average value is at most $2\de$. Everything where majority incorrect has $\mu$-value 1. }
+
+We had
+\begin{align}
+\EE_{x\sim U} (-1)^{h_{t+1}(x) = f(x)} \mu_t(x) &\ge \ep|\mu_t|.
+\end{align}
+Think of this as saying: We expect most of the time to be taking a step forward rather than a step back.
+
+If $f(x)=h_{t+1}(x)$, then 
+\begin{align}
+A_{N_{t+1}(x)}& = A_{N_t(x)}-\mu_t(x)
+\end{align}
+If $f(x) \ne h_{t+1}(x)$, then
+\begin{align}
+A_{N_{t+1}(x)}& = A_{N_t(x)} + M_{N_t(x)-1}\\
+&= A_{N_t(x)} + M_{N_t(x)} + M_{N_t(x)} + \De_{N_t(x)}
+\end{align}
+%depends on particular function $f$. same with one exception. Reason why we can't take arbitrary function $f$.
+%move to left, how much increasing by?
+For the two choices of $M_I$, $\De_{N_t(x)}$ is bounded by $\ga$, $\ga M_{N_t(x)}$, respectively.
+
+We get
+\begin{align}
+\De A &\le -\ep |\mu_t| + \E_x \De_{N_t(x)}\\
+\De A &\le \begin{cases}
+-\ep |\mu_t| + \ga\\
+-\ep |\mu_t| + \ga |\mu_t|
+\end{cases}•
+\end{align}
+\fixme{
+Using either example, we know a bound on $\De$.
+In example, 1, decrease of $2\de\ep$, so setting for $\ge$, for example 2, $\de\ll \ep$ to make progress.}
+%2
+%$\de\ll \ep$ to make progress.
+
+%$\Te\prc{\ga}$ either way
+In the two cases
+\begin{align}
+A_0&=\rc{2\ga}& t&\le O\prc{\ep^2\de^2}\\
+A_0&=\fc{1+\ga}{\ga}& t&\le O\prc{\ep^2\de}.
+\end{align}
+%$t\le \fc{A_0}{\Te(\ep \de)}$
+%dep on de smaller?
+%should be able to get to \log de?
+%potential function?
+%this is not really nice. I don't see why anyone would think of using this. Quadratic part linear, exp decrease plus linear.
+%vs. choose nice potential function and design algorithm around it.
+
+How to get rid of the factor of 2? Have a moving target for where we draw the line. %instead of 0 and majority
+As time goes on, it's harder to be in the safe zone; move things to the danger zone.
+\begin{alg}
+
+\begin{itemize}
+\item
+$\mu_0=1$, $s=0$.
+\item
+Repeat until $|A_t|<2\de s$.
+%$|\mu_t|\le 2\de$.
+\begin{itemize}
+\item
+$h_{t+1}\mapsfrom WL(\mu_t)$
+\item
+Increase when right, decrease when wrong:
+$\mu_{t+1}(x) = M_{N_{t+1}(x)-s}$.
+\item
+If $|\mu_{t+1}|<2\de$, $s\mapsfrom s+1$. (Move everything 1 step to the left.)
+%(Maintain invariant that $\mu_t>2\de$.) 
+%may have decrease for some values of $x$
+%if >2\de, <2\de, then incremeent s.
+%move everything by at most 1 to right?
+%move 1 to left even if moved to right
+%below what it was at $\mU-t$, so $\mu_{t+1}(x)$ is at least
+%<2\de, move everything 1 step to left.
+\item
+$\mu_{t+1}(x) M_{N_{t+1}}-s$. %incorrect might be bigger value.
+\item
+Note that the invariant $\mu_t>2\de$ is maintained in this loop.
+\end{itemize}
+%every time more lenient with what we expect
+%second part: show how to make function that agrees $1-\de$ of the time
+\item
+Return $H_t(x)$: if $\ab{\sumo it(-1)^{h_i}}\ge s$ 
+%(if there are $s$ more that say 0 than 1 or vice versa) 
+use $\Maj(h_1(x),\ldots, h_t(x))$ (if there are $s$ more 1's than 0, say 1; if there are $s$ more 0's than 1, say 0); otherwise, flip a coin with bias $\rc 2+ \fc{\sumo it(-1)^{h_i(s)}}{2s}$ and output 1 if heads. (Use preponderance of 0's and 1's as a coin flip.)
+\end{itemize}
+\end{alg}
+
+We saw that the change in $A$ due to updating $N_{t+1}$ is
+$$
+\De A = \ep |\mu|-\E\De_t.
+$$
+When $s$ is set to $s+1$, the change in $A$ is
+\begin{align}
+\De A &= |\mu| + \E \De_t\\
+\De A &=  - \ep |\mu| + |\mu| + 2\E \De_t\\
+&\le 2\de - \Om(\ep\de)\\
+\De (A-2\de s) &<-\Om(\ep \de).
+\end{align}
+This is the same decrease as before, so the bound on the step is the same as before.
+
+Why is this good?  Holenstein uses a rounding trick, also in TTB.
+%TTB
+%In the range $N_t(x)\le s$, 
+\begin{align}
+A_t(x) & \ge s_t-N_t(x)+A_0, & \text{for }N_t(x)&<s
+%+A_0. in flat part
+%total area at least 1 times that number
+%$A_t(x) = A_{N_t(x)-s}$.
+%I don't know how well this does until the last step. Open problem.
+\end{align}
+Suppose that $N_t(x)\ge s$. Then we're always correct. %N_t(s)$, go with majority.
+Otherwise, we're incorrect with probability at most $\fc{s-N_t(x)}{2s}$.  %if very negative go beyond 1. 
+%N_t
+Thus 
+\begin{align}
+\E\pat{fraction incorrect} & = \rc{2s} \E[s-N_t(x)]\\
+&\le \E\fc{A_t(x)}{2s} = \fc{2\de_S}{2s} = \de.
+\end{align}
+%what's the intuition for why this should work? OQ
+
+Is this the same as: Pick a threshold at random and use that threshold?
+%1 outside, a random bit inside.
+%Weak learner on any dist that has measure $>2\de$. No weak learner when $\le 2\de$.  Never going to learn $>1-\de$.
+%This $2\de$ vs. $\de$ is sharp.
+
+%Some intuition: on the induced distribution, look at the part where $N_t(x)< s$.
+%$A$ is the expected distance from $s$ in this distribution.
+%%Pic
+%%\begin{align}
+%%
+%%\end{align}•
+%The part on the left can't be bigger than $2\de$. 
+%%pick ans if > threshold. each contrib to all thresholds greater than it, each smaller than $i$ contributes to all 
+
+What did we get? We gave 2 algorithms with $k=O\prc{\ep^2\de^2}$ and $k=O\prc{\ep^2\de}$. Before, we had to allow any boolean function on $k$ variables, a large class; here, we take a majority function.
+This is in any complexity class that can compute majority.
+\begin{align}
+H&=g(h_1,\ldots, h_k) =\sign(\sum_i h_i-s)\\
+\mu&=G(h_1,\ldots, h_k,f) = G'(\sum (-1)^{h_i(x)=f(x)}).
+\end{align}
+Both are much simpler than what we had before.
+
+What kind of results do we get from this? 
+Having $g$ be in a small complexity class is important for using the hard-core set lemma for moderate complexity classes like $TC^0$. I'll go all the way to regularity and see what we get.
+
+Before, we got a model of a dense graph $|E_G|\ge \de|V|^2$. We have a model that looks like a partition into $3^k$ sets. Think of this as approximating the adjacency matrix of a graph by a matrix with big blocks of constants, $A_G=M$, $\rank (M) = 3^k = 3^{O\prc{\ep^2\de^2}}$. We can replace $\de^2$ by $\de$. 
+We get a bunch of cuts in a graph, not necessarily disjoint, just $\poly\prc{\ep^2\de^2}$. 
+Weigh edges by how many of the cuts they're in. Each cut is a rank 1 matrix. If you want to know the number of cuts you're in, write as a matrix of rank $k$ rather than $3^k$. The one thing we have to do: that's the crude score, we're actually interested in a piecewise linear function or exponentially decreasing function of that score.
+Componentwise we have to apply this function to $M$. 
+%I don't like this truncation operation... They look at a spectral approximation. 
+
+\fixme{Frieze and Kannan look at a spectral approximation. Instead of boolean tests, they use tests defined by prob distributions. $b^TA_Ga$. They get a similar result without a truncation operation.}
+
+%Here we use cuts. 
+%>1, <-1 truncate
+
+%actual cuts, or probability distribution on vertices.
+Different boosting have different combining functions which give different structures of model which give qualitatively and quantitatively different regularity lemmas.
+
+
+
