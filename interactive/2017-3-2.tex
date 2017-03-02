@@ -1,0 +1,273 @@
+\section{Robust learning and inference (Yishay Mansour, TAU)}
+
+We consider the case that some of the attributes may be adversarially corrupted or missing. We limit the adversarial corruption to a finite set of modification rules, and we model it as a zero-sum game between an adversary, who selects a modification rule, and a predictor, who wants to accurately predict the state of nature. We consider a learning setting where the predictor receives a set of uncorrupted inputs and their classification. The predictor needs to select a hypothesis, from a known set of hypotheses, and is latter tested on inputs which the adversary might corrupt. We show how to utilize an ERM oracle to derive a near optimal predictor strategy, namely, picking a hypothesis that minimizes the error on the corrupted test inputs. We will also briefly mention the results for the inference model. In the inference setting the predictor has access to the joint uncorrupted distribution, and needs to build a predictor for adversarially corrupted inputs.
+
+%Yishay is here until end of next week
+
+%Joint work with Feige, Rubinstein, Schapire,...
+
+What do we mean by robustness? Different fields use it to refer to different things. % (Different fields use different names for the same things.)
+\begin{itemize}
+\item
+Robust statistics: be immune to outliers. 
+\item
+Robust optimization: be immune to small parameter perturbation (in some metric)
+\item
+Noise models in computational learning theory: Use a model of how data is generated, ex. flip labels with probability 0.1. But the algorithms can break if we flip with probability $\le 0.1$. Everything is calibrated to the specific noise level, 0.1.
+
+ 
+Ex. nearest neighbor %: for exactly 0.1 the nearest neighbors remain with high probability, for $\le 0.1$, no.
+\item
+Our model: ``things are not what they seem.''
+\end{itemize}•
+
+Ex. Spam detection. Build many filters, and combine them into a spam filter. Unfortunately, the bad guys can adapt.
+
+This is really a game between spammers and detectors.  Spammers adjust content to the detectors. They can learn to fool a few detectors. Our goal is to classify spam correctly even if spammers adjust their messages.
+
+Ex. Robust network failure detection. 
+\begin{itemize}
+\item
+What happens when the detectors fail? We get from the detector something that looks reasonable but is incorrect. 
+\item
+How to model failures? There are two ways, Bayesian vs. worst-case.
+
+A Bayesian needs to model the probability of failure and  conditioning on the failure, what the distribution of outputs is.
+
+I'll consider worst-case.
+\end{itemize}
+The goal is to perform a good failure detection, in the sense of overcoming a $k$-point failure, under adversarial behavior.
+
+I'll consider both missing and corrupted attributes.
+\begin{enumerate}
+\item
+Why do we have missing/corrupted data? 
+Can we avoid it by requiring clean data?
+
+We used to think of ML as having correct inputs (we are choosing the inputs), and giving outputs. 
+
+%We are choosing the inputs. 
+Applied ML doesn't have the methodology for choosing inputs. 
+\item
+Can we assume that it is iid? No, missing or corrupted data might depend on attribute value.
+
+\item
+Do we have to clean the data? No, we should directly predict!
+
+Two paradigms: if you have missing data, fill in the missing data. If you clean the data you can use standard methods. There are multiple ways to clean, and cost could be high.
+
+I think the right thing to do is go directly to the next step, prediction.
+\end{enumerate}•
+Story: finance company wants to do data mining/machine learning. They find that 5\% of the people were born Nov. 11, 1911. It's the only key you can press 6 strokes and get out of this field!
+
+%175. 
+Ex. ``Giants are more likely to be bilingual'' because they entered their height in centimeters when asked for inches...
+
+Consider some joint distribution $D$ generating observable attributes $x$ and labels $y$. An adversary corrupts $x$ to produce $z$. We limit by the set of modification rules $\rh_i(y,x)$. The adversary can select the modification depending on $x$.
+
+Notation:
+\begin{itemize}
+\item
+state of nature $y\in \{0,1\}$.
+\item
+signals $x\in X$
+\item
+distribution $D(y,x)$
+\item
+observed signals $z\in Z$.
+\item
+Modification rules $\rh_i(y,x)=z$, computed in polytime, $m$ modification rules.
+%human annotator makes error closer to the boundary.
+%predict how it will modify.
+
+For example, $\rh_i(y,x)$ flips signal $i$, $\rh_o(y,x)$ flips the odd signals.
+\end{itemize}
+The goal is given $z$, predict $y$.
+
+The predictor, given $z$, predicts $y$, and in this way defines a policy $\pi(z)$.
+
+The adversary selects $\rh_i$ either
+\begin{itemize}
+\item
+statically: before $x$ is selected.
+\item
+adaptively: after $x$ is selected.
+\end{itemize}
+%Can flip those close to boundary
+%see past predictions?
+%y is generated same time as x.
+
+Model as a zero-sum game. Fixing policy $\pi$ and modification rule $\rh_i$, 
+$$
+\text{error}(\pi,\rh_i) = \E_{y,x}[\Pj[\pi(\rh_i(y,x))\ne y]].
+$$
+The optimal min-max error is
+$$
+\text{error}^* = \min_\pi\max_{\rh_i} \text{error}(\pi, \rh_i).
+$$
+Being optimal doesn't mean you're doing well: ex. the the adversary erases all inputs, and the predictor can't do anything. This means $\text{error}^*$ is very high.
+
+%this is fixed, later talk about adaptive
+%max over \rh_i.
+
+%$rh_i$ inject one missing attribute. Adversary chooses which to be missing.
+
+The setting:  Given a distribution $D$, known and computable, with set of possible corruptions:
+%\begin{thm}
+
+For every $D$, there is an algorithm that given observable $z$, compute a prediction for $y$ with probability of error $\text{error}^*+\ep$, in time $\poly(n,m)$ in the static case, $\poly(n)\exp(m)$ (?) in the adaptive case.
+%\end{thm}
+
+We assume that in the training set examples are uncorrupted, in the test set examples are corrupted by adversary. Given hypothesis class $H$, given oracle for ERM in $H$, the goal is to select a mixture of hypotheses from $H$ that minimizes the error.
+
+\begin{thm}
+\begin{enumerate}
+\item
+Given a sample $S$, we can  efficiently compute a mixture which is $\ep$-optimal on $S$.
+\item
+For $|S|\ge \fc{\ln |H|/\de}{\ep^4}$, with probability $1-\de$, get $\text{error}(h) - \text{obsError}(h)\le \ep$.
+\end{enumerate}•
+\end{thm}
+References:
+\begin{itemize}
+\item
+Globerson and Roweis, nightmare at test time: robust learning by feature deletion
+\item
+Teo, Globerson, Roweis, Smola. Convex learning with invariances.
+\end{itemize}
+
+Where does it make a difference?
+\begin{itemize}
+\item
+ Learning homogeneous hyperplanes $\sign(wx^T)$. Regular learning is $\min_w \Pj[(wx^T)y<0]$. Large margin is $\min_w\Pj[(wx^T)y<\la]$. Corruption is setting one $x_i$ to 0.
+ 
+Assume uniform distribution.
+
+A static adversary would zero the coordinate having largest weight. Success probability becomes $\min_w \Pj[(wx^T)y<\max_i|w_i|]$
+
+An adaptive adversary %takes the correct label and
+ zeros out the coordinate having largest weight with correct sign. For $\sign(w_ix_i)=y$, get $\min_w\Pj[(wx^T)y <\max_i (x_iw_i)]$
+\end{itemize}•
+%We like to spread out
+
+Given ERM for class $H$, we'd like to learn a mixture of hypotheses $\De(H)$. 
+%Map $x$ to $m+1$ different values.
+Suppose that the number of corrupted inputs for $x$ is $\le m$.
+The error is
+$$
+L(h) = \EE_x [\max_{z\in \rh(x)} \ell(h(z),f(x))].
+$$
+%The value of the game is the value 
+
+For any uncorrupted, consider the matrix $M_x$ where $M_x(z,h) = \one(h(z)\ne y)$. (Here $z\in \rh(x), y=f(x)$.) The $D$ selects the matrix.
+
+The learner chooses $Q\in \De(H)$, 
+$$
+h_Q(z)=\sum_{h\in H} Q(h) h(z),
+$$
+convex combination over $h$'s. The learner doesn't know $x$, observes corrupted $z$, and generates a prediction. The adversary chooses $P_x\in \De(\rh(x))$, knows $x$, and generates $z\in \rh(x)$.
+%both random. One move first, other move sacond.
+They both play a mixed strategy.
+The goal of the learner is
+\begin{align}
+Q^* &=\amin_Q \EE_x[\max_{P_x} P_x^T M_xQ]\\
+\text{error}^* &= \min_Q\max_P \EE_x[P_x^T M_xQ]\\
+&=\max_P\min_Q \EE_x[P_x^TM_xQ].
+\end{align}
+%where $P$ is concatentaiton of $P_x$.
+Note this doesn't take advantage of a mild adversary.
+
+Think of $\min_Q \EE_x[P_x^TM_xQ]$ as an ERM over the fixed distribution. %: $D^P(z,y)
+
+We would like the algorithm to choose few $h_i\in H$  to get good generalization.
+
+Algorithm is based on regret minimization. Use a variant of exponential weights (Cesa-Bianchi-Mansour-Stoltz 2007). Maintain weights for $(z,(x,y))$ for each $(x,y)\in S$ and $z\in \rh(x)$. Output defines both $Q$ and $P$. Expand sample by all possible corruptions.
+
+Initialize weights $w_q(z,(x,y))=1$. Update weights as follows: 
+given $h_t(\cdot)$,
+if $h_t(z)\ne y$, then $w_{t+1}(z,(x,y)) = (1+\eta) w_t(z,(x,y))$, else there is no change. 
+
+Normalize not for everything, but per $x$. Let $P_t$ be the normalized $w_t$ per $x$.
+$$
+P_t(z,(x,y)) = \fc{w_t(z,(x,y))}{\sum_{z'\in \rh(x)} w_t(z',(x,y))}.
+$$
+Given $P_t$ use the ERM oracle to select $h_t$ using $D^{P_t}(z,y)$:
+$$
+\sum_{x:f(x)=y,z\in \rh(x)} P_x^t(z)D(x).
+$$
+%get good response from adversary, update
+Use distribution to get next hypothesis to plug in.
+
+Proof. 
+The loss for $(z,(x,y))$ is 
+$$
+l_t(z,(x,y)) = l(h_t(z)\ne y) = M_x(z,h_t).
+$$
+The cumulative loss of $(z,(x,y))$ is
+$$
+L_T(z,(x,y)) = \sumo tT l_t(z,(x,y)).
+$$
+The algorithm loss is $L_T^{lin} = \sumo tT P_t\cdot l_t$. Compare against the benchmark
+$$
+L^* = \sum_{(x,y)\in S} \max_{z\in \rh(x)}L_T(z,(x,y)).
+$$
+I finish learning, these are my hypothesis, what would you do? For each $x$ choose the worst corruption.
+
+The regret bound is
+$$
+L^* - 2\sqrt{L^*|S|\ln m}\le L_T^{lin}.
+$$
+The strategies are $P^* = \rc T\sum_t P_t$, $Q^*=\rc T \sum_t h_t$. 
+
+\begin{thm}
+Fix uncorrupted $S$, $T\ge \fc{4|S|\ln m}{\ep^2}$. $P^*$ is $\ep$-optimal for adversary and $Q^*$ is $\ep$-optimal for the learner.
+\end{thm}
+The proof is like for exponential weights. 
+\begin{align}
+W_{(x,y)}^t &=\sum_{z\in \rh(x,y)} w_t(z,(x,y)) \ge (1+\eta)^{L^*(x,y)}\\
+L^*(x,y) = \max_{z\in \rh(x)}L_T(z,(x,y))\\
+W^t &=\prod_{(x,y)\in S} W_{(x,y)}^t & \ge(1+\eta)^{L^*}\\
+%W^T &=m^{|S|}\prod_{(x,y)}\prod_t (1+\eta P_t(x,y)+ 
+L^*-\eta L^* - |S|\ln m/\eta &\le L_T^{lin}.
+\end{align}•
+Multiplying the weights is the non-standard part. Take logs and do linear approximation.
+
+Expected error given $P,Q$,
+\begin{align}
+R(P,Q) & =\sum_{x,y}\sum_z\sum_h P(z,(x,y)) Q(h) I(h(z)\ne y)\\
+\max_P\min_Q R(P,Q)&\ge \min_Q R(P^*,Q)\\
+&\ge \fc{L_T^{lin}}{T}\\
+&\ge \fc{L^*}{T} - \fc{2\sqrt{L^*|S|\ln m}}{T}\\
+&\ge \max_P R(P,Q^*) - \fc{2\sqrt{L^*|S|\ln m}}{T}\\
+& \ge \min_Q\max_P R(P,Q) - \fc{2\sqrt{L^*|S|\ln m}}{T}.
+\end{align}
+Using $P^*$, I'm getting as much as I can hope to get up to an additive factor. %\ep
+$Q^*$ is $\ep$-optimal for one side and $P^*$ is $\ep$-optimal for the other side.
+
+To get generalization: 
+\begin{enumerate}
+\item
+Let $H^N$ be the class of averages of at most $N$ $h_i\in H$. The first step is to limit $N$. It is enough to average $N_0=O\pa{\rc{\ep^2}\ln \prc{\de}}$. Use regular Chernoff bound.
+\item
+Consider $h=\rc N\sumo iN h_i(z) \in H^N$. Bound the true and sample error by $\ep$, 
+$$
+\EE_{(x,y)}[\max_{z\in \rh(x)} \ell(h(z),y)].
+$$
+This requires $|S|\ge \rc{\ep^4} \ln \pf{|H|}{\de}$. 
+
+The max in the $\E$ makes things more complicated. We bounded sample by $O\prc{\ep^2}$ and $N_0$ by $O\prc{\ep^2}$ so get $O\prc{\ep^4}$. 
+\end{enumerate}•
+
+The final theorem: given hypothesis class $H$ and ERM oracle for $H$, there is algorithm that with probability $1-\de$ computes $\ep$-optimal learning hypothesis in time $\poly(\prc{\ep},\prc{\de},\ln |H|)$.
+
+Q: if adversary has finitely many choices, we can't model ``choose error up to $\ep$''---infinitely many choices?
+%error is at most this/
+%if can choose error up to, infinitely many choices.
+
+A: First difficulty is showing the zero-sum game is well-defined. 
+
+%Imagine any bounded number of outliers as one row. 
+This is far from robust statistics because I assume all inputs can be corrupted. 
+%rows only activate if...
+
+How to model robust statistics in this model: One modification rule is not modifying, the other is corrupt. Ex. put 98\% on ``don't modify''. %global restriction.
