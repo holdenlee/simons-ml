@@ -1,0 +1,180 @@
+\section{2017-3-2}
+
+We look at applications of dense model theorem, recursively to get a decomposition. What happens when the hypothesis to the dense model theorem fails.
+
+Example 1.
+\begin{itemize}
+\item
+Let $\mathcal T$ be the set of half-planes.
+\item
+Let $S$ be a distribution on points in the unit square.
+\item
+$\de$ dense means: For any polygon $P$, $\Pj[x\in P]\le \rc \de \text{Area}(p)$.
+
+(If a region is puny, then the probability of landing inside is puny.)
+\item
+$(\ep,\de)$-pseudodense for $\mathcal F_K\mathcal T$ means: Any region of polygons with $\le k$ lines and $\Pj_{x\sim S}[x\in P]\ge \ep/\de$.
+\end{itemize}
+Example 2.
+\begin{itemize}
+\item
+$S$ is a distribution on edges in the complete graph, say uniform on $E(G)$.
+\item
+$\mathcal T$: $T_{A,B}(e)=1$ if $e$ goes between disjoint sets $A,B$. 
+\item
+$\de$-dense: $|E(G)| \ge \de|V|^2$.
+\item
+%\max \ep/\de
+$(\de,\ep)$-pseudo-dense: 
+$$\fc{E_G(A,B)}{|E(G)|} \le \rc \de \fc{|A||B|}{\binom n2}.
+$$
+\end{itemize}•
+Example 3.
+\begin{itemize}
+\item
+$S$ is a distribution on $\{0,1\}^n$.
+\item
+$\mathcal T$ are all tests that depend on $\le l$ variables. 
+\item
+$\mathcal F_k \mathcal T$ is a subset of tests that depend on $\le kl$ variables.
+\item
+$\de$-dense means $|S|\ge \de 2^n$.
+\item
+%$\max \Pj_S(s_1\ldots s_n)\le \rc{\de 2^n}$
+$P$ is $(\de,\ep)$-pseudodense if any property $P$ that depends on $\le kl$ variables and has probability $>\fc\ep\de$ in $S$, $\Pj_S(P)\le \rc{\de} \Pj_U(P)$. 
+%look at any fixed l bits. prob that have those bits, 2^{-...}
+%locally high min-entropy
+\end{itemize}•
+%get some consequences take an arbitrary distribution, to what extent is it...
+%max prob 1/\de^n
+%minentropy n-\lg \de.
+%dist $S$ is what we're given as input. We want to learn to model it by algorithmically by finding model - indisting as far as tests are concerned.
+We can learn to model to $S$. Is the model for $S$ close to $S$ or is it just a model? 
+
+The algorithmic version of the dense model theorem that we got from boosting works as follows. Let $S$ be any distribution on $U$. Then for some $k=\poly\pa{\rc{\ep},\rc{\de}}$,
+either 
+\begin{enumerate}
+\item
+there exists $ T\in \mathcal F_k\mathcal T$ so that 
+$$
+\Pj_{x\sim U} [T[x]] \le \de\Pj_{x\sim S}[T[x]] - \ep
+$$
+or
+\item
+there exists a model $\mu$, $|\mu|\ge \de$ (a subdistribution of the uniform distribution) %map to [0,1], 
+and $\mu\in \mathcal F_k\mathcal T$,
+$$
+|\Pj_{x\sim S} [T(x)] - \Pj_{x\sim D_\mu}[T(x)]|\le O\pf{\ep}{\de}.
+$$
+%pointwise in that class, prob
+(Recall that $D_\mu$ means: pick an element $x$ for $U$ and keep with probability $\mu(x)$. $|\mu|=\E_{x\sim U}\mu(x)$.)
+\end{enumerate}•
+%important for app to arith combo
+%simple distribution.
+%$|\mu|\ge \de$. need to sample
+
+To make an algorithmic version, the subroutine we need that plays the role of a weak learner is: given two distributions we can find an approximately optimal distinguisher in $\mathcal T$.
+%have we found our model? find a test that distinguishes between them.
+%agnostically learn the class.
+%Agnostic weak learner
+
+In the unit square example, the algorithmic version is pretty much guaranteed. The line for the optimal distinguisher passes through 2 of the points. %We only have to look at places where you can't wiggle lines around. Pairs of points. Number of samples you'll need...
+%access to sampler for $S$ and uniform distribution.
+
+A description is a probability distribution on regions,  uniform on each region. If the algorithm returns a hot spot, then we don't have a model for what's out there and what's inside. Maybe there's still a model for the outside. Use this to get a decomposition into any distribution. We want a more agnostic version, get some combination of these two things.
+%test with high bias.
+%\de = 1/100. 100 times more likely in $S$ than uniform distribution.
+
+First, we get a decomposition lemma.
+\begin{lem}
+Let $S$ be any distribution on $U$. Then for $k=\poly\pa{\rc{\ep},\rc{\de}}$, there exists $T\in \mathcal F_K\mathcal T$ and $\mu\in \mathcal F_k \mathcal T$ so that
+\begin{itemize}
+\item
+ $$S\sim_{\pa{\fc{\ep}{\de}, \mathcal  T}} D(\al, T, \mu)$$, where  $\al=\Pj_{x\in S} [T(x)=1]$ and $D(\al,T,\mu)$ is the distribution: ith probability $\al$, pick from $s$ conditioned on $T$; with probability $1-\al$, pick from $D_\mu$ 
+ conditioned on $T$,
+ \item
+$$
+\Pj_{x\in %S
+U} T(x)\le \de \Pj_{x\in S}[T(x)],
+$$
+%\al might be 1, under U at most \de
+\item
+$|\mu|\ge (1-\al)\de$.
+\end{itemize}•
+\end{lem}
+%hotspot region and model $\mu$. Part of $S$ outside of $T$ looks like $\mu$.
+%keep on going until don't get stuck.
+%$T$ is union of several iterations.
+%$|\mu|\ge (1-\al)\de$.
+%relative density $\de$.
+%$k$ is number of steps to collect up hot spots.
+
+%find region where $S$ small concentrated in region. Could be possible because no assumptions on $S$. We're making progress towards understanding $S$.
+
+%prob of all $x$'s satisfy $T$.
+\begin{enumerate}
+\item
+Start with $T=\phi$. Let $\mu=1$. Let $S'=S|\neg T$ and $U' = U|\neg T$. 
+\item
+Apply dense model theorem to $S'$ within $U'$, $\al=\Pj_{x\in S} [T(x)]$, $\de'=(1-\al)\de$. If we set $\mu\in \mathcal F_K \mathcal T$ %that's
+apply DMT to $\de',U', \ep$ to get %\ep/\de'
+ either  $\mu'$ or $T$.
+%only sampling. 
+%with prob \al sampling same dist
+%1-\al sample from two distribution, cancels $1-\al$ factor
+\item
+If $\mu$, we output $D(al, T,\mu)$. Otherwise $T\mapsfrom T\cup T'$.
+\end{enumerate}•
+
+%Maintain as an invariant %density condition.
+%measure on $\mu$
+%\mu and $S'$ to within $\ep/\de'$.
+
+Otherwise we get $T'$,
+$$
+\Pj_{x\in h'}T'(x) \le \de' \Pj_{x'\in S'} T'(x) - \ep.
+$$ 
+Set $T\mapsfrom T\cup T'$.
+%just look at part of T' not in T. Made $T$ have prob 0 in both distribution.
+Note 
+\begin{align}
+\Pj_{x\in U}(T'-T)&\le \Pj_{x\in U}(T'-T)\\
+&\le \de' \Pj_{x\in S'} (T'-T)\\
+&=\de'(1-\al)\Pj_{x\in S} (T'-T)\\
+&=\de \Pj_{x\in S} (T'-T).
+\end{align}
+%Maintain invariant $\Pj_{x\sim U} T
+Probability has grown: Increases by $\al$ and is bounded by 1.
+
+This is the proof of the decomposition lemma. We don't have the model yet.
+
+Maybe we just get hotspots with a small amount of error, or juse a distribution, or something in between. We're interested in when we get something in between.
+
+Recursive decomposition lemma: 
+
+Let $S$ be any distribution, $j$ be an integer, $k=\poly\pa{\rc\de, \rc \ep, j}$, $T_1,\ldots, T_j \in \mathcal F_k \mathcal T$, $\mu_0,\ldots, \mu_{j-1}\in \mathcal F_k\mathcal  T$, $\al_1,\ldots, \al_j$,
+$$
+T_1\supeq T_2\supeq \cdots \subeq T_j,
+$$
+$$D(\vec\al, \vec T, \vec\mu) \sim_{O\pf{j\ep}{\de}, \mathcal T} S,
+$$
+ with probability $\al_0$ pick from $\mu_0$ on $\neg T_1$, with probability $\al_1$ pick  from $\mu_1$ on $\neg T_2$, 
+ $$
+ \Pj_{x\in_h} [T_{j}(x)] \le \de  \Pj_{x\in S}T_j(S)
+ $$%apply decomp in universe, again.
+ %to make this algorithmic, need distinguisher, and be able to sample. In this example we can do both. 
+ and $\Pj_{x\in S} T_j(S) \ge \ep$.
+ %can produce .. from examples in $S$.
+ Say we know that $S$ is $\De$-dense, choose $\de=\rc 2$, $j=\log \rc{\De}$, and get 
+ %since $\De$-dense, has that kind of min-tentropy, $T_j$ disappears. We'll get a distribution, describable in terms of $k$. 
+ 
+Get regularity lemma: if $S$ is $\De$-dense, there exists a distribution $\mathcal F_k \mathcal T$ that is $\fc{\log \prc{\De}}{\ep}$ %-dense  
+indistinguishable vs. $\mathcal T$ and $k=O\pa{\log \prc{\De}\poly\pa{\rc{\ep}, \rc{\de}}}$.
+%1/polylog
+
+Regularity lemma that you get for graphs: Before we had a regularity lemma that said any $\De$-dense graph can be described by roughly equal partitioning using $\exp\pa{O\prc{\ep^2\De}}$ sets to estimate cut sizes. 
+$\exp\pa{\poly{\prc{\ep}, %p
+ \rc{\log\prc{\De}}}}$.
+
+%exp improvement. 
+Downside:  Partition of graph into this many subsets, a prob dist on pairs of subsets. Can have tiny cuts with high probability. If $\De$ is small that's unavoidable. Dense graph, tiny region of original graph.
