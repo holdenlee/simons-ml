@@ -1,0 +1,331 @@
+\section{Nonasymptotic Analysis of SGLD (Matus Telgarsky)}
+%Non-Convex Learning via Stochastic Gradient Langevin Dynamics: A Nonasymptotic Analysis (Matus Telgarsky)}
+
+Joint work with Maxim Raginsky and Alexander Rakhlin.
+
+I tried to use the Lovasz-Vempala papers to do nonconvex optimization. You don't need convexity in the stationary distribution proof. What could go time if I try to prove a mixing time? I pushed through the proofs and got a nonconvex analysis. All the mixing time bounds were uninterpretable; I don't know when it's polynomial. 
+%hour with 
+I couldn't make them work for tensor problems.
+
+This project has been eye-opening; these techniques (stochastic differential equations) are powerful.
+The Lovasz-Vempala papers are nasty; you shouldn't have to be so clever...
+%large number of obscure theorems in books.
+
+\subsection{Basic setting and goal}
+$$
+w_{k+1} = w_k - \eta g_{k+1} - \sfc{2\pi}{\mu}  \xi_k
+$$
+where $\xi_k\sim N(0,I)$.
+Assume conditional unbiased estimate of true gradient $\E[g_{k+1}|w_k] = \nb f(w_k)$. 
+It's more difficult than I expected to convert this into a population gradient.
+Suppose $w_0\sim p_0$ and let $p_k$ be the law of $w_k$. 
+
+
+The stationary distribution (using the true gradient) is $d\pi(w) \propto \exp(-\be f(w))$. %The core performance 
+%true for stoch grad? 
+%for true gradient
+%only know one place to correctly move between
+The Wasserstein distance is
+$$
+W_2(\mu, \nu) = \inf\set{\sqrt{\E\ve{w-w'}_2^2}}{\mu = \text{Law}(w), \nu = \text{Law}(w')}.
+$$
+I'll highlight why we're using $W_2$ distance; this is a key part of this paper.
+ 
+ %strong reject
+
+There are 2 tensions in the analysis: the more time that passes, the better the walk mixes; but the more the discretized and continuous version drift from each other.
+
+Informal theorem is as follows:
+\begin{thm}
+ Suppose $f$ satisfies ``some regularity conditions''.
+Using $K= \Te\pf{\be (d+\be)}{\la \ep^4}$, $\eta=\Te(\ep^4)$. Then the Wasserstein distance between the discretized walk and the stationary distribution is
+$$
+W_2(\mu_k, \pi) = \wt O\pa{\fc{\be(d+\be)^2}{\la} (\cdots+\ep)}
+$$
+\footnote{hiding numerical constants, $\ln \prc{\ep}$, $\ln \be$, smoothness constants not depending on dimension.}
+\end{thm}
+
+As a corollary we get an optimization guarantee.
+\begin{cor}
+$$
+\E f(w_k) - \inf_w f(w) = O(W_2(\mu_k, \pi) + \wt O\pf{d}{R})%R?
+$$
+\end{cor}
+\begin{rem}
+\begin{enumerate}
+\item
+In general the only bound we have is exponential, $\rc\la = \exp(O(\be + d))$. 
+\item
+The arXiv version has a fixed training set. 
+(In general you're running so many iterations that you won't have enough samples.)
+
+I'll give analysis for true stochastic gradients so we can use the population spectral gap.
+%populatio nspectral gap.
+\item
+Dalalyan uses a TV bound. It's not clear how to get the corollary with only a TV bound. You can't control where the difference in the mass between the probability distribution goes---it could be moved arbitrarily far away.
+For $W_1$ you would not be able to do it with smooth $f$.
+%$\ep\to0$ doesn't suffice, you have to crank everything down.
+
+I will return to Dalalyan's proof. I'll step through where we use the same vs. different proofs.
+\end{enumerate}•
+\end{rem}
+Full assumptions are
+\begin{itemize}
+\item
+$|f(0)|\le C$, $\ve{\nb f(0)}\le C$.
+%W2 with L2 on inside
+%dim relationship?
+\item
+$\ve{\nb f(v)-\nb f(w)}\le C\ve{v-w}$.
+\item
+(from control theory literature)
+Dissipativity: for all $w$, 
+$$
+\an{w,\nb f(w)} \ge \rc C\ve{w}^2 - C.
+$$
+It's almost saying you're lower bounded by a quadratic.
+\item
+$$
+\E \ve{\wh g_{k+1} - \nb f(w_k)}_2^2 \le \si^2
+$$
+\item
+$$
+\int \exp(\ve{\om}^2) p_0(w)\,dw\le C.
+$$
+\item
+Spectral gap
+$$
+\la :=\inf\set{\fc{\E_\pi \ve{\nb g}^2}{\E_\pi g^2}}{g\in C^1(\R) \cap L_2(\pi), g\ne 0, \int g\,d\pi=0}.
+$$
+%second eigenvalue. controls mixing.
+Why use this mixing parameter? We have a bound $\rc \la = \exp(O(\be + d))$. Previous analyses were asymptotic.
+\end{itemize}
+
+More remarks:
+\begin{itemize}
+\item
+%openreviews.net, ICLR2017
+There was a paper by Yann LeCun on entropy-SGD. They're essentially doing Langevin on a smoothed function
+$$
+\wt f(w) :=\rc2\ve{w}^2 - \ln \int_{\ve{\om}\le R} e^{\an{v,w} - \ve{w}^2 - \be f(v)}\,dv
+$$
+%hope in analyzing when spec gap constant is small.
+with $\rc{\la} \le O(\exp(\be R^2))$. 
+%
+\item
+$\la$ becomes exponential in pretty mild situations, ex.  disconnected local optima, $\rc{\la} = \exp(\Om(\be))$. Google ``Eyring-Kramois formula'' and ``Bovier-Guyrard-Klein''. Langevin is ``metastable''; it is attracted to local optima.
+\item
+You can get around this using homotopy (change function), annealing method (change temperature schedule, iterate at previous time is a warm start), or warm start. Our analysis doesn't include this.
+
+All analyses for Langevin now are fixed-temperature.
+%lienar functions bad mixing time.
+\item
+Maybe global optimization is the wrong story, a red herring. (Ex. hitting time analysis.) Wide basins of attraction generalize better?
+%\footnote{Ben Recht: eigenvalues not that negative.}
+\end{itemize}
+%mixing time 0
+%langevin is meta-stable
+
+\subsection{Analysis overview}
+
+The way this has been analyzed since forever is to look at the continuous time SDE. See Gelfand-Mitter 1991. The step size disappears here.
+\begin{align}
+dw(t) :&= - \nb f(w(t)) dt + \sfc 2\be d\be (t)\\
+W_t:&= \text{Law}(w_t).
+\end{align}•
+The strategy is
+\begin{align}
+W_2(\mu_k, \pi) &\le W_2(\mu_k, \nu_{k\eta}) + W_2(\nu_{k\eta}, \pi).
+\end{align}
+
+For the first term, the discretization error, 
+\begin{align}
+W_2(\mu_k, \nu_{k\eta}) &\le \wt C_{\nu_{k\eta}}(
+\sqrt{D(\mu_k||\nu_{k\eta})} + D(\mu_k||\nu_{k\eta})^{\rc 4}
+)
+%dalalyan pinsker, girsanov
+\end{align}•
+This is an entire paper by Bolley and Villani (2005). The fact you can do this at all for Wasserstein is surprising.
+Here $\wt C$ is something like $\ln \int \exp(\ve{w}^2)\,dw.$
+
+Dissipativity says that the chain quickly stays within a small ball. Projection would screw up this analysis.
+%small. dissipativity. quickly enter into this region.
+%other issues, high-probability analysis.
+%expected norm of W^2 small: grind dissipativity conditions.
+
+%tiny more finickyness
+Like the Dalalyan paper (but with some more finickyness) we get
+$
+D(\mu_k ||\nu_{k\eta})
+$ small (Use Girsanov's theorem, useful for KL divergence).
+%gives way to write derivative KL divergence
+
+For the discretization, this is what you have to do, in addition to algebra. 
+
+There are 2 version of the Bolley-Villani inequality, one without $\sqrt{}$ term; we can't bound the $\wt C$ in that inequality. 
+
+Here 
+$$
+\wt C_\nu :=2\inf_{\la>0} \pa{\rc \la \pa{\fc 32 + \ln \int \exp(\la\ve{w}^2)\,d\nu}}.
+$$
+%first thing do in paper
+This is hard to understand; we bound with $\la=1$.
+%weighted transportation inequalities.
+%single unifying upper bound?
+%want dep on just $\pi$?
+
+The second term we have to control is the diffusion error $W_2(\nu_{k\eta}, \pi)$, which should go to 0 as $k\to \iy$. This part differs from the Dalalyan paper.
+We have 3 steps. 
+We have to use a log-Sobolev constant.
+\begin{enumerate}
+\item
+$\la_{LS}\le O\pa{\rc \be + \fc{d+\be}{\la}}$.
+%good ls imples good . 
+%proof looks like magic
+The reverse direction is natural (Taylor expansion). 
+Going this direction is difficult; bounding LS by spectral gap is hard and obscure. 
+\item
+(Similar to Dalalyan paper if you are in TV case.)
+$$
+W_2(\nu_{k\eta}, \pi)\le \sqrt{2 \la_{LS}D(\nu_{k\eta}||\pi)}.
+$$
+This is the Otto-Villani theorem. See Bakry-Gentil-Ledoux book, Theorem 9.6.1.
+%action in KL divergence, but can't do entire proof there because no triangle ineq
+We need the log-Sobolev constant another time to control mixing time.
+\item
+$D(\nu_{k\eta}||\pi) \le D(\nu_0||\pi) \exp\pa{-\fc{2k\eta}{\be \la_{LS}}}$, BGL Theorem 5.2.1.
+Entropy decays exponentially fast if you have LS constant. %was designed for this.
+\end{enumerate}
+
+Sketch: Let $n$ be strong convexity.
+\begin{align}
+TV(\nu_{k\eta}, \pi)
+&\le 
+\rc 2
+\chi^2(\nu_{k\eta}||\pi) \exp(-k\eta\cdot m/2),
+\end{align}
+%continuous chain: true gradients. clean.
+The RHS is BGL Corollary 4.8.2. 
+%strong convexity gets inequality for free.
+You get Poincar\'e constant from strong convexity.
+
+We want to control 
+\begin{align}
+\E f(w_k) - \inf_w f(w)
+&\le 
+(\E f(w_k) - \E_\pi f(w)) + (\E_\pi f(w) - \inf_w f(w))\\
+&\le O(W_2(\mu_*, \pi))
+\end{align}
+Here is why we use $W_2$, to control functions which are smooth. %smooth nonLipschitz.
+There's an interesting trick here. To analyze this term, expand into entropy and log-partition function
+$$
+\int f(w)\,d\pi = \rc \be (\text{Ent}(\pi) - \ln \int\exp(-\be  f(w))\,dw)
+$$
+$W_2$ implies weak convergence and 2nd moment convergence. (For $W_p$, $p$th moment.)
+For the first term:
+Upper-bound variance of $\text{Ent}(\nu_k)$ to upper bound $\text{Ent}(\pi)$,  then show it's maximized for gaussians. The second term is boudned by algebra.
+
+In summary we compare to Dalalyan:
+\begin{enumerate}
+\item
+Use $W_2$ to control variation of smooth functions.
+\item
+Rest looks similar, convert $W_2$ to KL by heavy-lifting Villani papers.
+\item
+What's scary is controlling log-Sobolev constant and using the high-power theorems involving it. Our assumption was on $\rc\la = \exp(O(\be+d))$ to give a completely nonasymptotic analysis.
+\end{enumerate}•
+
+\subsection{Tricks from the analysis}
+
+How to do the discretization? Something I tried which was a bad idea: analyze $W_2$ without any technology. 
+%respect correct version of proof
+\begin{align}
+\mu_{k+1} :&= \mu_k - \eta g_{k+1} + \sfc{2\eta}{\be} \xi_{k+1}\\
+\nu_{k+1} :&= \nu_k - \nb f (w_k) + \sfc{2\eta}{\be} \xi_{k+1}
+%pull off one by one.
+\end{align}
+Use explicit coupling that makes things cancel: the same Gaussian.
+This doesn't work---these things really start to drift.
+
+Instead, interpolate between $w_k$ and $w(k\eta)$. 
+Fix stochastic gradients for chunks of time.
+Define a fixed stochastic gradient where I made randomness concrete: $\wh g(w,l)$ a deterministic funciton where $l$ is the source of randomness.
+Then
+$$
+\E_l (\wh g(w,l)) = \nb f(w).
+$$
+Here
+$l_{k+1}$ is randomness at time $k$, $l(t) = l_{k}$ for $t\in [k\eta, (k+1)\eta)$.
+\begin{align}
+w_{k+1} :&= w_k - \eta\wh g(w_k, l_{k+1}) + \sfc{2\eta}{\be}\xi_{k+1}\\
+w(t) &= w_0-\eta\int_0^t \wh g(u(\ff s\eta \eta),l(s))\,ds + \sfc 2\be\int_0^t d\be(s)\\
+v(t) &= w_0-\eta \E[\wh g(\ff s\eta \eta, l(s))|u(s)=v(s)]
++ \sfc{2}\be \int_0^t d\be(s).
+%slightly different prob law
+%pow enough to sircumvent drift
+%KL between measures follow full path
+\end{align}•
+Problem: $w(t)$ is not a Markov chain. Find a 2nd chain where we get rid of the stochastic gradient.
+%P vs. \Pj. one time vs. full path
+
+%\E in divergence, 0
+
+Let 
+\begin{align}
+p_v^* :&=\text{Law}(v(s): 0\le s\le t)\\
+p_w^*:&=\text{Law}(w(s):0\le s\le t)
+\end{align}•
+This looks gross, but you can algebra it away.
+
+Cf. conditional independence given iterate, $\an{\nb f - g, w_k-\ol w}$. Use tower property. We use an ``infinitesimal'' tower property.
+
+Get
+\begin{align}
+D(p_v^*||p_w^*) &= \fc \be 4\int_0^t 
+\E\ve{\nb f (u(s)) - \E(\wh g(u(\ff s\eta \eta), l(s))|U(s)=v(s))}^2\,ds\\
+D(\mu_k||\nu_{k\eta})^{\rc 4}&\le D(p_v^t||p_w^t)%\\
+%D(v_{k\eta}||\pi) &\le D(v_{k\nu}||\pi).
+\end{align}•
+This is a superpowered data-processing inequality.
+%this part of proof doesnt have spec gap. looseness but not biggest source
+
+%2 Wasserstein distances you're controller. Semigroup depends on initial distance. First term does not seem to have dependence on initialization.
+
+%bias: how far
+%discretizing: variance. How much walked rather than start.
+%start near stationary, don't walk too much
+Cf. SGD noise: to kill it need decreasing step size. In Dalalyan, the assumption on initial distribution is only used for the mixing time.
+
+%$d/n$ or $\sfc dn$. At least as large as $d^2/n$. 
+%a2, a3 with b=0, some version of a4, delta,b=0. SG.
+%reduce to strongly convex case? 
+%spectral gap good, polytime analyis. Can't tell you where dim factors coming in.
+%2 sources of dim dep, k grows quadraticall, unavoidable benign, 2.6 can't be controlled. 
+
+%cheap lemmas and ineq.
+%term 3 in 2.6
+%W_2 to control expected value
+%W_2 results under simple setting as good as TV results? Dalalyan: how much do you need convexity?
+%use strong convexity crucially.
+%D's analysis goes through for dissipativity
+%difference just Wasserstein/TV?
+%population has much better behavior. Current assumptions won't even allow least-squares? Why not everything population-quantity? In generic nonconvex, exp number of iterations, number of samples is bottleneck.
+%dissip is analogue of quadratic growth. Redid whole paper. Particularly nice. 
+%quadratic outside compact ball- this is esp. good one. 
+%suppose bounded domain. can we just add a log barrier?
+%smooth in $C^2$ sense. gradient blows up near boundary. 
+%barrier: Metropolis-Hastings to correct.
+
+%optimality guarantee fails with log barrier
+%understand how b and n matters
+%dep on b is polynomial. 
+%take time to decode.
+%errective readius
+
+%replace 1/\ep^2 with Bolley-Villani with 1 term
+
+%metrop hasting: not 1/4 term. 
+%projection? 
+%get r^4. 
+%\sqrt m/b. after time whp cpt set?
+%have to prove for continuous time part!

@@ -1,0 +1,105 @@
+\section{Algorithmic Regularity Lemmas and Applications}
+
+Regularity lemmas are very useful tools in graph theory and theoretical computer science. They roughly involve dividing a graph into a bounded number of parts such that the graph looks in some sense like a graph that is pseudorandom between the pairs. Due to these applications, having algorithmic versions is of interest. We review a recent algorithmic version of the (weak) Frieze-Kannan regularity lemma, and give some applications to finding strong regular partitions, and subgraph counting. Joint work with Jacob Fox and Yufei Zhao.
+
+\subsection{Regularity}
+
+In any graph, the vertices can be partitioned into a bounded number of parts such that the graph is random-like between almost all pairs of parts. This is an important tool in graph theory.
+
+This is an important tool in graph theory and works for all graphs.
+
+Let $X,Y$ be two sets of vertices in $G$, $e(X,Y)$ the number of pairs of vertices in $X\times Y$ with edge between them, $d(X,Y)=\fc{e(X,Y)}{|X||Y|}$. $\ep$-regular if for all $X'\subeq X, Y'\subeq Y$ of fraction at least $\ep$,  $|d(X',Y')-d(X,Y)|\le \ep$. 
+
+$\ep$-regular partition $P$ means all but $\ep|P|^2$ pairs are regular.
+
+There exists equitable, $\ep$-regular partition into at most $C(\ep)$ parts.
+
+Define the mean square density $q(P) = \sum_{i,j} p_ip_j d(V_i,V_j)^2$. 
+\begin{itemize}
+\item
+Between 0 and 1
+\item
+If we refine the partition, it cannot decrease.
+\item
+If partition into $k$ parts is not $\ep$-regular, we can divide each into at most $2^{k+1}$ parts, according to worst case sets, to get increase of $\ep^5$ (using Cauchy defect inequality).
+\end{itemize}
+This can only happen $O\prc{\ep^5}$ times. This gives a tower function. Letting $T(n)=2^{\cdots 2^2}$ $n$ times, $M(\ep)\le T(\ep^{-5})$. Gowers showed a lower bound.
+
+\subsection{Algorithmic Regularity}
+
+How can we check if a pair is $\ep$-regular?
+
+Alon-Duke-Lefmahn-R\"odl-Yuster: If a pair $(X,Y)$ is not regular, find a pair of subsets that show they are not $\ep^4/16$-regular, in time $O_\ep(n^{\om+o(1)})$
+
+Frieze-Kannan use a spectral approach.
+
+Kohayakawa-R\''odl-Thoma gave a $O_\ep(n^2)$ algorithm: test along an expander.
+
+Alon-Naor (2006): polynomial time algorithm approximate cut norm, to get $T(O(\ep^{-7}))$ parts.
+
+Many (most) graphs has a much smaller regularity partition. The previous algorithms may not find it. 
+
+Fischer-Matsliah-Shapira 2010, time $O_{\ep,k}(1)$: if $\ep$-regular partition with $k$ parts, finds $2\ep$-regular partition with at most $k$ parts.
+
+Folkloar/Tao blog post (2010): randomized algorithm in time $O_\ep(1)$. Sample a random set in the graph, partition by how points are connected to this set.
+
+Fox-L-Zhao: $O_{\ep,\al, k}(n^2)$ time deterministic algorithm which given $\ep,\al,k$, graph on $n$ vertices that has $\ep$-rp with $k$ parts, gives $(1+\al)\ep$-regular partition into $k$ parts. 
+
+Intermediate result: test regularity
+
+\subsection{Frieze-Kannan inequality}
+
+Other versions with smaller partitions.
+
+FK $\ep$-regular if for any pair of sets $S,T\subeq V$,
+$$
+\ab{
+e(S,T)-\suij kd(V_i,V_j) |S\cap V_i||T\cap V_j|
+} \le \ep|V|^2.
+$$
+FK regularity lemma: every graph has FK $\ep$-regular partition with at most $2^{2/\ep^2}$ parts.  (You can also require this to be equitable.)
+
+Refine by a single pair of sets globally. Each step, mean square density increases by $\ep^2$, and get a factor of 4 in the number of parts.
+
+Combine with counting lemma.
+
+Given 2 weighted graphs $G_1,G_2$ on same $V$, define cut distance
+$$
+d_\square(G_1,G_2) = \rc{|V|^2} \max_{S,T\subeq V}|e_{G_1}(S,T)-e_{G_2}(S,T)|
+$$
+FK-$\ep$-regular iff $d_\square(G,G_P)\le \ep$.
+
+%Given two graphs, for any $H$ on $k$ vetices, differences in Hom.
+
+\subsection{Algorithmic FK}
+Dellamonica-Kalyanasundaram-Martin-R\''odl-Sharpira: deterministic algorithm find FK $\ep$-regular partition.  (Gives finite sum structure)
+
+$n^{\om+o(1)}$ time algorithm, given $\ep>0$, $G$, $P$, either correctly says regular, or finds $S,T$ which witness not $\ep^3/1000$-regular.
+
+There is $\ep^{-O(1)}n^{\om+o(1)}$-time algorithm, outputs $t\le \ep^{-O(1)}$ subsets $S_i,T_i$ and reals $c_i$, $d_\square (G, d(G) K_{V(G)} + \sum_i c_i K_{S_i,T_i})\le \ep$. Can also do in time $2^{2^{\ep^{-O(1)}}}n^2$. 
+
+Apply to counting subgraphs $H$ in $G$. This is NP-hard in general (is there a single copy? approximate the size of largest clique within $n^{1-\ep}$). 
+
+How fast can we approximate within additive error?  If $H$ on $k$ vertices, allow error $\ep n^k$.
+
+A simple randomized algorithm: sample $\fc{10}{\ep^2}$ random $k$-sets of vertices.
+
+Use algorithmic regularity lemma. Duke-Lefmann-R\''odl, 1996.
+\subsection{Proofs}
+
+We show: $O_H(\ep^{O(e(H))}n + \ep^{-O(1)}n^{\om+o(1)})$. Apply algorithmic FK to get $G'$ with nice structure, $d_\square (G,G')\le \ep/e(H)$, $t\le \ep^{-O(1)}$. Count is off by at most $\ep n^k$ in $G'$. 
+Compute $\Hom(H,G')$ by computing sum of $(t+1)^{e(H)}$ terms. %Multicolored edge homomorphism density.
+
+Algorithmic regularity: $O_{\ep,\al}(n^2)$ time, either X,Y $\ep$-regular, or subsets $U,W$ that show not $(1-\al)\ep$-regular. Use algorithmic FK to get $G'$, $t\le (\al\ep)^{-O(1)}$, $d_\square(G,G')\le \al\ep^3/4$. check bounded number of cases, depending on $|U\cap S_i|, |U\cap T_i|$. Take net of intersection sizes. Check feasibility (exists $U,W$? is density off?). 
+
+Corollary: For fixed $k$, can check regularity of partition of size $k$ with small error.
+
+TO give $(1+\al)\ep$-regular partition into $k$-parts: FK gives $G'$. Take net of possible sizes of partitions. 
+%How divide up each part of the 
+
+%count number copies, more efficiently find and test regularity of sets and partitions
+
+Open: faster? with what additive error can we count subgraphs?
+
+Can you get results from derandomizing?
+Is there  a polynomial set of subsets that you can probe to give additive error?

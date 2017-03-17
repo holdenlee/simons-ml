@@ -1,0 +1,328 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{The contextual bandits problem}
+\chead{} 
+\rhead{} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+
+We consider how to learn through experience to make intelligent decisions.  In the generic setting, called the contextual bandits problem, the learner must repeatedly decide which action to take in response to an observed context, and is then permitted to observe the received reward, but only for the chosen action.  The goal is to learn to behave nearly as well as the best policy (or decision rule) in some possibly very large and rich space of candidate policies.  This talk will describe recent progress on this problem and some of its variants.
+
+%\input{chapters/1.tex}
+
+%\section{Topic}
+
+Motivating example: Design a website. Site needs to decide on ads or content shown to each user as they arrive.
+\begin{enumerate}
+\item
+Website visited by user (with profile, browsing history, etc.)
+\item
+Choose ad to present to user
+\item
+User responds (clicks, leaves page, etc.)
+\end{enumerate}•
+Goal: make choices that elicit desired user behavior.
+
+Medical treatment
+\begin{enumerate}
+\item
+Doctor visited by patient (with symptoms, test results, etc.)
+\item
+Doctor chooses treatment
+\item
+Patient responds (recovers, gets worse, etc.)
+\end{enumerate}•
+Make choices that maximize favorable outcomes.
+
+
+These are both examples of the contextual bandits problem. The agent, a learner is repeated presented with a context.
+\begin{enumerate}
+\item
+Learner presented with context.
+\item
+Learner chooses an action.
+\item
+Learner observes reward (but only for chosen action). This is what makes this a bandit problem. 
+\end{enumerate}
+Goal: learn to choose actions to maximize rewards.
+
+This is a general and fundamental problem: how to make intelligence decisions through experience.
+Goal: learn to choose action to maximize rewards.
+
+Issues:
+\begin{enumerate}
+\item
+There is a classic dilemma:
+\begin{enumerate}
+\item
+exploit what has already been learned to maximize rewards. You might be missing out on great ways of behaving, new drugs to be explored, etc.
+\item
+explore to learn which behaviors give best results. 
+\end{enumerate}
+\item
+Use context ways effectively. There are mamy choices of behavior possible, and you may never see the same context twice---you need to generalize.
+\item
+Selection bias: if you explore while exploiting, you will tend to get highly skewed data.
+\item
+Space and time efficiency.
+\end{enumerate}
+
+We give overview of some algorithms and techniques. We want algorithms that are
+\begin{itemize}
+\item
+general-purpose and practical
+\item
+efficient
+\end{itemize}•
+
+I'll first formalize the learning problem, then give algorithms and give an application and a next step.
+\section{Formal model}
+
+Repeat: for $t=1:T$,
+\begin{enumerate}
+\item
+Learner observes context $s_t$.
+
+Nature chooses reward vector $r_t\in [0,1]^K$ (not observed) before the learner selects an action.
+\item
+Learner selects action $a_t\in [K]$.
+\item
+Learner receives observed reward $r_t(a_t)$.
+\end{enumerate}
+Goal: maximize total reward $\sumo tT r_t(a_t)$.
+
+Assume pairs $(x_t,r_t)$ are chosen at random iid for different $t$. 
+Note we expect $x_t$ and $r_t$ to be correlated and $x_t$ to be informative about $r_t$.
+
+Ex. context is (male, 50,...). Nature selects rewards, learner chooses an action, and only see the reward for that action. Next (female, 18,...). Learner gets sums of rewards.
+
+Learner tries to choose actions based on contexts, a decision rule for selecting an action based on context, a policy. 
+Example: If sex=male, then choose action 2; if else age$>$45 choose action 1; else cllose action 3.
+
+A policy $\pi$ maps context $x$ to action $a$. Before learning begins, as the algorithm designers, we have to choose the general form of policies $\Pi$ to be used. I.e. we need to decide a policy space. Decision tree, neural network, linear classifier, etc. 
+
+We're making a tacit assumption that there exists an (unknown) policy $\pi\in \Pi$ that gives high reward.
+
+Goal: learn through experimentation to do (almost) as well as best $\pi\in \Pi$. For simplicity, assume $\Pi$ is finite, but typically extremely (exponentially) large, ex. space of all decision trees. Thus we allow policies to be very complex and expressive.
+
+Challenges:
+\begin{itemize}
+\item
+$\Pi$ is extremely large.
+\item
+We need to be learniner about all policies simultaneously while also performing as well as the best.
+\item
+When action selected, we only observed reward for policies that would have chosen same action
+\item
+This is exploration vs. exploitation on gigantic scale!
+\end{itemize}
+
+Make the model more precise: The goal is to get high total (or average) reward relative to best policy $\pi\in \Pi$. I.e. we want small regret
+$$
+\max_{\pi\in \Pi} \rc T\sumo tT r_t(\pi(x_t)) - \rc T\sumo tTr_t(a_t).
+$$
+We want regret $\to0$ as $T\to \iy$, no regret learning algorithm.
+
+\section{Algorithms}
+
+\subsection{Full information setting}
+
+Start out by supposing the learner sees the rewards for all actions, not just the selection action. Ex. when the doctor prescribes a drug, finds out what happens with a host of other treatments. This is not realistic, just to build intuition.
+
+%Learner sees what reward would have been received from all actions.
+
+We can pick any particular policy and figure out which rewards would have been received from that policy. We can go back and compute what actions would have been selected by that policy and since we can observe all the rewards, figure out what reward would have been received from those actions, and get the total reward from following that policy. The average is a good estimate of the policy's expected reward.
+
+Obvious thing to do: just pick the best policy, Follow-the-Leader.  Find the empirically best policy (that's performed the best so far), and use it on the current context to select the next action.
+
+This algorithm gives optimal regret $O\pa{\sfc{\ln |\Pi|}{T}}$ which goes to 0, and scales as $\sqrt{\ln |\Pi|}$ in the policy space size.
+
+To apply efficiently, we need an oracle: algorithm/subroutine for finding best $\pi\in \Pi$ on observed contexts and rewards.
+We call it an argmax oracle (ERM, classification, linear oracle).
+
+It does something that's natural in ML. It's solving a standard learning problem, a classification problem, classify objects according to category. If we have a good classification algorithm for $\Pi$, we can use it to find a good policy. We can use SVMs, decision tree algorithms, boosting, neural networks, etc. %The label is the action. 
+Policy corresponds to classifier, context corresponds to example, action correspond to label.
+
+I highlight techniques that come up. 
+\begin{itemize}
+\item
+Estimate expected reward of each policy.
+\item
+Use existing method (oracle) to find best policy.
+\end{itemize}
+
+Proof idea: every policy's empirical average reward close to actual average.
+
+So far we assumed stochastic setting, each $(x_t,r_t)$ in iid. This is not always realistic; you can have correlated or drifting data, or an adversarial environment as in game playing.
+
+In non-stochastic (adversarial) setting, contexts and rewards are arbitrarily, not random, possibly selected by adversary.
+
+FTL does not work: the adversary can force low reward while ensuring one policy gets fairly high reward.
+
+There is another algorithm that works: the Hedge algorithm (Littlestone, Warmuth; Freund, Schapire). 
+\begin{itemize}
+\item
+Maintain one weight for every $\pi\in \Pi$.
+\item
+On each rount $t$
+\begin{itemize}
+\item
+choose random policy $\pi$ with probability proportional to weights
+\item
+use action chosen by $\pi$
+\item
+increase weight of each policy according to reward it would have received.
+\end{itemize}•
+\end{itemize}•
+This yields optimal regret even in adversarial setting. But time and space are linear in $|\Pi|$ because it needs to maintain a weight for each policy. This is too slow if $|\Pi|$ is large.
+
+Technique: use weighted combination of policies.
+
+Proof idea: keep track of sum of weights of all policies. Give upper bound in terms of reward of algorithms and lower bound in terms of reward of best policy. Combine to get regret bound.
+
+In summary, FTL is for stochastic setting, and is efficent given access to oracle. Hedge is non-stochastic, inefficient if $|\Pi|$ is large. 
+
+Is the best of both possible? This appears impossible (Hazan, Koren).
+
+\subsection{Bandit setting}
+
+We only see rewards for actions taken.
+Learner can still compute own total reward. 
+But for any policy $\pi$, we only observe $\pi$'s rewards on subset of rounds---the rounds where the learner picked the same action.
+
+Problems with oracle algorithm:
+\begin{itemize}
+\item
+only see some rewards
+\item
+observed rewards are highly biased (due to skewed choice of actions).
+\end{itemize}
+
+Exploration is very important in bandit setting. Suppose
+\begin{itemize}
+\item
+drug A is pretty good (cure rate 60\%)
+\item
+drug B is much better (cure rate 80\%)
+\end{itemize}
+But in early trials, by chance, A might appear better than B. Follow-the-leader can get stuck in only picking A.
+Statistics for A get better but statistics for B stay lousy because we're not getting more samples.
+
+Use modified follow-the-leader: $\ep$-greedy/epoch-greedy algorithm. There is explicit exploitation and exploration. On each round,
+\begin{itemize}
+\item
+choose action according to best policy so far with probability $1-\ep$ (exploitation)
+\item
+uniformly at random with probability $\ep$ (exploration)
+\end{itemize}•
+This is simple and fast given oracle with analysis similar to FTL, but you don't get optimal regret, $O\pa{\pf{K\ln |\Pi|}{T}^{\rc 3}}$. 
+
+Technique: explicit exploration via uniform sampling of actions.
+
+Let's talk about selection bias. Bias is a big problem, but there is an old trick for dealing with bias, inverse propensity weighting. Suppose we want to estimate $\E X$, ex. an unfair coin coming up heads. Suppose with probability $p$ (independent of $X$) observe $X$ once and with probability $1-p$ don't observe $X$ at all.
+
+Trick: define $\wh X=X/p$ if observed and 0 else. Even if only some of the time we observe $X$, we can always observe $\wh X$. Then $\E[\wh X] = \E X$; this is unbiased.
+
+We're not done because the variance may be extremely large. To get good estimators we must control variance.
+%Sometimes we can get this by 
+
+Technique: inverse propensity weighting to get unbiased estimates.
+
+What about bandits in non-stochastic setting? The algorithm is Exp4: contexual bandits algorithm for non-stochastic setting. Combine hedge, uniform sampling of actions, and inverse propensity weighting.
+Get optimal regret
+$$
+O\pa{\sfc{K\ln |\Pi|}{T}}.
+$$
+This analysis is similar to Hedge, but we must account for variance. Complexity scales as $|\Pi|$.
+
+To compare, epoch greedy is for stochastic setting, not optimal, efficient given access to oracle. Exp4 is non-stochastic setting, achieves optimal regret, inefficient if $|\Pi|$ huge.
+
+The difference in regret is big. To get regret $\ep$, for the first we need $O\prc{\ep^3}$; for the second we need $O\prc{\ep^2}$.
+
+Can we get the best of both? Yes, the ``Mini-Monster'' algorithm (a.k.a. ILOVETOCONBANDITS), Agarwal, Hsu, Kale, Langford, Li, Schapire.
+
+\begin{itemize}
+\item
+Apply all preceding techniques
+\item
+Every round, find weighted combination of policies satisfiying explicitly stated properties
+\begin{enumerate}
+\item
+Low (estimated) regret, i.e., choose actions we think will give high reward. (exploit)
+\item
+Low (estimated) variance, i.e., ensure future estimates will be accurate. (Explore)
+\end{enumerate}
+\end{itemize}
+There are exponentially many constraints, but we can solve using simple and efficient algorithm given oracle. Find violated constraint, fix it, and repeat.
+
+Get nearly optimal $\wt O\pa{\sfc{K\ln |\Pi|}{T}}$ and fast: only requires average of $O\pa{\sfc{K}{T\ln |\Pi|}}\ll 1$  oracle queries per round. %, once every $\sqrt T$ rounds.
+(Oddly, you call it less when the policy space is larger.
+
+%oracle calls to get certain regret.
+This is the same approach as RandomizedUCB (a.k.a. Monster) but simpler and much faster. (Dudik, Hsu, Kale, Karampatziakis, Langford, Reyzin, Zhang)
+
+Technique: formulate properties as optimization problem and solve.
+
+Proof ideas:
+\begin{itemize}
+\item
+ For regret bound: regret constraint ensures low regret (if estimates are good enough). Variance constraints ensure that they actually will be good enough.
+\item
+Use potential function to measure progress. Every iteration of this numerical algorithm, we make good progress. The total amount of progress we need is bounded.
+\end{itemize}
+
+\section{Application}
+
+We created a system that implements contextual bandits problem, the multiworld testing decision service. 
+It is a unified system for solving contextual bandit problems:
+\begin{itemize}
+\item
+general purpose
+\item
+modular
+\item
+easy to interface with existing systems
+\item
+designed to reduce common errors (it's hard to collect data in a reliable way).
+\end{itemize}•
+It's used at MSN.com, to select news articles.
+\begin{itemize}
+\item
+No previous learning method has been successful
+\item
+There is 25\% relative lift in click-through rate
+\item
+It handles thousands of requests per second.
+\end{itemize}
+Contextual bandits is challenging and interesting problem.
+
+%Bounds for regret, in regimes people are using them.
+%Vacuous range, way past that area.
+
+Q/A:
+
+People mainly use $\ep$-greedy at this point; mini-Monster hasn't been deployed.
+
+%depend on how good policy actually is
+Note epoch-greedy is $\ep$-greedy with decaying $\ep$.
+
+Do you use structure on context? It's hidden in oracle.
+
+%Extension that combines background knowledge.
+
+\printbibliography
+\end{document}

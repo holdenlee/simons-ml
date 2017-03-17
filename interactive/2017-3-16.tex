@@ -1,0 +1,158 @@
+\section{Sequential information maximization (Hamed Hassani)}
+
+Abstract: Optimal information gathering using uncertain observations is a central challenge in many disciplines of machine learning such as Bayesian experimental design, automated diagnosis, active learning, and decision making. A widely used method is to perform sequential observation selection, where the choice of the next observation depends on the history seen thus far. Despite the importance and widespread use in applications, little is known about the theoretical properties of sequential observation selection policies in the presence of noise. In particular, a long-open direction has been to analyse the persistent-noise setting that is arguably more relevant in practical applications. In this talk, we will present a new framework to capture the role of noise, and explain how it leads to the first rigorous analysis of the famous information-gain policy. We will then consider more general information gathering settings and provide new efficient algorithms, with provable guarantees,  to deal with noisy observations.
+
+Joint work with Yuxin Chen, Andreas Krause, and Amin Karbasi
+
+\subsection{General setup (Bayesian)}
+
+Let $Y\in \{y_1,\ldots, y_n\}$ the set of hypotheses, $X_1,\ldots, X_m$ the set of tests. The joint distribution is $P_{Y, X_1,\ldots, X_m}$. 
+
+Ex. sensors, recommendations, medical diagnoses (diseases, medical tests).
+A doctor wants to find out what diseases the patient has using tests. The first approach is the offline approach, select a susbet of tests and test. Based on all the results, decide what disease the patient case. In the adaptive setting, select one test; based on the result, choose the next test, and so on. Choose based on history. (Assume the tests don't affect the subject.)
+
+Start with a uncertain prior. By performing a series of tests, we want to reduce uncertainty, have the posterior concentrated on one hypothesis. %one of the posteriors 
+
+Entropy measures uncertainty
+$$
+H(Y) = -\sum_i p_{y_i} \ln p_{y_i}.
+$$
+A uniform distribution has high entropy, a concentrated distribution has low entropy.
+
+
+
+\subsection{Information-gain heuristic}
+
+The information gain heuristic is a sequential greedy policy: at each step have a posterior $Y|$history with entropy $H(Y|\text{history})$. For each test $X_i$, the information that $X_i$ provides is
+$$
+H(Y|\text{history}) - H(Y|\text{history},X_i) =: I(X_i;Y|\text{history}). 
+$$
+It is the difference in entropy before observing $X_i$ and after observing $X_i$. The greedy policy is to pick the most informative test at each step.
+
+The information-gain policy has been used since the 50's but there was no rigorous analysis.
+
+The model is the conditionally independent Bayes model: conditioned on $Y$, the outcome of the tests $X_1,\ldots, X_m$ are independent.
+%what if 2-wise interactions?
+We know distributions $p_j(X_j=x_j|Y=y_i)$. 
+%text retrieval, decision tree learning, medical diagnosis, active learning
+People have analyzed this under the deterministic case and non-persistent noise case. (Mistakes are not systematic; you can make another query that's independent.)
+%spam filter - ask an expert
+
+One simple practical example if outcome of tests are noisy versions of the true outcome which is a deterministc function of $Y$.
+
+A policy $\pi$ is a decision tree; the next test is a function of the observations so far. We consider policies of length $k$. 
+Initially there is some entropy $H(Y)$. At the end the  entropy on average is $H(Y|\pi)$. We aim to maximize information gained by the policy, 
+$$I(\pi;Y) = H(Y) - H(Y|\pi).$$
+We want
+$$
+I_{\text{OPT}[k]} = \max_{\pi\in \Pi_k}I(\pi;Y)
+$$
+the optimal amount of information after $k$ steps.
+We compare with
+$$
+I_{IG[l]} = I(\pi_{IG[l]};Y)
+$$
+the gain of the information-gain heuristic after $l$ steps.
+How large should $l$ be so that we can approximate $I_{\text{OPT}[k]}$?
+
+\begin{thm}
+%For any $\de>0$ it holds 
+To gain $(1-\al)I_{\text{OPT}[k]}$ it is sufficient to run IG for $O(k\cdot \fc{\ln n\ln \prc{\al}}S)$.
+\end{thm}
+
+Note in the offline noiseless setting this is a submodular optimization problem which is NP-hard.
+
+Here $S$ is the separability parameter,
+\begin{align}
+S_i &= \pa{\min_{y,y':p_i(\cdot|y)\ne p_i(\cdot |y')} |p_i(\cdot|y)-p_i(\cdot |y')|_{TV}}^2,\\
+S&=\min_i S_i,
+\end{align}
+how well we can distinguish between any 2 hypotheses.
+
+%min residual entropy vs. maximize info gain?
+%$(1+\al)$ residual entropy
+
+\subsection{Analysis on conditionally independent model (proofs, insight)}
+
+Let $G_l$ be the greedy algorithm after $l$ steps. The gain is $I(G_l;Y)$. We want to compare with the optimal policy $\pi_k^*$ which achieves $I(\pi_k^*;Y)$. We show
+$$
+I(G_l;Y) \ge (1-\exp(-cl/k))I(\pi_k^*;Y)
+$$
+where $c=\fc{S}{\ln n}$. 
+
+To simplify the proof, assume each test has the following structure: There is a deterministic outcome $D_i$, and noise is added to this outcome---the bit is flipped with probability $\ep$. Call the noise part $N_i$. Here $S_i = (1-2\ep)^2$ (BSC). The observed outcome is $X_i$.
+%Lose: binary. symmetric.
+
+The proof has 2 main steps.
+\begin{enumerate}
+\item
+Relate 1-step greedy to OPT. 
+
+Let $i^*=\amin_{i\in [m]} I(X_i; Y|\text{history})$. 
+
+\begin{lem}
+$$
+\max_{i\in [m]}I(X_i;Y|\text{history}) \ge c\fc{\min_{\pi\in \Pi_k} I(\pi_k;Y|\text{history})}{k}.$$
+\end{lem}
+LHS is the local gain; RHS is the global gain.
+
+Proof sketch of lemma: Relate the noiseless to noisy setting.
+\begin{enumerate}
+\item
+%havin gaccess to true outcome, what is the expected reduction in 
+Consider the expected mass reduction by performing $D_l$, which is 1 with probability $1-p$. It is $2p(1-p)$.
+
+Pinsker's inequality gives $I(X_l;Y)\ge S_l p_l(1-p_l)$. 
+\item
+$I(\pi, N:= \{N_i\}_{i\in M};Y) \ge I(\pi;Y)$.
+\item
+(Longest step) $I(\pi,N;Y) = k\ln n \ub{\max_{i\in [m]} s_i p_i (1-p_i)}{\le I(x_i;y)}$.
+\end{enumerate}•
+\item
+
+%Let $G_i$ be the path of the greedy alg
+The amount of information that is gained at the $i$th level of greedy is 
+\begin{align}
+I(G_i;Y) - I(G_{i-1};Y) = I(G_i;Y | G_{i-1}) &= \E[I(X_{i^*};Y)|G_{i-1}=g_{i-1}]\\
+&\ge \fc{C}{k} \E[I(\pi_k^*;Y|G_{i-1}=g_{i-1})]\\
+&=\fc{C}{k} I(\pi_k^*; Y|G_{i-1}) \\
+&= \fc{C}k (H(Y|G_{i-1}) - H(Y|G_{i-1}, \pi_k^*))\\
+&\ge \fc{C}{k} (H(Y|G_{i-1}) - H(Y|\pi_k^*))\\
+&\ge \fc{C}{k} (H(Y) - H(Y|\pi_k^*) - (H(Y)-H(Y|G_{i-1})))\\
+I(G_i;Y) - I(G_{i-1};Y) = I(G_i;Y | G_{i-1}) &\ge \fc{C}{k} [I(\pi_k^*;Y)-I(G_{i-1};Y)]\\
+\de_i:&=I(\pi_k^*; Y)-I(G_i;Y)\\
+\de_i &\le \pa{1-\fc Ck} \de_{i-1} \\
+\implies \de_l &\le e^{-Cl/k} \de_0.
+\end{align}
+%conditioning reduces entropy
+\end{enumerate}
+%greediness in paradigm of submodularity
+
+
+\subsection{Learning categories: new algorithms}
+
+Information gain heuristic could be arbitrarily bad. One such bad case is learning categories. We give new algorithms in this case.
+
+Is the structural parameter $S$ necessary? Yes. %There are setting where in order to gain information close to $I_{\text{OPT}[k]} = \fc{S}{k}$.
+$S$ can go to 0, making the bound arbitrarily bad.
+
+Ex. find what category the hypothesis belongs to: type of disease, genre of movie. We want to learn $Z$ depending on $Y$, which is much less complex than $Y$. 
+
+IG would choose the most informative test about $Z$. But $S$ can become 0. Suppose hypothesis space has 4 hypotheses with $\rc4$ probability. They are split into 2 groups, $Z=$green or red. Consider a test which cuts space into 2 parts, but doesn't inform you about $Z$. Then $I(X;Y)=1$ but $I(X;Z)=0$. So IG may fail arbitrarily badly compared to OPT.
+
+We want to distinguish hypotheses in different categories. Transform hypothesis space, whose elements $U$ are pairs of hypotheses $y,y'$ with probability $p(y)p(y')$. We don't care about distinguishing $y,y'$ in the same category. Merge those into one element. 
+Learning $Z$ is equivalent to learning $U$, $H(Z)=0\iff H(U)=0$. 
+
+Pairwise information gain policy: At each step, choose the test that minimizes the uncertainty of $U$. 
+
+Ex. MovieLens-100k dataset. Objective: find category contains user's preference. Tests: given 2 movies, user picks one more similar to their preference. 
+
+%Conclusions:
+%\begin{itemize}
+%\item
+%Information gain heuristic
+%\item
+%\item
+%\end{itemize}
+
+%MAP error less than entropy

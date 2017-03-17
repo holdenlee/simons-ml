@@ -1,0 +1,263 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Logistic regression convergence rates for stochastic gradient descent without boundedness}
+\chead{} 
+\rhead{} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+
+Speaker: Matus Telgarsky (UIUC)
+
+%\input{chapters/1.tex}
+The goal of this talk is to prove that stochastic gradient descent (sgd) converges with high probability to something meaningful in the task of logistic regression without any constraints or regularization, in a regime where iterate norms may grow without bound. In this regime, it is shown that the dual iterates---and hence the logistic probability outputs---always converge to the dual optimum. If a certain margin property of the distribution is large, then the dual rate is $O(t^{-1/4})$, and the (primal) risk also converges at a rate $O(t^{-1/2})$. It is also shown that a modified algorithm---not sgd, but still performing one pass of the data and using $O(d^2)$ storage---similarly always converges, and under the same margin property has dual rate $O(t^{-1/2})$ and primal rate $O(t^{-1})$. By contrast, existing analyses in these regimes do not appear to be better than $O(1)$.
+
+
+There's no boundedness in the parameter space. I'm not talking about boundedness in the covariates.
+
+\section{Setting and goal}
+
+The problem is open.
+
+
+%structure on risk minimization problem
+Why only the logistic loss?
+
+Find $w\in \R^d$ to minimize
+$$
+R(w) = \int \ell(\an{w,-xy})\,d\mu(x,y)
+$$
+I'm talking about population risk.
+
+I'm not using projection, and have a strong condition on the stochasticity in the SGD, 
+$$
+w_0=0,\quad w_s=w_{s-1} - \eta g_s, \quad\forall s>0
+$$
+where $g_s=-\ell'(\an{w_{s-1}, -x_sy_s})x_sy_s$ for iid $(x_s,y_s)\sim \mu$.
+I need this! We have to weave martingale throubh sgd recursion analysis.
+ 
+Goal: with probability $\ge 1-de$ 
+$$
+R(\wh w_t ) -\inf_w R(w) = \wt O\pf{\pat{dist const}, \ln\prc{\de}}{t}
+$$
+Note we're comparing against the infimum, not minimum in bounded set.
+
+Prior work have dependence on norms
+$$
+R(\wh w_t) - \inf_w R(w) = R(u) - \inf_w R(w) + \wt O\pf{\max_{s<t} \ve{w_s-u}_2\ln \prc\de}{\sqrt t}.
+$$
+Alternatively, use strong convexity, but the strong convexity constant decays exponentially with the  ball you're searching over.
+
+If perfect separator, infimum loss is 0 but $R(w)>0$ for all $w$. The infimum is not attained!
+This phenomenon does not happen with squared loss.
+
+%1/t close, $1/\sqrt t$ rate.
+
+%do analysis plug better things in.
+We get $\wt O(1)$ without analysis of $w_s,u$. $\wt O\prc{t}$ requires martingale analysis.
+
+This should be believable.
+
+\section{Motivation}
+
+Who cares?
+
+\begin{itemize}
+\item
+SGD is often minimally constrained/regularized in practice.
+\item
+``Understanding NN requires rethinking generalization'' says: This phenomenon is qualitatively unaffected by explicit regularization.
+\item
+I wondered if it was possible to analyze things without boundedness conditions. 
+
+\end{itemize}•
+
+Consider experiment: minimize $\wh R_n(w) + \rc{2n^p}\ve{w}^2$ for $p\in \{\rc 4, \rc 2, 1, 2, \iy\}$. 
+We have a finite training set, minimize using L-BFGS.
+
+For the risk bound go to 0 with number of samples (analyzing with Rademacher complexity), you need to use one of first three choices.
+
+As $p$ increases past threshold, $p\to \iy$, %test error doesn't go up! %I want test error to go down. 
+for most of the datasets, classification error doesn't go up!
+
+%
+%How do you show SGD converges: control between iterator and comparator.
+
+\section{Risk structure}
+
+Study risk and the structure that this imposes.
+%does anyone want to argue about anything?
+
+There is an ancient analysis when there are margins. We will prove the general case is a combination of the two cases (bounded vs. margin).
+
+What properties of the measure $\mu$ induce bounded sublevel sets? %All of these cases have global optimum and compact sublevel sets.
+
+%joint dist--compact sublevel on risk . 
+This doesn't require anything about convex loss except it's 0.
+
+Under the structure where every direction makes classification errors (convex hulls of +/- examples overlap?), we get bounded sublevel sets and global optimum. Convex losses don't like it when you make mistakes. It will not allow you to be too big.
+
+Second case: some direction makes no error. This is the classical setting of margins.
+%card-carrying member of Peter Bartlett fan club
+Covering number is based on the amount of margin you have. We have a lot of wiggle room for the direction.
+%standard book now talks about Rademacher complexity
+
+Okay if arbitrarily small mass close to margin: for all $\ep>0$, exists $\ga(\ep)>0$, $\ol u$, $\Pj[\an{\ol u, xy}<\ga(\ep)]\le \ep$.
+
+%exists directions nonnegative
+
+There is another case, the mixed regime. Earlier we had two densities that looked continuous. Now consider if we have positive probability on 2 lines.
+%If you believe everything is Lebesgue continuous you'll be mad
+%if you don't believe in measures not L cont
+
+(Picture.) ``Optimal'' vector could be a finite point plus an infinite vector in the orthogonal directions.
+$$
+\lim_{c\to \iy} R(\ol v + c\cdot \ol u) = \inf_w R(w).
+$$
+
+\begin{thm}[Structure theorem]
+There exist unique $S,S^{\perp}$ such that
+\begin{itemize}
+\item
+ There exists unique $\ol v\in S$,
+ $$
+ R_S(\ol v) = \inf_w R_S(w) = \inf_w R(w).
+ $$
+ %risk is risk on
+\item
+Given $(w_i)_{i\ge 1}$,
+\begin{align}
+\Pi_S(w_i)&\to \ol v\\
+R_{S^c}(w_i)&\to 0\\
+R_{S^c}(\Pi_{S^{\perp}}(w_i))&\to 0.
+\end{align}•
+\end{itemize}
+\end{thm}
+(I have to talk about minimizing sequences because norms go to $\iy$.) %All that matters is behav over $S^{\perp}$.
+The last line is loss-sensitive; other things can be proved for losses that are strictly convex and asymptote to 0 on one side.
+Effectively like exponential loss as $\to -\iy$.
+
+``Logistic loss is good.'' It's the only loss that many people use for classification.
+
+%multiclass logistic type things
+%everywhere, not satisfactorily explained
+
+Essence of proof: dissect % the hell out of
+the dual.
+The dual optimum always exists! 
+
+\section{Theorem}
+
+I give the $O\prc{\sqrt t}$ version.  With prob $\ge 1-\de$,
+$$
+R(\wh w_t) - \inf_w R(w) = \wt O\pa{
+\fc{\ln \prc\de^2}{\sqrt t}(1+t\ep^2 + \rc{\ga(\ep)^4})
+}.
+$$
+
+$\ga(\ep)$ is such that there exists unit vector $\ol u\in S^{\perp}$ s.t. $\Pj[x\in S^\perp\wedge \an{\ol u, xy} < \ga(\ep)]\le \ep$. This can blow up, $t\ep^2 + \ga(\ep)^{-1}\ge \sqrt t$.
+%add margin and bounded type analysis
+(Ex. If the distribution grows towards the boundary.)
+
+Cheat: for the dual optimum,
+$$
+\int |\wh q_t - \ol q|\,d\mu = \wt O\pa{\fc{\ln \prc{\de}}{t^{\rc 4}}(1+t^{\rc 4}\sqrt \ep + \rc{\ga(\ep)})}.
+$$
+
+\begin{itemize}
+\item
+I can make $\ep$ small and wait for $t$ to be large. The dual is the probability prediction---the probability predictions do converge. 
+Here $\wh q_t(x,y) = t^{-1} \sum_{s<t}\ell'(\an{w_s,-xy})$. 
+\item
+This means 0-1 loss converges quickly in general; we don't know about the risk.
+%\wt O(\ln /\sqrt t(1+t&{\rc 2} + \rc{\ga(\ep}^?)
+\item
+%how big sublevel sets are
+The $\wt O$ is hiding $\poly\log (t),\poly\log(d)$. The dependence depends on how big sublevel sets are. 
+\end{itemize}•
+
+
+\section{Proof}
+
+The proof strategy: separate analysis on $S$ and $S^{\perp}$. 
+\begin{itemize}
+\item
+Over $S$: $\ve{w_t - \ol v}$.
+\item
+Over $S^{\perp}$: $\ve{\nv{w_t} - \ol u}$.  %line up direction.
+\end{itemize}
+The problem decouples. Look instead at
+\begin{itemize}
+\item
+$|\Pi_S(w_t)-\ol v|$.
+\item
+$\min \ve{\nv{\Pi_{S^{\perp}} (w_t)} - \ol u}$ or $\an{w_t, \ol u}$.
+\end{itemize}
+
+
+Over $S$ do usual analysis.
+Over $S^{\perp}$ do perceptron analysis.
+Cross terms are small and easy to control. 
+Proving the decomposition into subspaces is the hard part.
+The convergence loss hadn't been done for logistic loss, just for hinge.
+
+%\begin{itemize}
+%\item
+%Utilize properties of $\ell$: 
+%\begin{itemize}
+%\item
+%Over $S$: smooth, $\ell''>0$, Lipschitz for convenience.
+%\item
+%Over $S^c$:
+%\end{itemize}•
+%\end{itemize}•
+
+%$S^{\perp}$ has to go to infinity. Mathematically so clean is strange.
+
+\begin{enumerate}
+\item
+Why cross terms vanish: $\ve{\Pi_S(w_j)}\le B$. 
+%compact sublevel sets.
+%hit with Azuma.
+Take usual smoothness proof: Write smoothness upper bound, do algebra, gradient descent converges to something with small gradient. One step of this tells us you stay within sublevel set.
+
+Let $v_t = \Pi_S(w_j)$.
+We control the potential function 
+\begin{align}
+\ve{v_{t+1}-v}^2 &= \ve{v_t-\ol v}_2^2 + 2\eta \an{g_{t+1}, \ol v-v_t} + \eta^2\ve{\Pi_S(y_{t+1})}^2
+\end{align}
+the first term should worry you.
+The first term is
+\begin{align}
+&=\an{g_{t+1} - \nb R(w_t), \ol v-v_t}
++ \ub{\an{R(w_t), \ol v-v_t}}{\an{\nb R_S(v_t), \ol v-v_t}+ \an{\nb R_{S^{\perp}} (w_t), \ol v-v_t}}
+\end{align}
+These terms in the underbrace are respectively $\le R_S(\ol v) - R_S(v_t)$, population version of mistake bound $2B\sum_{j<t} \int_{S^{\perp}} \ell'(\an{w_{S}, -xy})\,d\mu(x,y)$. Control using perceptron proof.
+\item
+\begin{align}
+\inf_w \int \ell(\an{w,xy})\,d\mu(x,y)
+=
+\sum\set{\int -\ell^*(q(x,y))\,d\mu(x,y)}{q\in L^1(\mu), \int xyq(x,y)=0},
+\end{align}
+Interpreting the condition: it says for all $w$, $\int\an{w,xy} q(x,y)=0$, a measure which decorrelates everything. Equally supported in correct/wrong predictions. Why you get boundedness over set. %space where this is positive
+(See Rockefeller paper)
+%dual space is space of measures.
+$$\int_{\an{w,xy}>0} \an{w,xy}q(x,y) = \int_{\an{w,xy}<0}\an{w,-xy}q(x,y).
+$$ 
+\end{enumerate}•
+
+\printbibliography
+\end{document}

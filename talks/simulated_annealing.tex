@@ -1,0 +1,204 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Simulated annealing and IPM}
+\chead{} 
+\rhead{} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+
+Our goal is to solve
+$$
+\min_{x\in K} \wh \te^T x
+$$
+where $K$ is convex and compact.
+
+\section{Interior point methods}
+
+Path-following interior point is the following:
+\begin{itemize}
+\item
+While $t>\ep/m$,
+\begin{itemize}
+\item
+``Approximately'' solve 
+$$\wh x_t \approx \amin_{x\in K} \ub{x^T\wh \te + t\ph(x)}{\Phi_t(x)}$$
+ where $\ph$ is self-concordant barrier function.
+\item
+$t\mapsfrom t(1-\ga)$.
+\end{itemize}•
+\end{itemize}
+%Requirements
+Examples for $\ph$:
+\begin{itemize}
+\item
+$K=\set{x}{Ax<b}$. Then $\ph_K(x) = \sum_i -\ln (b_i - A_ix)$ works.
+\end{itemize}
+Requirements:
+\begin{enumerate}
+\item
+$\ph\to \iy$ as $x\to \pl K$.
+\item
+$\nb_x^3 \ph[h,h,h] \le 2(\nb_x^2 \ph[h,h])^{\fc 32}$
+\item
+$\nb_x \ph[h]\le \sqrt{\nu\nb_x^2\ph[h,h]}$.
+\end{enumerate}
+
+Approximate algorithm: Newton's method
+$$
+\wh x^+\mapsfrom \wh x - c \nb^{-2} \ph(\wh x) \nb \Phi_t(\wh x).
+$$
+Analysis relies on 
+$$
+\la_t(x) = \sqrt{\nb \Phi_t(x) \nb^{-2}\ph(x) \nb \Phi_t(x)}
+$$
+being small. I want $\nb \Phi_t$ to be small measured in norm of Hessian. 
+
+%how far off did I make it worse.
+\begin{align}
+t^+ &:= t\pa{1-\fc{d}{\sqrt \nu}}\\
+\la_{t^+}(\wh x) &\le \la_t(\wh x)(1+c)+c\\
+\la_{t^+}(\wh x^+) &\le 2\la_{t^+}^2(\wh x).
+\end{align}
+%
+%alm grad of new obj
+%once newton decrement $<\rc2$, then decays quadratically.
+$\la$ doesn't increase too much when you increase the temperature a little; then after doing a Newton step it decreases quickly.
+
+Once $t<\ep$ you have an $\ep$-approximate solution. 
+
+%draw balls around the Hessian.
+
+We need $(1-\fc d{\sqrt \nu})^L<\ep$, so need $K=\Te(\sqrt \nu \ln \prc\ep)$ epochs.
+
+%Nesterov Nemivroski Russia to US
+
+Does there exist $\ph$ for every compact convex $K$?
+Nesterov and Nemivroski showed yes, for $\nu=O(n)$. It is constructive but not efficiently computable (volume of polar cones...)
+
+\section{Simulated annealing}
+
+\begin{itemize}
+\item
+While $t>\ep$,
+\begin{itemize}
+\item
+Collect $N$ (approximate) samples $X_t^1,\ldots, X_t^N\sim P_{\te/t}$ where $P_{\te_t(x)} \propto \exp(-\fc{\te^Tx}{t})$ on $K$.
+%t put more weight on those with smaller value.
+\item 
+Update $t\mapsfrom t(1-\rc{\sqrt n})$.
+\item
+Use samples $X_t^1,\ldots, X_t^n$ to ``warm start'' on new point.
+%random walk around some procedure
+\end{itemize}•
+\end{itemize}•
+For Hit-and-Run you need warm start and the covariance matrix. Take $N\approx n$ to get good estimate on covariance matrix (isotropically chose). 
+
+Hit-and-run:
+\begin{itemize}
+\item
+Input: $\Si, X_0$ warm start, $P_0$ (oracle access)
+\item
+For $k=1,2,\ldots,K$,
+\begin{itemize}
+\item
+Sample $U\sim N(0,\Si)$
+\item
+Compute ray $R=\set{X_{k-1}+\al U}{\al\in \R}$.
+\item
+Sample $X_k \sim P_\te|_R$.
+\end{itemize}•
+\item
+Return $X_K$.
+\end{itemize}•
+Here I only need to be able to check whether points are in the set!
+
+Lovasz, Vempala, etc.: HAR$(\Si, X_0,P_0)$ returns $X$ such that $X$ is approximately distributed according to $P_\te$, given
+\begin{enumerate}
+\item
+$X_0$ is sampled from ``nearby'' distribution
+\item
+$\Si$ is ``almost'' $\Cov(P_\te)$.
+\item
+$K=cn^3$.
+%close in KL diverges
+\end{enumerate}
+%In every step of HAR
+%3+1+0.5
+%n samples per epoch, $\sqrt n$ epochs
+
+\begin{thm}
+If $X\sim P_{\te/t}$, then $\E[\wh \te^T x]\le \min_\al \wh \te x + tn$.
+\end{thm}
+
+Abernethy-Hazan 2016: There exists a strongly convex barrier function $\ph$ such that 
+\begin{align}
+\amin_{x\in K} \wh\te^T\ph(x) + t\ph(x) &=
+\EE_{x\sim P_{\te/t}}[x]
+\end{align}
+%newton to move. update tem. upeate 
+%1/\qs]sqr
+%sampe
+
+
+What is $\ph$?
+For exponential families
+\begin{align}
+A(\te) & = \ln \int_K \exp(-\te^T x)\dx\\
+\ph(\te) = A^*(\te)&= \sup_\te\te^Tx - A(\te),
+\end{align}•
+Fenchel conjugate of $A$,
+\begin{align}
+P_\te(x) &= \exp(-\te^T x - A(\te))\\
+\nb A(\te)& = \EE_{X\sim P_\te}[X].
+\end{align}•
+(Check signs.)
+%derivative of function 0 is maximizedatlll
+%constructed so work out
+
+Fact:
+$$
+\nb A(\te) = \amax_{x\in K} x^T\te - A^*(x).
+$$
+The last 2 equations explain why this works.
+
+Q: What's the barrier parameter that this gives us? It is $n$ all the time, but this is misleading: you can make parameter better by scaling.
+
+HAR gives the following entropic barrier for PSD cone: 
+$$
+\ph(X) = n\ln (\det X).
+$$
+(We can divide this by $n$.)
+%pos orthant, PSD, lorentz cone same.
+%symmetric
+%entropic barrier. 
+
+%If you can show the constant becomes better after scaling, you can do better. 
+
+Kalai-Vempala give time $n^{4.5}$, we show time $n^4\sqrt\nu$.
+
+%RHS odeons't defffff
+%tricks aready shown using ...
+
+%subset of psd cone. Can increast tem
+
+Cf. Narayanan---Dikin walk---single step every round, compute covariance at each step.
+%compute hessians
+%much better 
+%implicitly a barrier function.
+
+\printbibliography
+\end{document}

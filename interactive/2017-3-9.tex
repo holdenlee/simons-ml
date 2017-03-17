@@ -1,0 +1,231 @@
+\section{Towards a Rigorous Approach to Approximate Computations in Huge-Scale Markovian Decision Processes (Csaba Szepesvari)}
+
+In this talk, without assuming any background beyond familiarity with basic probability and linear algebra, I will describe exciting new results on the computation of near-optimal policies in huge-scale Markovian decision processes (MDPs) via the so-called approximate linear programming methodology. In a nutshell, the new results provide meaningful upper bounds on the quality of the computed policies as a function of the linear basis functions chosen by the algorithm designer, while avoiding unrealistic assumptions which have effectively become the norm in prior results. As opposed to previous work that relied on worst-case reasoning over randomly sampled constraints, in this work the analysis is done using an operator-theoretic approach. I will finish by discussing the remaining main open problems, connections to alternative approaches, as well as potential extensions. Markov decision processes lie at the hear of many reinforcement learning algorithms and have found numerous applications across many engineering and scientific problems.
+
+Based on joint work with Chandrashekar Lakshminarayanan and Shalabh Bhatnagar
+
+For RL, one way to do things is: Let's learn a good model, run the planner, get a good policy. Does this work---do we have good planners?
+
+Let
+\begin{itemize}
+\item
+$S$ be state space
+\item
+$A$ be action space
+\item
+$P$ be transition probabilities (for every state and action, a distribution over next states, $P=(p_{sa}\in \De_nS), (s,a)\in S\times A$). 
+\item
+$g$ be rewards, $g=(g_{sa}\in [0,1])$
+\item
+$\al\in (0,1)$ discount factor.
+\end{itemize}•
+
+Classically, people think of $S$, $A$ as finite. This is wrong: the number of states and actions in any reasonable space is exponential. You can't run algorithms even linear in the number of states and actions. We want sublinear scaling.
+
+We want to maximize expected total reward
+$$
+\E\ba{\sumo t\iy \al^t g_{S_tA_t}}
+$$
+where $S_0,A_0,S_1,A_1,\ldots$ is the sequence of states and actions.
+\footnote{How strong do we believe in discounting?
+
+We don't believe in it, we use it because it's convenient.
+
+If you can do things with the discounted factor, you can probably do it without; this is the entry problem.}
+
+Here we don't worry about exploration; we assume we can access the parameters.
+
+
+A policy is a function $u:S\to A$: look at the history and decide what action to take. The value of the policy is the expected total reward under the policy
+\begin{align}
+J_u(s) &= \E_\mu\ba{\sumz t\iy \al^t g_{S_t,A_t}|s_0=s}\\
+\sup_u J_u(s) &= J^*(s).
+\end{align}
+The optimal policy is the $u^*$ such that $J_{u^*}(s) = J^*(s)$.
+
+There always exists a policy that doesn't look at the past history, and just acts based on the current state, and is deterministic.
+%in what way access S, A
+%lower complexity randomized?
+\begin{thm}
+There $u^*:S\to A$ such that $J_{u^*}=J^*$.
+\end{thm}
+
+Assume you have an oracle MDP that given input $s,a$, outputs $g_{sa},p_{sa}$. Assume also that given $J:S\to \R$, the oracle MDP gives $p_{sa}^TJ$. %integral if continuous. 
+(If you have sampling, you can estimate this. There's not that much difference between being able to sample and having this.)
+
+%of course, you're talking about your own [algorithm]
+
+%build sparse lookahead tree, depth is effective horizon. Back up and compute near-optimal action. But tree blows up in the discount factor $\rc{1-\al}$. Discounting shouldn't appear in the exponent.
+
+%In ML there is reality;
+In reality, maybe the  regression/classification function is very complex. Instead, we ask: can we compete with a good function?
+
+Make a hypothesis space for the optimal value function. Consider a feature function $\ph:S\to \R^d$, and look for
+$$
+J^*(s) \approx \ph^T(s)r^*,\quad r^*\in \R^d.
+$$
+\footnote{Debate: 
+Assume something about model vs. assume something about solution (what we do here).}
+
+Ex. Consider $S=[0,1]^n$, $1<|A|<\iy$.
+
+Assume $p_{sa},g_{sa}$ is $L$-Lipschitz in $L_1$.
+\begin{enumerate}
+\item
+Chow-Tsitsiklis, negative result: To get $J_u\ge J^* - \ep$, in the worst case we need $\prc{\ep}^{\fc nL}$ queries. 
+%algorithm can query: collect data.
+%no probability involved. deterministic 
+\item
+J. Rust: ``Randomization, breaking the curse of dimensionality.''
+
+Polynomial-time computation up to $\ep$ in expectation. Rust's model is different.
+
+%you interact with MDP, get queries, test $\ep$-optimal. 
+%lookahead planning tree, smoothness (Lipschitz) saves you
+%information theory result, not computational result
+What's missing? 
+%solve random finite MDP. 1-step lookahead Effective horizon is $\rc{1-\al}$. 
+Computational complexity depends on the largest value in the density function, typically exponentially large.
+Can I rejection sample by sampling uniformly? 
+%Min-entropy.
+%
+\footnote{Think of this as saying: MDP  is a noisy system with no sinks, where you have no strong control. 
+``If you have no control you can't be too stupid.''}
+\end{enumerate}
+I want to compute policies!
+%Mixing fast for every policy. Highest value in the density. No sinks, strong control. 
+%Very noisy system no control over
+
+This line of work goes back to the 70's. 
+%In the old days, write 3 ideas, neat. 
+%\begin{itemize}
+%\item
+
+Schweitzer-Sneider: mix linear programming with linear function approximation.
+
+You can find an optimal policy by solving a LP: take $c\in (0,\iy)^s$ and solve
+$$
+\min_{J\ge TJ} c^TJ
+$$
+where
+$$
+(TJ)(s) = \min_a (g_{sa} + \al p_{sa}^T).
+$$
+We know the optimal function is a fixed point $TJ^*=J^*$.
+%The optimal policy is easy to read out from $J^*$. %(Do for every state a calculation involving the oracle.)
+
+Define $T_u$ by taking the action suggested by $u$: for $J:S\to \R$.
+$$
+(T_uJ)(s) = g_{su(s)} + \al p_{su(s)}^TJ.
+$$
+%blow up by 1-\al. Push around contraction argument.
+Let $u$ be such that $T_uJ = TJ$. The algorithm finds
+$$
+\ve{J_u-J^*}_{\iy} \le \fc{\ve{J-J^*}_\iy}{1-\al}.
+$$
+This is a multiplicative blowup of the error, a weak reassurance.
+
+Let's focus on calculating some approximation of $J^*$. 
+%problem too huge. 
+%what minimizing over? 
+%\item
+
+We add an additional constraint
+$$
+\min_{J\ge TJ, J=\Phi r} c^TJ
+$$
+where $r\in \R^k$, $k\ll |S|$.
+
+We would like: if $\Phi$ is chosen well, %in such a way that , 
+solution of LP will not be far from best approximation of $J^*$.
+
+%compactly represent element of subspace.
+
+The hypothesis space may be crappy, we learn relative to the hypothesis space.
+
+Let $T_aJ(s) = g_{sa} + \al p_{sa}^T$. (Always take action $a$.)
+
+Is this even feasible? If $\one\in \spn \Phi$, this is feasible. We can prove something stronger. Given $J\in \spn(\Phi)$, if there exists $J'\in \spn(\Phi)$, $J'\ge TJ'$ such that $\ve{J-J'}_\iy\le \fc{(1+\al)\ve{J-J'}_\iy}{1-\al}$, then there exists $r\in \R^k$, $J=\Phi r$, $\one \in \spn (\Phi)$, $\exists r_0\in \R^k$, $\one = \Phi r_0$, then for $\la \in \R$, $\la\ge 0$,
+\begin{align}
+J'&=\Phi(r+\la r_0) \ge \max_a T_a(r+\la r_0)\\
+T_a(r+\la r_0)(s) &= g_{sa} + \al p_{sa}^T \phi(r+\la r_0) = (g_{sa}+\al p_{sa}^T \Phi r)+ \al \la.
+\end{align}
+%speed of \la, \la\al
+Find the smallest value of $\la$ that satisfies this: how much you have to travel to meet the feasibility constraint. 
+\begin{align}
+\Phi r + \la 1 & \ge T \Phi r + \al \la 1.
+\end{align}
+%If you have a good approximation in $\spn \Phi$, 
+
+Is it tractable to minimize the objective? We group
+$$
+c^T\Phi r= \pa{\sum c(s) \ph(s)}^Tr.
+$$
+One popular choice for $\ph$ is where every feature depends on a few state space variables. 
+The constraint is $J(s) \ge g_{sa} + \al p_{sa}^T$. 
+%choose \phi carefully. 
+
+%solution of new LP close to original $J$.
+%my job is to design alg that works no matter what it is given.
+Algorithm takes as input $\Phi, c$, consoluts the oracle, has a way of calculating $c^T\Phi$, and outputs $\wh r$.
+
+Can we evaluate whether constraints are met? 
+$$
+(\Phi r)(s) \ge g_{sa} + \al (p_{sa}^T \Phi)r.
+$$
+There are as many as $S\times A$, too many.
+%\end{itemize}
+
+%feasible polytope, minimize, 
+%$J'$ is actually smaller or equal than all those functions. That's enough to show that for any $c$...
+%was smallest point, add _, not longer 
+%smallest superharmonic function.
+%take closes $L_\iy$ approximation, repeat the proof. How much do you have to move, how far was. If were close, don't move much
+%choose conc on space
+%l1 norm from c.
+%want global result, out of luck
+%compute at 1 state, ok.
+
+%c bounded away from 0
+%if only interested in difference in $L^1$ norm, use any $c$. %nonadapt
+%diff between J, J^* 0. localizes.
+
+D, Van Roy: We can't solve LP, just sample.
+LP: If you know the $k$ constraints, you can just choose them. Error scales polynomially in the right quantities. Blowup depends on misalignment between sampling measure and probability measure induced by the optimal policy.
+
+If I'm in a huge state space, this mismatch will likely be huge. 
+
+Project/linearly combine constraints: RALP
+$$
+\min_{W_a^T J \ge W_a^T T_aJ, T_a J = \Phi r} c^TJ.
+$$
+Think of this as keeping just a few constraints. How does this error propagate to the result? 
+\begin{thm}
+Let $\wh J$ be the solution to the RALP, $c\in \De_1(S)$.
+Then
+$$
+\ve{J^* - \wh J}_{1,C} \le \fc{C}{1-\al} \pa{
+\inf_{r\in \R^d} \ve{J^*-\Phi r}_\iy + 
+\ve{\Ga J^* - \wh \Ga J^*}_{\iy}}
+$$
+where 
+\begin{align}
+\Ga J(s) &= \min\set{(\Phi r)(s)}{\Phi r \ge T\Phi r, r\in \mathcal N}\\
+(\wh \Ga J)(s) &= \min \set{(\Phi r)(s)}{W_a^T \Phi r \ge W_a^T T_aJ, r\in \mathcal N}\\
+(\Ga J^*)(s) &= \min\set{(\Phi r)(s)}{\Phi r\ge J^*, r\in \mathcal N}\\
+(\wh \Ga J^*)(s) &= \min\set{(\Phi r)(s)}{W^T \Phi r \ge W^T J^*}.
+%no mismatch. easy to interpret or not?
+\end{align}
+(Once you drop some constraints, you can be unbounded, so we need $\mathcal N$.)
+%ga localizes the operation
+\end{thm}
+%Feature vectors
+%rewrite error in terms of error constraints. 
+%depend only on quality of $\Phi$.
+%doesn't depend on mismatch.
+When you think about dropping the constraints, there are two things that are important. 
+
+Keep sufficiently many states, so for any new state you encounter, if you express as linear combination of features, coefficients should be small. 
+This is like a subset selection problem: remaining ones can be expressed with linear combinations with small coefficients.
+
+%can always choose action into state, bit by bit

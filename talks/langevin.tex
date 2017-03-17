@@ -1,0 +1,324 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Probabilistic methods seminar}
+\chead{} 
+\rhead{} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+\section{Escaping local minima with Langevin Monte Carlo (Yuchen Zhang)}
+
+Joint work with Moses Charikar and Percy Liang.
+
+The goal is to minimize a nonconvex function $f:K\to \R$. Nonconvex optimization is universal in ML applications: mixture models, matrix/tensor decomposition, neural networks, etc.
+
+The main challenge is to avoid non-optima local minima. Doing this is NP-hard in general, but we can hope to excape shallow local optima.
+
+If we properly initialize gradient descent we converge to local min. It will get stuck at local min because it is a greedy method, only looking at the neighborhood.
+
+A natural approach is to inject noise,
+$$
+x \mapsfrom x-\eta\cdot (\nb f(x) + \si\cdot w),\quad w\sim N(0,I).
+$$
+
+One thing to pay attention to is how to choose step size. If you choose very small step size, you lose capability of escaping local min. It's 0-mean so this reduces to regular gradient descent. Choose large enough noise to escape before it gets canceled out. But this causes stability problems: overshooting, divergence, especially if $f$ is not very smooth.
+
+Solutoin: Langevin Monte Carlo. Attracting attention because of connection to successful SGD. Instead of scaling with step size, scale with $\sqrt{}$ step size. It imitates Langevin diffusion in physics. $1/\xi$ controls temperature.
+$$
+x\mapsfrom x -\eta\cdot \nb f(x) + \sfc{2\eta}{\xi} w.
+$$
+%balance noise ang gradient
+Note when $\eta\to 0$, $\sfc{\eta}{\xi}\gg \eta$, still able to escape.
+
+Why scale with $\sqrt{\eta}$? Only by this choice does it converge to the stationary distribution, $\mu(x) \propto e^{-\xi f(x)}$. When $\xi$ is large and $x\sim \mu(x)$, $x$ minimizes $f$. 
+%This is 
+This is good for nonconvex optimization.
+%No longer stuck at local min
+You need $f$ to be smooth and $e^{-\xi f}$ to be integrable. %Variance good, Gibbs measure to have good properties...
+\footnote{There is a noncompact analysis in 80's, purely asymptotic. For a compact set you can do reflected Brownian motion, or reject steps outside.} %rejection is bad when sharp corners.
+
+%%k is $\R^d$. Strongly convex.
+
+I assume $f$ is smooth and bounded on $K$, and $K$ is compact. It doesn't need to be convex, but I make assumptions on the corner (no sharp corners). I think this is not necessary but is convenient.
+%$\mu(x)$ supported on $K$.
+%$f$ on $\R^d$, only interested in value on $K$.
+
+For smooth functions and small enogh stepsize, LMC asymptotically converges (Roberts, Tweedie 96). 
+For convex $f$, LMC converges to $\mu$ in polytime (Bubeck 2015, Dalalyan 2016).
+For nonconvex functions LMC converges in exponential time, for simple 1-D nonconvex functions.
+This is an area that is underexplored.
+
+On the practical side, LMC is successful in practice.
+\begin{itemize}
+\item
+Prevents overfitting: logistic regression, ICA (Welling Teh 2011)
+\item
+Learn deep nets:  neural programmer (Neelakantan 2015), neural RAM (Kurach 2015), GPUs (Kaiser, Sutskever 2015), bidirectional LSTM (Zeyer 2016).
+\end{itemize}
+How to explain good performance?
+
+%local min in poly time?
+%not talk about annealing.
+
+LMC can hit a good solution much earlier than it converges to the stationary distribution. Ex. W-shaped function. Sampling means finding all good solutions; optimization means finding one.
+
+%mixing time bounded by exponential upper bound
+%before, see very little about it.
+%even converging to local min is nontrivial.
+
+The reason we don't have a polytime guarantee is that mixing time is too pessimistic for optimization. We look at hitting times  to a set $U$ (target set) instead. If we have an arbitrary defined set, we get into NP-hard problems. Whether we get a polytime bound depends on how we define this set.
+
+%$\ep$-suboptimal points.
+%run for at least the hitting time.
+%do you have to define U explicitly, or implicitly?
+
+Empirical risk can have many local min, but can have shallow local min not present in the global min. We want to get to population local min.
+
+An $\ep$-approximate local min is $\set{x\in K}{\ve{\nb f(x)}\le \ep, \nb f(x) \succeq -\sqrt{\ep}I}$
+Can also get by cubic regularized Newton, noisy gradient descent. \emph{Here we can achieve this for population risk even if we only get access to empirical risk!}
+
+%stochastic gradients?
+%old version with large poly(d) SG.
+
+We have bad complexity in $d$ in number of iterations.
+
+%population level: easy to break
+%depends on loss function
+%gradient explosion/vanishing problem
+%deeper model: individual loss functions, Lipschitz constant becomes higher. Guarantee depends on Lipschitz constant.
+We only need the Liipschitz constant for population loss function to be small. 
+
+We present non-asymptotic analysis for the LMC algorithm (and stochastic version SGLD) on general nonconvex functions, polynomial-time guarantee for hitting certain optimality set, and apply to ERM finding local minima of the population risk, and to learning halfspaces under 0-1 loss (note there is no guarantee on concentration of gradient and Hessian matrices, which are 0 almost everywhere). 
+
+First, some definitions and notations.
+
+For $f:K\to \R$, define
+\begin{align}
+\mu_f(x):&= \fc{e^{-f(x)}}{\int_K e^{-f(x)}}\\
+\mu_f(\pl A) :&= \lim_{\ep\to 0} \fc{\mu_f(\set{x\in K}{d(x,A)\le \ep})-\mu_f(A)}{\ep}\\
+C_f(V) :&= \inf_{A\subeq V} \fc{\mu_f(\pl A)}{\mu_f(A)}
+\end{align}
+(restricted Cheeger constant), min ratio betw%een boundary area and set volume. 
+
+If $C_f(V)$ is very small, then there exists some set $A\subeq V$ with a very narrow exit. If there is a Markov process with stationary distribution $\mu_f$ and it was initialized in $A$, then it takes a long time to move out.
+%related to conductance.
+This defines geometric property of function, cf. conductance which is property on Markov process.
+
+Restricted Cheeger constant $C_{\xi f}(V)$ measures how fast LMC can escape $V$.
+Ex. for the W function, the restricted Cheeger constant for neighborhood of one local min is small.
+
+If you run too long, won't the bias accumulate? I can choose step large enough so we hit before bias accumulates too much. With small Cheeger constant I have to choose small step size.
+
+%h \cdot \xi
+
+%choose $\xi$ depending on dimension
+
+\begin{thm}
+For arbitrarily smooth $f$ and $U\subeq K$, LMC (with some set size and fixed temperature) hits $U$ whp in $T$ iteractions, where
+$$
+T\le \fc{\poly(d)}{C_{(\xi f)} (K\bs U)^4}.
+$$
+\end{thm}
+Initialization is arbitrary.
+If I choose small step size, I need more iterations.
+Note that Cheeger constant depends on temperature. Temperature is chosen according to effective dimension of problem, volume of set you want to hit. (Choose proportional to $\rc d$ in worst-case. If region around manifold, then you can choose temperature larger.)
+%$\ep^d$.
+%What's dependence on diameter of $K$? Polynomial.
+
+Given the function and the set, there exists a step size. Step size: (28) on p. 17.
+
+%
+Lower bound: inversely proportional to conductance. Upper bound is at most square of reciprocal of conductance. %which is square of Cheeger.  (?)
+This is a mixing time lower bound. If you look at a convex function it is the same thing.
+The bound we have is square of mixing time for convex case.
+
+Is this an algorithm that can be implemented? There is a theoretical step size, but in practice we choose the step-size by cross-validation. 
+
+%pay more iterations to spend this amount of time.
+%at this stage $d^4$. 
+%How does upper bound vary with $\eta$? It becomes larger with smaller $\eta$.
+
+%not choose something much smaller than $C^2/d$.
+
+%(Actually look at a slight expansion of $U$, $U_\rh$.)
+%sufficiently smooth boundary ok
+%projection based algorithm - remove.
+%do you need $K$ to be convex? No, sufficiently smooth ok.
+%bad neighborhoods have to be small. 
+%cannot be arbitrarily bad nonconvex.
+
+%only converge to neighborhood, smooths out kinks.
+%boundary of parameters space vs. set $U$.
+
+%subexponential wrt square of norms
+
+%if replace by standard cheeger constant, roughly upper bound on mixing time, roughly equiv to _
+%classical Cheeger 
+%raghinski and rag...
+MT: We go through mixing time lemma, to Gibbs measure, as corollary get suboptimality. Ours is global optimal guarantee. We pay exponentially in the saddle height. We also have $\rc{\ep^4}$. If you choose the step size and temperature, then things become bad. There is a lower bound.
+%anneal, homotopy
+
+You can make function grow quadratically; choose temperature schedule. 
+%assumptions are for individual function $f_i$.
+%nice behavior for each 
+%general SGD oracle
+%not direct SGD
+%batch guaranteed, use stochastic
+%pop guarantee with one function
+\begin{proof}
+\begin{itemize}
+\item
+Construct a time-reversible Markov chain; prove hitting time on par with LMC. (LMC is not reversible.)
+\item
+Prove hitting time inversely depends on reverse conductance.
+
+(Look at specification of algorithm, specifics of Markov chain.)
+\item
+Restricted conductance is lower bounded by $(C_{(\xi f)}(K\bs U))^2$. 
+\end{itemize}
+\end{proof}
+This is a general theorem that doesn't give a polytime guarantee.
+
+Now we look at certain cases where we can show Cheeger constant is not exponenitally small.
+
+A simple class of functions is convex functions. Choosing temperature to be low enough,
+\begin{pr}
+If $\xi\ge O\pf{d}{\ep^2}$, $C_{(\xi f)}(K\bs U)$ is lower bounded by $\Om(1)$ for $U$ set of $\ep$-approximate global min,
+$$
+U = \set{x}{f(x)\le \inf_{x\in K}f(x) + \ep}.
+$$
+\end{pr}
+
+More interesting case is nonconvex.
+\begin{pr}
+%choose tem param long enough
+%exponent 2.5 in params
+If $\xi\ge O\pf{\poly\pat{params}}{\ep^2}$, then $C$ lower bounded by $\Om(\sqrt \ep)$, where
+$$
+U:= \set{x}{\ve{\nb f(x)}_2\le \ep , \nb^2 f(x)\succeq -\sqrt \ep I}.
+$$
+%
+\end{pr}
+There is implicit dependence on dimension, trace of hessian. 
+Local minimum has 0 gradient, saddle point also has 0 gradient but H is non-PSD. $U$ avoids strict saddle points.
+
+%Bubeck $d^7$ on $d$. Dependence on $\ep$. Doesn't require strong convexity.
+%Dalalyan has $d^4$.
+% Strongly 
+$d^4$ is impractical but there has to be $\poly(d)$ dependence. %unavoidable.
+%proof doesn't use convexity of $f$.
+
+%follow descent direction to escape.
+
+%if you step outside, reject.
+%Bubeck reflects/projects, you reject.
+
+%dependence is max over seq	uence of terms.
+
+%how does temperature enter?
+%paragraph below theorem 4: temperature.
+%rescale $f$ by temperature. Only quadratic. $d/\ep^2$. Additional cubic factor. Something like $\rc{\ep^4}$
+%dependence $G^4$.
+%bubeck has $d^{12}$ for log-concave. hit-and-run is $d^3$. 
+
+If $f$ is nonconvex and uniformly close to $F$:
+\begin{pr}
+$\ve{f-F}_{\iy} := \sup_{x\in K}|f(x)-F(x)|\le \nu$, $$C_{(\xi f)}(K\bs U) \ge e^{-2\xi v}C_{(\xi f)} (K\bs U).$$
+\end{pr}
+If $\ve{f-F}_{\iy} = O\prc{\xi} $ then $C_{(\xi f)}(K\bs U) = C_{(\xi F)}(K\bs U)$. 
+%F is population quantity
+%$\nb f$, contraction, empirical process theory.
+%is this better than direct analysis of gradient.
+%give a concrete example where this is the case.
+%0-1 loss: 
+%zero-order gradient.
+%don't need function to be differentiable to minimize smoothed version. Uniformly close to smoothed verion.
+
+Ex. 0-1 loss.
+First define smoothed version on 0-1 loss. Guarantee smoothed version of function is uniformly close. But we cannot guarantee all local minima are close to population global minimum.
+
+\begin{cor}
+Run LMC on smooth $f$.
+\begin{enumerate}
+\item
+If $F$ convex, $\ve{f-F}_\iy = O\pf{\ep^2}d$, then LMC hits $\ep$-approximate global min of $F$ in poly time.
+\item
+If $F$ is smooth and $\ve{f-F}_\iy=P\pf{\ep^2}{\pat{params}}$, then LMC hits $\ep$-approx local min of $F$ in poly time.
+\end{enumerate}•
+\end{cor}
+If $f$ is nonconvex, nonsmooth, 
+\begin{enumerate}
+\item
+define $\wt f_\si(x) = \EE_z f(x+z)$ for $z\sim N(0,\si^2I)$
+\item
+Run LMC on $\wt f_\si$, 
+$$
+\nb \wt f_\si(x) = \EE_z [\fc{z}{\si^2} (f(x+z)-f(x))]
+$$
+(only depends on values of $f$).
+\end{enumerate}•
+For any $\si>0$, $\wt f_\si$ smooth. We can choose $\si$ small enough so $\ve{f-\wt f_\si}_{\iy} = O\prc{\xi}$, which implies $C_{(\xi f)}(K\bs U) \approx C_{(\xi f_\si)}(K\bs U)$. 
+%must be optimal value.
+%computational, sample complexity
+
+I care less about computational, more about sample complexity. Choice of $\si$ only affects computational complexity. 
+
+Do I need to choose large enough $\si$ so that smoothness is similar to original  function? No, only need function value  to be close. %$\rc{d^{100}}$ find. 
+
+In small neighborhood of discontinuity, there constant probability of choosing $z$ that makes it jump to the opposite side. %How can I be closer than that probability times the constant gap? 
+Assume jump is $\le \rc{\xi}$. (Use upper bound on VC dimension.)
+%If gap between 2 functions are uniformly close
+%$\si$ chosen based on smoothness population loss. $f$ sample.
+
+%sample from gauss and use another layer of stochasticity.
+%arb stochastic gradient.
+%%your smoothed function
+
+Apply to $f(x)=\rc n\sumo in l(x;a_i)$ and $F(x) = \EE_{a\sim \Pj}[l(x;a)]$.  Under mild conditions $\ve{f-F}_\iy\to 0$ as $n\to \iy$. However, $\nb, \nb^2$ don't converge unless $l$ is smooth, so GD is unreliable. 
+%discont such that can smooth . 
+
+Can I just do analysis on the smoothed function?
+%standard convergence on empirical processes.
+%both blowing up as smoothed $\to 0$.
+%doesn't affect sample complexity, which depends only on $\xi$.
+%choose $\xi$ according to smoothness of population risk. Now choose $\si$ as long as not exponentially small.
+%Iteration complexity does not go up?
+
+There are 2 notions of samples. I assume I have a set of $n$ samples, and I can take many passes over it, which is relevant to computation cost.
+%temperature big enough as function of different things.
+
+LMC is not necessarily better than smoothed version of gradient descent---you can also eliminate local minimum.
+
+%take a concrete problem and to computations for both procedures.
+
+Add noise in heuristic scaling to gradient  in neural networks helps. Would be interesting to compare. People claim LMC is better because they didn't push hard enough in other methods. LMC has enough power to escape, but batch normalization can also avoid getting into bad situation. It's hard to say in practice what is the best procedure.
+
+Learning halfspace with 0-1 loss. LMC learns halfspace in polytime for arbitrary noise level. Better than best previous result (Awasthi 2015, learn halfspace in polytime if noise $\le 10^{-6}$). Here $l(x;(a,y))=\one(\sign(\an{x,a})\ne y)$ for $(a,y)\in \R^d\times\{\pm 1\}$. See Theorem 3 in paper, p. 11.  Choose $n\ge \wt O(1) \fc{d^4}{\de_0^2\ep^4}$.
+
+%which side of decision hyperplane.
+
+(Here the population risk is not smooth. This is a consequence of a more general theorem that doesn't need smoothness on population risk.)
+
+%adversary?
+%sample iid. still prove uniform convergence, can't prove smoothness
+
+Summary: LMC asymptotically optimal for nonconvex optimization but convergence rates not well understood. We prove hitting inversely depends on restricted Cheeger constant. We lower bound restricted Cheeger constant for convex functions and smooth nonconvex functions. If $\ve{f-F}_\iy$ small, then running LMC on $f$ achieves optimal points of $F$ (stability property). LMC is more reliable in GD in empirical risk minimization because it escapes shallow/tiny local min. It is asymptotically consistent too. 
+
+
+%\input{chapters/1.tex}
+
+\printbibliography
+\end{document}

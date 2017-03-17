@@ -1,0 +1,351 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{ZigZag: Efficient Algorithms for Adaptive Online Learning via Decoupling}
+\chead{} 
+\rhead{} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+
+Following the theme of Wouter's talk, the topic will be ``easy data" in online learning. We will focus on online algorithms that obtain near optimal guarantees both in the statistical setting and the adversarial setting, and whose performance more generally interpolates between these extremes. We achieve this  by exploiting a new connection to the theory of decoupling inequalities for martingales in Banach spaces. This connection will be explained at length.
+
+This is based on joint work with Sasha Rakhlin and Karthik Sridharan.
+
+Paper link: \url{http://dylanfoster.net/papers/zigzag_draft.pdf}
+
+Here's the full abstract:
+
+We develop a new family of algorithms for the online learning setting with regret against any data sequence bounded by the empirical Rademacher complexity of that sequence. To develop a general theory of when this type of adaptive regret bound is achievable we establish a connection to the theory of decoupling inequalities for martingales in Banach spaces. When the hypothesis class is a set of linear functions bounded in some norm, such a regret bound is achievable if and only if the norm satisfies certain decoupling inequalities for martingales. Donald Burkholder’s celebrated geometric characterization of decoupling inequalities (1984) states that such an inequality holds if and only if there exists a special function called a Burkholder (or Bellman) function satisfying certain restricted concavity properties. Our online learning algorithms are efficient in terms of queries to this function.
+
+We realize our general theory by giving new and efficient algorithms for classes including lp norms, Schatten p-norms, group norms, operator norms, and reproducing kernel Hilbert spaces. The empirical Rademacher complexity regret bound implies---when used in the i.i.d. setting---a data-dependent complexity bound for excess risk after online-to-batch conversion. To obtain such adaptive methods, we introduce novel machinery, and the resulting algorithms are not based on the standard tools of online convex optimization. 
+
+
+\section{Intro}
+
+At a high level, I'll talk about performance guarantees, give the algorithm (missing one key piece), and talk about how to fill in the key piece.
+
+
+We work in the online supervised learning setting. The protocol is as follows. 
+\begin{enumerate}
+\item
+For $t=1,\ldots, n$, 
+\begin{itemize}
+\item
+nature plays $x_t\in X$ (covariates).
+\item
+Learner picks $\wh y_t\in \R$.
+\item
+Nature plays $y_t\in Y$. 
+\item
+Observe loss $\ell(\wh y_t, y_t)$. 
+\end{itemize}
+Here nature is adversarial. (cf. ciontextual bandits)
+%Rob Schapire's talk.)
+\end{enumerate}
+
+Fix a hypothesis class $F$ of $f:X\to \R$; look at the regret against this class. 
+$$
+\sumo tn \ell(\wh y_t, y_t) - \inf_{f\in F} \sumo tn \ell(f(x_t),y_t).
+$$
+Assume the loss is 1-Lipschitz.
+
+To motivate our problem, let's look at several settings.
+
+%\begin{enumerate}
+%\item
+One setting is where the data is drawn from an iid source, $(x_t,y_t)\sim D$
+Rates are the same as in batch statistical setting and we want bound on the excess risk. Online-to-batch (O2B) turns all the predictions our algorithm makes into a single prediction that gives an excess risk bound
+$$
+ER:=\EE_{(x,y)\sim D} 
+\ell(\wh y(x),y) - \inf_{f\in F} \EE_{(x,y)\sim D} \ell(f(x),y) \le \fc Bn.
+$$
+%proper
+
+Instead of using O2B, we could directly use empirical risk minimization. Here the excess risk can be bounded in terms of empirical Rademacher complexity (sample $n$ coin flips, take the function most correlated with those coin flips, and see how well we do on average),
+$$
+\wh{\Rad}_F(x_1,\ldots, x_n) = \EE_{\ep_1,\ldots, \ep_n\in \{\pm1\}^n}
+\sup_{f\in F} \sumo tn \ep_t f(x_t)
+$$
+This is appealing: for hinge loss, absolute loss, etc. that don't have curvature, you can still get lower bound.
+
+ERM gives
+$$
+ER\le \rc n \EE_{x_1,\ldots, x_n\sim D} \wh{\Rad}_F(x_1,\ldots, x_n).
+$$
+%captures niceness of distribution. 
+A bound on VC dimension or covering number gives an upper bound on $\wh{\Rad}$. 
+%param of hyp class and number of samples you see
+
+When can we get this as upper bound on regret in fully online setting?
+We want a strategy $(\wh y_t)$ that guarantees
+$$
+\sumo tn \ell(\wh y_t, y_t) - \inf_{f\in F} \sumo tn (f(x_t),y_t) \le D_F\wh \Rad_F(x_1,\ldots, x_t).
+$$
+If my data is drawn iid I get $\E\wh{\Rad}$. 
+
+Can I get this on arbitrary (not necessarily iid) sequence? No. The extent which I can do this depends on the hypothesis class.
+
+%Imagine if the worst-case Rademacher complexity equals the worst case ... You still can't do it.
+Why pick $\wh \Rad$ in particular? Maybe there's some other function $B(x_1,\ldots, x_n)$ measuring hardness. $\wh\Rad_F$ is in some sense the best measure. 
+\begin{lem}
+%\wh y maps previous $x$'s to a prediction.
+Suppose $B(x_1,\ldots, x_n)$ such that 
+$$
+\text{Reg}(x_1,\ldots, x_n) = 
+\sumo tn \ell(\wh y_t, y_t) - \inf_{f\in F} \sumo tn (f(x_t),y_t)
+ \le B(x_1,\ldots, x_n).
+$$
+Then 
+$$
+\wh\Rad(x_1,\ldots, x_n) \le B(x_1,\ldots, x_n).
+$$
+\end{lem}
+%particular strategy that guarantees regret bounded
+This works for hinge loss, linear loss, 0-1 loss with binary predictions, $|\wh y_t|<1, |y_t|<1, |f(x_t)|<1$. 
+%if make binary prediction
+%surrogate 0-1 loss
+We can consider prediction or regression.
+Square loss is a fairly rich problem we are still investigating.
+
+If you know your data is iid to begin with, getting this regret is pretty straightforward: follow-the-leader. This doesn't give a bound when your data is not iid. We recover the bound when the data is iid, still have guarantees in the adversarial setting, interpolates between these two cases.
+
+%continuous loss, average. need convexity to remain proper
+%online to batch
+%subsample random size
+
+\begin{proof}
+Let's focus on hinge loss. 
+$$
+\ell_{\text{hinge}}(\wh y, y) = \max(0,1-\wh yy) = 1-\wh y\cdot y
+$$
+(Assume arguments bounded by 1.)
+%arguments bounded by 1
+
+We can rewrite this regret bound as
+\begin{align}
+\sumo tn 1-\wh y_t\cdot y_t - \inf_{f\in F} \sumo tn (1-f(x_t)\cdot y_t
+&\le B(x_1,\ldots, x_n)\\
+-\sumo tn \wh y_t\cdot y_t - \inf_{f\in F} -\sumo tn f(x_t)\cdot y_t &\le B(x_1,\ldots, x_n).
+\end{align}
+Sample $\ep_1,\ldots, \ep_n\in \{\pm 1\}$ uniformly. Play $y_t=\ep_t$. Then 
+\begin{align}
+\EE_\ep \ba{-\sumo tn \wh y_t\cdot \ep_t - \inf_{f\in F} f(x_t)\cdot y_t}&\le B(x_1,\ldots, x_n).
+\end{align}
+The first term is mean 0 because the learner chooses $\wh y_t$ before seeing the loss.
+\begin{align}
+\EE_\ep [-\inf_{f\in F} -\sumo tn f(x_t)\cdot \ep_t]
+&\le B(x_1,\ldots,x_n)\\
+\EE_\ep \sup_{f\in F}\sumo tn f(x_t)\cdot \ep_t&\le B(x_1,\ldots, x_n).
+\end{align}
+%maybe B depend on y_t's
+%that's future research.
+\end{proof}
+%algorithm with missing piece, depends on what the constant is
+%decoupling inequalities for martingales.
+%best constant related to how martingales behave in the space you're working in, norm.
+
+\section{Algorithm}
+Consider a special case. 
+Let $X\subeq (B, \ved)$ be a subset of Banach space.
+Our hypotheses live in the dual
+$$
+\set{x\mapsto \an{w,x}}{\ve{w}_*\le 1}.
+$$
+In this case $\wh \Rad $ has a very nice form.
+$$
+\wh\Rad = \EE_{\ep_{1:n}} \sup_{w:\ve{w}_*\le 1} \sumo tn \ep_t\an{w,x_t} = \EE_{\ep_{1:n}} \ve{\sumo tn \ep_tx_t}.
+$$
+
+Example: $\ell_2$. Both norms are $\ell_2$. We have 
+$$
+\wh \Rad(x_1,\ldots, x_n) \approx \sqrt{\sumo tn \ve{x_t}_2^2}\le \sqrt n.
+$$
+This bound can be achieved using gradient descent with learning rate tuning. Let
+\begin{align}
+w_{t+1} & = w_t - \eta x_t,& \eta_t&=\rc{\sqrt{\sumo st \ve{x_s}_2^2}}\\
+\wh y_{t+1} & = \an{w_{t+1},x_{t+1}}.
+\end{align}
+%projection
+Before this work this was the only case where you get this bound.
+%rad is equality, when wrok out give upper bound, constant.
+%khintchine
+
+%When access to oracle can get algorithm
+
+Goal: 
+\begin{align}
+\sumo tn \ell(\wh y_t, y_t) - \inf_{f}\sumo tn \ell(f(x_t),y_t) - D\wh\Rad(x_1,\ldots, x_t).
+\end{align}•
+(Think of this as value of game against adversary.)
+Assume loss is convex (so that $\ell(\wh y, y) - \ell(f, y) \le \ell'(\wh y, y) (\wh y-f)$ and linearize.
+\begin{align}
+&\le \sumo tn \wh y_t\cdot \ell'(\wh y_t,y_t) 
+-\inf_{f\in F} \sumo tn f(x_t) \ell'(\wh y_t,y_t)  - D\wh \Rad\\
+&=\sumo tn \wh y_t cdpt \ell_t' + 
+\ve{\sumo tn \ell_t' \cdot x_t} 
+- D\EE_\ep \ve{\sumo tn \ep_t \ell_t'\cdot x_t}.
+\end{align}
+We need to control this difference of norms.
+%offsets?
+
+Pick $\wh y$ so I can upper bound the first two terms by something that looks like the third term.
+
+(Actually, we use a slightly different $\wh\Rad$ that is slightly smaller, and easier to handle using calculations.)
+$$
+\wh \Rad(x_1,\ldots, x_n, \ell_1',\ldots, \ell_n')
+=\EE_{\ep_1,\ldots, \ep_n} \ve{\sumo tn \ep_t\ell_t'\cdot x_t}.
+$$
+We want to analyze difference of two norms, and see what happens when adversary changes. $Z\mapsto \ve{A+Z}-D\ve{B+Z}$ is hard to analyze because this is neither convex nor concave. Move to surrogate that has a weak concavity property.
+\begin{pr}
+Suppose $U:X\times X\to \R$, 
+\begin{enumerate}
+\item $U(x,x') \ge\ve{x}-D\ve{x'}$.
+\item (Concave along the diagonals) $Z\mapsto U(X+Z, X'+\ep Z)$ is concave for all $x,x', \ep\in \{\pm 1\}$.
+\item $U(0,0)\le 0$.
+\end{enumerate}
+Then there is an algorithm, efficient in queries to $U$, giving $(\wh y_t)$ such that 
+$$
+\text{Reg}\le D\wh \Rad(x_1,\ldots, x_n),
+$$
+%If we have such a strategy then we're done.
+%efficient in queries to U function.
+\end{pr}
+Continuing,
+\begin{align}
+&\le \sumo tn \wh y_t\cdot \ell_t' + \EE_\ep U(\ell_t'x_t, \sum \ep_t\ell_t'x_t)\\
+&= \sumo t{n-1} \wh y_t\ell_t' + \wh y_n \cdot \ell_n' + \EE_\ep U(\cdot, \cdot)\\
+\sup_{x_n}\inf_{\wh y_n} \sup_{\ell_n'} 
+\ba{
+\wh y_n \cdot \ell_n' + \EE_{\ep_1,\ldots, \ep_n} U(\sumo tn \ell_t'\cdot x_t,\sumo tn \ep_t \ell_t'\cdot x_t)
+} & \le \EE_{\ep_1,\ldots, \ep_n} U(\sumo t{n-1},\sumo t{n-1})
+\end{align}
+%2 zigzag concavity, G is concave
+To see this, let $G_n (z) = \EE_{\ep_1,\ldots, \ep_n} U(\sumo t{n-1} \ell_t'x_t+z\cdot x_t, \sumo t{n-1}\ep_t\ell_t'x_t + \ep_n Zx_n)$. Now 
+\begin{align}
+\sup\inf\sup &= \sup_{x_n}\inf_{\wh y_n}\sup_{\ell_n'} (\wh y_n \cdot \ell_n' + G_n(\ell_n')) &\wh y_n&=-G_n'(0)\\
+&\le \sup_{x_n} \sup_{\ell_n'} [-G_n'(0)\ell_n' + G_n(\ell_n')]\\
+&\le G_n(0)
+\end{align}
+using zigzag concavity (2).
+Use this recursively. 
+
+%holds iff exists $U$ function for class.
+We show TFAE:
+\begin{enumerate}
+\item
+$\exists U$.
+\item
+$D\wh\Rad$ achievable
+\item
+UMD (unconditional martingale difference)
+\end{enumerate}•
+
+Martingale difference property for $(Z_1,\ldots, Z_n)$, $Z_t\in B$ is
+$$
+\E[Z_t|Z_1,\ldots, Z_{t=1}] = 0.
+$$
+In a lot of ways this behaves like a sequence of random variables, UMD quantifies the way which it doesn't.
+
+\begin{df}[Unconditional martingale difference]
+$UMD_p$ means: for all $(z_t)_{t\le n}$ and $(\ep_t)_{t\le n}$, 
+\begin{align}
+\EE_z \ve{\sumo tn Z_t}^p &\le C_p^p \EE_z \ve{\sumo tn \ep_t Z_t}^p\\
+\EE_z \ve{\sumo tn \ep_t Z_t}^p &\le C_p^p \EE_Z\ve{\sum Z_t}^p.
+\end{align}
+%arb sign flip
+%limited in ability to be correlated with itself.
+%how big are martingales vs. related sequences less dependent
+%generalize U functino UMD
+\end{df}
+The proposition still holds if we replace (1) with
+$$
+U(x,x') \ge \ve{x}^p - D_p^p\ve{x'}^p.
+$$
+%prob in banach spaces
+\begin{thm}[Burkholder 1984]
+$UMD_p$ holds with constant $C_p$ iff there exists $U$ satisfying (1) with constant $C_p$.
+\end{thm}
+You can use the $UMD_p$ to known information-theoretically whether the bound is achievable.
+%show by min-max
+
+We can leverage tools people have used in probability and analysis to create $U$ functions. People are interested in $U$ functions because it gives a way to certify that $UMD_p$ property holds.
+
+Burkholder's construction for the scalar case:
+$$U_p^{\R}(x,x')=\al_p(|x|- \be_p|x'|)(|x|+|x'|)^{p-1}$$ 
+where $\be_p=\max\{p,\fc p{p-1}\} - 1$, 
+$$
+U(x,x') \ge |x|^p - \be_p|x'|^p.
+$$
+This is the tightest possible constant for which this inequality holds. This blows up when $p=1$, so is motivation for considering other powers. Take $p=1+\rc{\ln n}$ which gives what you want up to log factors. Martingale inequalities often don't hold for $p=1$.
+
+For $p=2, \be_p=1$,
+$$
+U(x+z,x'+z) = (x+z)^2 - (x'+z)^2 = x^2-(x')^2 + 2xz - 2x'z.
+$$
+This spits out gradient descent with parameter tuning.
+%has to be like hilbert space
+
+%doubling also gives you earlier bound.
+%morally the same
+%instead of updating on each round, update number of times logarithmic in length of game I place.
+%intervals increasing exponentially
+%can our strategy be made to work in smoother manner with less extreme update.
+
+For $\ell_p$, sum componentwise,
+$$
+U_{\Pj}^{\ell_p} (x,x') = \sum_i U_p^{\R} (x_i,x_i'),
+$$
+cf. AdaGrad.
+
+%flesh out connection UMD, other functions, decoupling
+%specific applications of technique
+%open questions.
+
+What would have surprised someone in the field? Often in online/statistical learning, the worst-case and best-case rates match. You can imagine an algorithm in online setting that has same worst-case setting as ERM setting. Having it match best-case is much stronger. 
+This interpolates between statistical and adversarial.
+%If you only care about statistical and adv... this really interpolates between them
+
+For a wide class of properties, this reduces to crisp geometric property.
+$U$ reduces problem of algorithm design to purely geometric problem.
+
+All the $U$'s we know are either $U$'s in closed form, and $U$'s not efficiently computable. For future work, what can we gain in terms of computing $U$ functions from CS perspective. People in probability aren't thinking of computing $U$, ex. as optimization problem. If you don't care about exact constants, it should be easier. %wiggle room
+
+Burkholder reduced to PDE and solved it, a tour-de-force. Ex. with $\be_p^4$ it's much easier, doable in a few lines. %look at hessian.
+
+%\be>\log d. polylog
+Ex. trace norm bounded matrices: $(\log d)^4$. Difference between worst and best case is $\sqrt d$.
+
+High-level future work directions: 
+\begin{itemize}
+\item
+OLO/OCO and regression.
+\item
+Bandit.
+\end{itemize}
+Constraint sets? When losses are curved, can you get better rates?
+
+When function class is not linear, you can still write down generalization for UMD. What the right U function is, is not clear. UMD property holds for function class, does it hold if you compose or transform them? What are the algorithms? Our understanding of $U$ is limited. Ex. go from a $p$ to $U$ for different $p$. Algorithmically we know how to make this work.
+
+More broadly, I'm curious about other places where this idea of taking a property of dependent random process and reducing to a geometric property helps. You can do this beyond online learning. 
+%geo techniques to handle dependent random processes.
+
+UMD is the first property with a geometric form, but people have come up with U functions for different inequalities, like Doob's martingale inequality.
+
+%\end{enumerate}•
+%\input{chapters/1.tex
+
+\printbibliography
+\end{document}

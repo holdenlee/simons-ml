@@ -1,0 +1,345 @@
+\section{Generalization: FTW or WTF? (Ben Recht)}
+
+Despite their massive size, successful deep artificial neural networks can exhibit a remarkably small difference between training and test performance. Conventional wisdom attributes small generalization error either to properties of the model family, or to the regularization techniques used during training. Through extensive systematic experiments, we show how these traditional approaches fail to explain why large neural networks generalize well in practice. Specifically, our experiments establish that state-of-the-art convolutional networks for image classification trained with stochastic gradient methods easily fit a random labeling of the training data. This phenomenon is qualitatively unaffected by explicit regularization, and occurs even if we replace the true images by completely unstructured random noise. We interpret our experimental findings by comparison with traditional linear models, and suggest some possible paths towards understanding how contemporary deep networks generalize.
+
+%We're in berkeley, start on berkeley time
+
+Joint work with Chiyuan Zhang, Yoshua Bengio, Moritz Hardt, Oriol Vinyals.
+
+%koan. random NN
+
+%15 minute talk, stretch into 2 hours
+%deep learning papers aren't allowed to be deep.
+
+%\subsection{Generalization in machine learning}
+
+%vs. generative models
+
+Given iid samples $S=\{z_1,\ldots, z_n\}$ from distribution $D$, find a good predictor function $f$, $R[f] = \EE_z\text{loss}(f;z)$. We minimize empirical risk using SGD, $R_S[f] = \rc n \sumo in \text{loss}(f;z_i)$. 
+
+Generalization error is
+$$
+R[f] - R_S[f],
+$$
+the difference between something I can compute $R_S[f]$ and something I can't.
+
+%iid samples dry up.
+%R is risk not regret
+
+Fundamental theorem of machine learning: %everything else is concentration inequalities applied to this
+\begin{align}
+R[f] &= (R[f] - R_S[f]) + R_S[f]\\
+\pat{population risk} &= \pat{generalizatoin error} + \pat{training error}
+\end{align}
+%I should never make training error $<\rc{\sqrt n}$? Can make 0.
+Note: Small training error implies risk is close to generalization error. Zero training error does not imply overfitting.
+
+Another formulation (in terms of things I can't compute...)
+$$
+R[f] = (R[f]-R[f_H]) + (R[f_H] - R[f_*]) + R[f_*]
+$$
+The purpose is usually for analysis. But for the first equation I can estimate with another sample.
+%circuit complexity, AC0.
+%cargo cult theory
+%what theory backs up, selection bias
+%people never look at training error, just look at test, if not go down fast enough, ctrl-C restart tensorflow
+%Infinite passes over data.
+%even features coming out of it work for transfer learning
+
+%Are we just amusing ourselves? Does generalization need theory?
+``If you have ultra-intelligent AI, we would be so far below them in intelligence that we would be like a pet.'' --Elon Musk.
+%Elon musk worries ai will
+
+Right now, we are pets of dumb AI, feeding us confirmation bias.
+References: The selling of the president (1968, Voting is not intellectual), Amusing ourselves to death (1985), mechanics of doubt (lack of truck in experts and science, 2010), Trump (2016).
+%matrix factorization
+%svd with deep nets.
+
+Supervised learning means that our models offer no insight. Maxwell's equation predicts crazy things like electricity travels in waves, which is true. Convolution filter banks give weird shit.
+
+(Mark Zuckerberg: facebook only a platform, except it's an  instrument for social good.)
+
+Why are we building new ``tools for fact checking,'' before even knowing how we f****d up? 
+
+Fix by adding more AI?
+
+If we're just training a cat, we don't care. If we're building.
+end-to-end trained deep net, we won't know if it mistakes a tractor trailer for a cloud.
+%cloud, tractor trailer
+NN is good for Parlor tricks for NIPS paper, but for more serious things...
+
+Humans following rules: replace with robot. Mathematical modeling: do not replace with robot.
+
+``The technology either exists or can be developed. But then the question is how does it amke sense to deploy it? And this isn't my department.''
+Yann Lecun 
+
+``Once the rockets are up, who cares where they come down? That's not my department.'' cf. Tom Lehrer, 1965
+%super smash bros
+%pomdp, state?
+
+We want trustable, scalable, predictable ML.
+
+%cf. physics modeling of bridges
+Generalization: think about the FDA, pharmaceutical company. They don't believe in generalization. Do from scratch, take another sample. Even with constraints on randomization, people screw it up.
+
+Medicine (biology) vs. cars (mechanical engineering) are different. Biology is much worse understood vs. cars. \footnote{Consider 777 planes, which have been around for 20 years. 2 disappeared, one crashed in SFO seawall, one person died from being hit by the fire truck.
+
+Drugs kill a lot of people and planes kill no one.}
+%people become stupid over time.
+%I don't know how to navigate because I put on google maps.
+%route you into traffic jams?
+
+%5% of the time anything could happen. There's the $\de$. You can make $\de$ small.
+
+%Statistical modeling, iid assumption. Are those assumptions true in practice? 
+%social construct, all models are wrong but some are useful.
+
+%15 minutes of actual..
+
+Picture from Elements of Statistical Learning:
+As model complexity goes up, 
+\begin{enumerate}
+\item
+bias goes down,
+\item
+variance goes up,
+\item
+total error goes down and then up; there is an optimal model complexity.
+\end{enumerate}•
+But deep models have huge model complexity! How do you explain that? Models where parameters $p>20n$ are common.
+%model class bigger, holdout goes down
+%run over a day on 50000 examples, CIFAR-10
+
+We don't have right notion of model complexity?
+%margin theory.
+
+Graph ignores algorithms
+
+How to reduce generalization error?
+\begin{itemize}
+\item
+model capacity
+\item
+regularization (norms, dropout, etc.)
+\item
+implicit regularization (early stopping)
+\item
+data augmentation (fake data, crops, shifts, etc.). This is important. Include symmetries that don't change the label class.
+This forces functions to be invariant---You're restricing the model class?
+\end{itemize}
+%It's hard to engineer a margin.
+All of these are sufficient but by no means necessary!
+
+What happens when I turn off the regularizers? $n=50000$, $d=3072$, $k=10$. Turning regularization off, you get training error to 0. This is effectively early stopping. 
+\begin{itemize}
+\item
+CudaConvNet: 145578 parameters. $p/n=2.9$ (ratio of parameters to training examples), $\approx 5$ layers. Note VC dimension is about parameters times layers. Train loss is $10^{-4}\approx 0$ (logloss), test error is 23\%.
+
+Note we are using float32 on GPUs.
+Relative error from adding up columns of matrix can be $10^{-4}$.
+For doubles, error can be $\approx 1e-16\cdot 10^8 = 10^{-8}$. For floats, error can be $\approx 1e-8\cdot 10^8 = 1$.
+
+GPU's does dot products nondeterministically; for all purposes it's random. Doing the dot product twice you can get different answers. 
+
+This is a weird dataset. Get something to work on CIFAR-10 then on ImageNet. I have no idea what these pictures have to do with my perceptions...
+%3 conv, 2 fc, 1 top
+\item
+CudaConvNet with regularization: train loss $0.34$, $10\%$ test error.
+%Alex.
+
+Using regularization prevent going to 0, bump up 5\%. %SVM on pixels. 
+Random filters and SVM gets 22\%.
+
+I can tune more or go deeper.
+\item
+MicroInception: $1649402$, $p/n=33$, train loss 0, 14\% test error.
+%If you choose models adaptively... $\fc{\sqrt k}{n}$.
+\footnote{
+Implementation is just torture. Not everything works. How you do tuning, add things, subtract things is tricky. Much better to have other people do work for you. I spent a lot of time implementing CudaConvNet in tensorflow.
+
+I didn't subtract global mean before applying the convnet. If you don't, it doesn't work, 30\% error!}
+\item
+ResNet. 2401440. $p/n=48$, train loss 0, test error.
+\end{itemize}
+
+A community obessed with overfitting sure uses a lot of parameters! --Michael Mahoney.
+
+Are these nets tuned to the data, or work with everything, learning some nearest neighbor hash? Do CIFAR 10 with random labels.
+
+%logistic regression multiclass loss
+They can memorize any sign pattern, which makes sense because the VC dimension is absurd. (If $p/n>1$ and I can't fit any sign pattern, something is more wrong.)
+
+%what you can effectively reach.
+Apply the same random permutation to every image: pixels and color channels. The net is ``fully convolutional'' but loss still goes to 0 quickly. Applying a different random permutation to every image: still goes to 0.
+In order of how quickly error goes to 0:
+\begin{itemize}
+\item
+true labels
+\item
+shuffled pixels
+\item
+gaussian
+\item
+random pixels
+\item
+random labels
+\end{itemize}•
+%Also can feed in gaussians.
+It's basically fitting delta functions. Only $L^2$ error is unchanged by the shuffling.
+
+Maybe this is just margins?
+
+For Inception, 27 million parameters, $p>20n$. The dog breeds are accurate but the other pictures are weird...
+Each row is CPU year!
+\begin{itemize}
+\item
+Fake data, l2reg/dropout, Train top-1 13.7\%, Top-1 23.4\%, Train Top-5 2.5\%, Test Top-5 6.5\%.
+%
+\item
+Fake data, no reg, 1.0\% train top-5, 9.0\% test
+\item
+No fake data, l2 reg/dropoout, 0\% train, 11.2\% test.
+%\item
+%No fake data, 12 reg/drop
+\item
+Random labels. Train top-5 0.9\% error, test top-5 99.5\% error.
+\end{itemize}•
+%imagenet solved, 23.4\%.
+80 bytes per image.
+
+Nearest neighbor: compute closest distance. For many distributions, that works. There are counterexamples where it fails. Maybe the marginals fall into that  category?
+Pixel distance doesn't work.
+
+%not vc dim worst case
+%dependence on metric, dimension
+%constructed close to actual solutoin?
+
+
+%sociology of practice.
+Two main successes of deep learning:
+\begin{itemize}
+\item
+Taking advantage of where we are in Moore's law (Moore's law is over). Google is obsessed with scale. 
+%student cubes are hot from the GPU's.
+\item
+Everyone posts code. (Except: Google writes a lot of papers without publishing code :(.)
+\end{itemize}
+
+Deep learning conflates too many issues. It's easy to write a paper: ``this is what's happening in deep nets'' It's harder to port a deepnet model from CudaConv to tensorflow.
+
+Linearization principle is useful for everything in deep learning.
+
+Take any crazy thing people are doing in deep learning, does it work with linear models? For GAN's, no.
+
+Avoiding overfitting is hard: this is true for convex case too
+$$
+\min \ve{y-\Phi x}^2,
+$$ 
+here, $\Phi$ is $n\times p$, $n<p$. (Deep learning paper: ``local min of energy landscape in wide valleys'')
+If $p=10n$, most eigenvalues are 0. There is a subspace (infinitely wide valley) of minima.
+
+%min eigval of 50000-dim matrix?
+%0, not a saddle point.
+Regularize to leverage structure: sparsity, rank, regularization... do these apply to deep nets?
+
+Why do we generalize when fitting labels exactly? This happens for linear models. If you run SGD to find min norm solution $\min\sumo in (w^Tx_i-y_i)^2$, you end up finding $\min_{Xw=y} \ve{w}$.
+
+
+Let $p=\iy$. We're going back to 2003, kernels! This does not necessarily mean overfitting. 
+
+Even if you put a margin constraint, I don't know that $\min \ve{w}$  generalizes (?).  %if margin I have finite data?
+
+%who has not seen the kernel trick?
+%$f(x)=w^Tx$, $x_1^Tx_2=k(x_1,x_2)$
+Minimum norm solution solves $Kc=y$. Fit $Kc=y$ where $K$ is the Gaussian kernel. $60k\times 60k$ solve takes under 3 minutes with 24 cores.
+For MNIST, no preprocessing, test error is 1.2\%! Doing gabor filters first, this because 0.6\%. For CIFAR10, get 46\% error (about the same as if I shuffle for convnet). CIFAR10 with 2-layer conv-net, 32K random filters (random wavelet transform), get 16\%. 
+Adding L2 regularization gets this down to 14\%. This is what MicroInception got!
+
+What's the difference between deep and shallow? Linear system solves as $n^3$, storage goes as $n^2$, hard to do with ImageNet. I use scipy.linalg.solve; it's probably doing QR.
+%with data augmentation, get to 14\% in hour.
+You don't actually want to run this on your phone. I don't want to have to store the dataset on my phone. %nn gives some kind of hashed representation.
+
+The year when AlexNet won: 2nd place was 74\% top-5 error with Fisher kernels.
+
+Overfitting with kernels. In statistically learning, when all points are classified correctly, 
+$$
+\E\pat{test error}\le C\fc{\ve{f}_k^2}{n},
+$$
+$C$ suppresses constants and log terms. Key parameter is $M_n = \fc{\ve{f}_k}{\sqrt n}$. %rademacher complexity of norm ball divided by $n$.
+For MNIST, $M_n\ge 0.9$ for pixels, $M_n\ge 1.6$ for Gabor filtered data.
+
+FOr $f_1$, $f_2$, $f_3$ min norm function achieving 0 training loss, achieving 0 and fitting random labels on test set, achieving 0 on random training labels, $\ve{f_1}=3.8e2, \fc{\ve{f_1}}{n^{\rc 2}}=1.6$, $\ve{f_2}=4.9e3 = 13\ve{f_1}$, $\ve{f_3} = 7.8e3 = 21\ve{f_1}$.
+Note nearest neighbors gives 3\% nearest neigbors on MNIST.
+
+Is statistical learning theory useless?
+\begin{enumerate}
+\item
+$\sfc{d}{n}$ is useless.
+\item
+Approximation theory doesn't tell us about finite samples.
+%priors on function classes, really care about $f_*$. I never know what $f_*$ is. We can spend a lot of time analyzing convergence $R[f_H]\to R[f_*]$. 
+\end{enumerate}•
+What can deep learning learn from linear regression?
+\begin{itemize}
+\item
+min norm is good: is canonical form
+\item
+interpolation need not mean overfitting
+\item
+stable algorithms lead to stable models.
+\end{itemize}
+Stability and robustness are critical for guaranteeing safe, reliable performance of machine learning.
+
+%stable? no, adversarial. also problem of linear label
+Are neural nets stable? No, there are adversarial examples.
+What does it mean to perturb an image? What distance?
+%We don't see in $L^\iy$?
+%No one is trying to be robust to $L^\iy$.
+%lipschitz constant large
+
+Opportunities: in 90's, wavelets and nonlinearity worked. Convnets have been sufficient in every task in CV, but are not necessary. If you get rid of them, I feel safer.
+%Stephan Mollot
+
+%take general questions?
+\begin{enumerate}
+\item
+Nearest neighbor: Do neural nets fall back on neasest neighbors? 
+\item
+Explain the effect of class on training on the norm of the solution. (Explain the difference in times of training error going to 0 for true labels, shuffled, random, etc.)
+%effect of class 
+%effective class
+%PB: neural nets are kind-of linear.
+\item
+Margin bound? Min norm is $(y^TK^*y)^{\rc 2}$. (Can you actually compute this? $K$ is not well conditioned.)
+%\item
+%Hard to say that the norm of the weights got bigger. 
+%covering number
+\end{enumerate}•
+%Something in the data that makes this work?
+
+%nemrivoski $R\le R_*+\fc{DG}{\sqrt T}$.
+
+%we cannot ignore data.
+
+%if we have models we can care. But what if we don't have models?
+
+%precondition data?
+
+%precondition by selection - architecture. dropout is regularization. batch normalization accelerates training, dropout slows it down.
+%norm larger for Gabor filtered data??
+%K close to degenerate.
+%min norm solutoin on training data.
+
+%impact of nonconvexity
+
+%trunc gaussian init.
+With the same random seeds, in 10 sgd steps on GPU, get orthogonal models. (On CPU they stay the same.)
+%same random seed. 
+%Nondeterministic 
+Generalization error changes with different initialization. Numerical instability is more of an issue than local min.
+%NaN, 
+%sign-sin fulters
+%is sifn, get reasoble adaptive filters with 1 bit.
+
+Where do you chase your error?
+
