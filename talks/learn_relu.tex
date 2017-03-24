@@ -1,0 +1,199 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Reliably learning the ReLU in polynomial time (Adam Klivans)}
+\chead{} 
+\rhead{} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+
+
+We give the first dimension-efficient algorithms for learning
+Rectified Linear Units (ReLUs), which are functions of the form $\max(0,
+w\cdot x)$ with w a unit vector (2-norm equal to 1). Our algorithm works in
+the challenging Reliable Agnostic learning model of Kalai, Kanade, and
+Mansour where the learner is given access to a distribution D on
+labeled examples, but the labeling may be arbitrary. We construct a
+hypothesis that simultaneously minimizes the false-positive rate and
+the $l_p$ loss of inputs given positive labels by $D$.
+
+It runs in polynomial-time (in $n$) with respect to {\em any}
+distribution on $\bS^{n-1}$ (the unit sphere in n dimensions) and for any
+error parameter $\epsilon = \Omega(1/ \log n)$. These results are in
+contrast to known efficient algorithms for reliably learning linear
+threshold functions, where epsilon must be $\Omega(1)$ and strong
+assumptions are required on the marginal distribution. We can compose
+our results to obtain the first set of efficient algorithms for
+learning constant-depth networks of ReLUs.
+
+Surprisingly, the following question remains open: does there exists a
+fully polynomial-time algorithm (polynomial in the dimension and
+accuracy parameter) for learning even a single ReLU.
+
+Joint work with Surbhi Goel, Varun Kanade, and Justin Thaler
+
+\section{Intro}
+
+The RELU is a function $\max(0,w\cdot x)$. We think about it as a function $\bS^{n-1}\to [0,1]$. This is a popular activation function in deep nets. We talk about the simplest net: just one activation function. There are simple questions involving simple architectures that we don't know what to solve.
+
+Consider linear regression.
+$$
+\min_w \EE_{(x,y)\sim D} [(\an{w,x}-y)^2]
+$$
+where $D$ is on $\bS^{n-1}\times [0,1]$. This is easy. 
+
+On the other hand, there is the question of learning a linear separator. 
+$$
+\min_w \Pj_{(x,y)\sim D} [\sgn(w\cdot x)\ne y]
+$$
+This problem is hard---there are computationally intractability results. 
+
+Suppose the goal is to output $h$ such that 
+$$
+\Pj_{(x,y)\sim D} [h(x)\ne y] \le OPT+\ep.
+$$
+(This is improper learning.) This is computationally intractable in a variety of cases. Amit Daniely showed that assuming certain CSP's are hard there is no polytime algorithm that works for every distribution. Klivans and Sherstove showed that if you can solve this you can break cryptographic schemes based on learning with errors.
+%require halfspace.
+
+One natural thing is to make an assumption about the marginal distribution, for example
+%distribution induced by majority of XOR-SAT, learning with error scheme, etc. Odd distributions you'll never see.
+%Same is true of distributions which are easy...
+\begin{enumerate}
+\item
+Suppose $D$ is uniform distribution on $\{0,1\}^n$. Assuming LWE is hard, you need time $n^{\Om(\rc{\ep^{1.999}})}$. 
+\item
+For $D$ Gaussian (Klivans, Kothari), $n^{\Om(\ln \prc{\ep})}$. 
+\item
+For $D$ uniform on $\bS^{n-1}$, PTAS obtaining $(1+\ga)OPT+\ep$ but exponential in $\ga$, $\poly(n, \rc{\ep}2^{\rc{\ga}})$.
+\end{enumerate}
+
+Consider $C$ the class of disjunctions. The goal is to output $h$ such that 
+$$
+\Pj_{(x,y)\sim D}(h(x)\ne y) \le OPT+\ep.
+$$
+The best %(K, Kalai, Mansour)
+is $n^{\sqrt{n\ln \prc{\ep}}}$. For polytime algorithms, you can get $n^{\rc 3}OPT+\ep$. No distributional assumptions.
+
+You're tempted to say, ``Your model is wrong, has no relation to anything in ML.''
+
+(These results allow arbitrary labels. Moving away from agnostic is my least favorite thing to do. Ben-David 2000: if you have margins, exponent is with respect to margin.)
+
+I will show how to learn $\max(0,w\cdot x)$ in time $2^{O\prc\ep}\poly(n)$ over any distribution, with $OPT+\ep$. 
+
+This is considerably better than what we can do for halfspace.
+Think of this as 1-sided halfspace.
+If it's negative, threshold it; if it's positive, don't change the value.
+
+Minimize both
+\begin{enumerate}
+\item
+False positive rate $\Pj_{(x,y)\sim D}[h(x)\ne 0\wedge y=0]$
+\item
+loss (square-loss) on points given non-values.
+\end{enumerate}•
+In reliable agnostic learning (Kalai, Kanade, Mansour), minimize
+$$
+\EE_{(x,y)\sim D}[(h(x)-y)^2 \one(y>0)].
+$$
+
+First consider the vanilla agnostic model: 
+\begin{align}
+OPT &= \min_w \EE_{(x,y)\sim D} [(\max(0,w\cdot x)-y)^2]\\
+\E[(h(x)-y)^2] &\le OPT+\ep.
+\end{align}•
+This can be done in $2^{O\prc\ep}\poly(n)$. 
+
+Let $C^+$ be ReLUs with zero false positive rate wrt $D$. In reliable agnostic learning, we want 
+$$
+OPT = \min_{c\in C^+} \E[(\cdot-y)^2].
+$$
+The goal is to output $h$ such that $\Pj_{(x,y)\sim D} [h(0)\ne 0\wedge y=0]\le \ep$. and $\EE_{(x,y)\sim D} [(h(x)-y)^2 \one(y>0)]\le OPT+\ep$. 
+
+
+Ex. comment moderation: some comments are trolls. For the remaining, you want to score/rank according to relevance.
+
+%square/absolute loss is competitive with respect to all concepts that have small false positive rate.
+
+Mote this is not a convex minimization problem because you have a max inside a square or absolute value; this makes the problem nonconvex.
+%$l(\max(0,w\cdot x),y)$
+
+%build bregman
+
+We want to solve
+$$
+\min_w \rc m \sum_{1\le i\le m, y^i>0} l(\max(0,w\cdot x'),y^i)
+$$
+under constraints $\max(0,w\cdot x^j)=0$ where $j$ is such that $y^j=0$.
+%false positive $\ep$ due to generalization bounds
+Constraints minimize false-positive while simultaneously minimizing loss. 
+
+We can write $\max(0,w\cdot x) = \fc{|w\cdot x|}2+ \fc{w\cdot x}2$. We first find a polynomial $p$ that approximates $|z|$. The great thing about ReLU is that it is continuous. I can apply Jackson's theorem from approximation theory: 
+\begin{thm}
+For any continuous function on $[-1,1]$ with modulus of continuity 1, there exists a polynomial $p$ such that for all $x\in [-1,1]$, $|p(x) - f(x)|\le \ep$ and $p$ has degree $O\prc\ep$. 
+\end{thm}
+%relationship in terms of degree tihgt.
+%poly uniform approx
+Write $p=\sumo m{\rc \ep} p_ix^i$, $\ve{p}_2^2\le 2^{O\prc\ep}$. 
+
+Cf. SSS used kernels to learn halfspaces.
+%approach to minimize this part of obj function.
+
+We now want 
+$$
+\min_{p\text{ in }n\text{ variables of degree }$O\prc\eo$} \rc m \sum_{1\le i\le m, y^i>0} l(p(\cdot, x^i, y^i))
+$$
+under constraints $p(\cdot, x^j)\le \ep$ for $j$ such that $y^j=0$.
+%kernel trick, don't have to work in expanded feature space
+
+
+Outline: embed $x$ into a feature space via $\ph$. view coefficients of polynomial $p$ as vector $v_w$, 
+\begin{align}
+p_w(x) &= \an{\ph(x), v_w}\\
+MK(x,x') &= \sumo id \an{x,x'}^i
+\end{align}•
+%ex. w_1w_2x_1x_2+w_1w_3x_1x_3
+Different orderings of monomials will be different terms. 
+%$\min\ve{v_w}_2$
+%Minimize $MK(x,x)$ for all $x\in \bS^{n-1}$.
+%$\an{w_1w_2,w_2w_1}
+%\ph(x) \approx\an{x_1x_2, x_2x_1}
+
+Noisy polynomial reconstruction: $\min_{\deg p\le d, \ve{p}_2^2\le B}\E_{(x,y)\sim D, x\sim \bS^{n-1}} [(p(x)-y)^2]$ for any distribution, in time $\poly(n, d, B, \rc \ep,\ldots)$. 
+
+%$\ell_{>0}$ objective function
+%$CLIP(f)$.
+%loss function $h^{(x)} = \begin{cases}0&\text{if }f(x)\le 2\ep\\ f(x)\end{cases}$.
+
+Hardest is showing the loss function generalizes. Use a Rademacher bound. 
+
+Some other results.
+\begin{itemize}
+\item
+Sum of $k$ ReLUS with $\ve{w}_2=1$ in time $2^{O\pf{\sqrt k}{\ep}\poly(n)$. 
+\item
+For the sum of $k$ sigmoids, $\poly(h,k,\rc \ep)$ where $\sum_i w_i\si_i$, $\ve{w}=1$. 
+%can't do DNF's.
+\end{itemize}
+%network of relus to simulate problem. interesting 
+%$\min_{w_1,\ldots, w_k} \sumo jm (\max(w_1\cdot x_1, \cdots, w_k\cdot y_k)-y_j)^2$. %$2^{O\pf k\ep^{\ln k}}$.
+
+%DNF $\max(0,x_1+\cdots +x_n - (n-1))$. 
+%$\ep=\rc{\ln n}$, $\ep<\rc{n^{\Om(1)}}$.
+
+%want someone to get PTAS
+
+\printbibliography
+\end{document}

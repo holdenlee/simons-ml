@@ -1,0 +1,178 @@
+\section{Industry talks}
+
+\subsection{Auctions and market algorithms at Google (Gagan Aggarwal, Google Research)}
+
+Key areas of research:
+\begin{enumerate}
+\item
+Mechanism design: ad selection and pricing, reserve pricing. We care about incentive properties, welfare/revenue, and computational complexity
+\item
+Understanding user and advertiser behavior. We want to model ad-user interactions and predict advertiser response.
+\item
+Ad allocation under constraints. We want to make decisions online with small memory footprint. We do proxy-bidding, ex. compute per-auction bids knowing an advertiser's general values/preferences.
+\end{enumerate}
+
+A lot of ad systems uses the GSP auction: rank ads by bid, and the price of an ad is the next lower bid.
+
+VCG is the standard auction in the literature. It ranks ads by bid, and price is ``loss in value to others.'' VCG induces truthful bidding.
+
+GSP and VCG have different bids at equilibrium. Suppose we want to know how advertisers change bids when we change to VCG.
+
+The typical approach is to experiment: try on a subset.  Possible designs are:
+\begin{itemize}
+\item
+Run VCG on random fraction of queries. (This gives diluted results.)
+\item
+Offer truthful bidding to a random subset of advertisers. (This is better.)
+\end{itemize}
+
+The hybrid auction problem: how to run an auction where some people think they are participating in GSP, some think they are participating in VCG. Given a set of bidders with different utility functions, design an auction truthful for all bidders simultaneously.  Buyer specifies value $v(i,j)$ and maximum price; seller specifies buyer-specific reserve price.
+
+We extend the assignment game for our class of utility functions, show structural results, and design efficient algorithms. For the special case of ads, we design a simpler hybrid auction.
+
+%A GSP bidder expects to get the highest position they can get as long as they pay no more than their bid.
+
+\subsubsection{Beyond greedy auctions}
+
+GSP is greedy: it looks from top to bottom, filling the next position with the highest bid. This works when ads and positions are homogeneous. This is not true: ads are heterogeneous. Ranking them by bid is not optimal/efficient anymore.
+
+Instead, run the combinatorial VCG auction. But computation of optimal allocation is NP-hard; there are strong inapproximability results. Approximations do not give truthfulness. If you try to get truthfulness, you have to sacrifice approximation ratio. 
+
+Questeion: Is there a low-complexity mechanism with good welfare and GSP-like incentive properties, perhaps for a practical special case?
+
+\subsubsection{Online ad allocation using LPS}
+
+Problem: Allocate inventory to ads under constraints.
+
+Solution: Model problem as LP. Use the dual solution (much fewer variables); use dual optimal to compute primal optimal.  If you solve the LP under sample of impressions and use dual variables from that sample, that is a good solution to the primal as well.
+
+\subsection{(Yuval Peres, Microsoft Research)}
+
+
+\subsubsection{Bandit optimization}
+
+We see a sequence of loss functions. For each rount $t=1:T$, choose $x_t$ and receive loss $l(x_t)$. We want small regret
+$$
+R_T=\sumo tT l_t(x_t)-\min_{x} \sumo tT l_t(x).
+$$
+%ai for games, medical trials
+
+An open problem since 2004 was: does there exist a strategy with $R_T\precsim \poly(n)\sqrt T$ when $l$ is from a set of convex functions on a convex body in $\R^n$? Bubeck, Eldan, and Lee 2016 showed $R_T\precsim n^{9.5}\sqrt T$.
+
+The nonconstructive $\sqrt T$ bound of Bubeck, Dekel, Koren, Peres: mimiax theorem reduces to Bayesian case, use Thompson sampling. 
+
+\subsubsection{Max-cut in weighted graph}
+
+Instead of finding max-cut (NP-hard), focus on something easier: local max-cut.
+A partition defines a cut. A local max-cut means we can't improve the cut by moving a single vertex. This is related to Nash equilibriums (potential games), Hopfield networks.
+
+The FLIP algorithm: start from an initial partition; flip a vertex one by one to increase cut size.
+
+This is interesting because of the contrast between theory and experiment. This algorithm is usually fast, linear-time in practice. In theory, worst-case takes exponential number of steps---vertices may move back and forth.
+Reaching local optimum is not a problem in practice but is a problem in theory!
+
+We mimic the smoothed analysis of Spielman and Teng. Given deterministic edge weights and initial configuration, add random noise $Z$ independently on each edge.
+
+Question: by adding small noise with bounded density to each edge weight, will FLIP take poly time?
+
+Etscheid, R\H oglin 2014 showed quasipolynomial. We improved to be polynomial (Angel, Bubeck, Peres, Wei), $n^{15.1}$. Open: get down to linear.
+
+Look at rounds of length $2n$. Show that show that it's impossible that every move in a round makes very small improvement $<n^{-12.1}$.
+
+%infinite computational power move . Adversarial can't force $>n^{15.1}$. 
+
+\subsection{5G NR (Joseph Soriaga, Qualcomm)}
+
+I'll talk about standardization for wireless for the next generation, slated for release 2020.
+NR is ``new radio'' to emphasize it's not backwards-compatible. What are the requirements, the spectrum we target?
+Computing is really enabling this new tech.
+
+There are 3 categories we're optimizing for.
+\begin{enumerate}
+\item
+Enhanced mobile broadband: get data rate much higher. Decrease latency.
+\item
+Mission-critical control. Relax spectral efficiency to increase reliability.
+%controlling devices
+\item
+Massive Internet of Things: have much more devices on the network. They don't move, so we can't take advantage of wireless improving at a different location.
+\end{enumerate}
+
+%high bandwidth, low latency
+Spectrum:
+\begin{enumerate}
+\item
+Low bands below 1GHz: mobile broadband, IoT
+\item Mid 1GHz to 6GHz for eMBB, mission critical
+\item
+High, above 24 GHz (mmWave): extreme bandwidth
+\end{enumerate}•
+%exploit in diff spectrum
+
+We want to make sure tech scalable.
+
+%Technology inventions driving 5G NR standard:
+%\begin{enumerate}
+%\uten IFDN bynerikigtm 
+%\item
+%advanced LDPC channel coding
+%\end{enumerate}•
+
+Ex. make subcarrier spacing wider for higher bandwidths.
+%multiple rounds quickly: shorter.
+%scalable transmission time interval
+
+Frame structure: ensure services are addressable in common frame structure. MIMO. %Guarantee control from user back to network
+%collapse procedure to  better.
+Collapse so NAK is 16 times sooner. High data rate now comes with low latency.
+Spatial multiplexing.
+Bounce through walls, go through windows.
+We have to look at channel design, code: multi-edge LDPC codes are more efficient than LTE Turbo codes at higher data rates. They have high efficiency, low complexity, and low latency.
+%This gets used in every channel
+%This is an example of how extensively we have to evaluate these things.
+
+We have to build these things, to be commercially realizable. %can silicon switch that fast?
+
+%once we have prototype, know how well predict what's going on?
+%algorithmic, hardware limitations.
+%phys layer
+%lower to highest layer.
+
+\subsection{AI platform for business (Michael Karasick, IBM)}
+%new ai techs
+
+I'll talk about AI strategy.
+
+Games provide a laboratory for reasoning.
+%art samuels, 1957
+Checkers (Art Samuels 1957), TDGammon, DeepBlue, AlphaGo.
+The Kolmogorov complexity of the games is small; description of problem is straightforward although state space is enormous. 
+
+New: University of Edmonton: $10^{160}$ state space. Hold'em Poker. It's about search with lots of hidden information.
+
+IBM Watson: Description of problem is in some sense small and large. You're doing probabilistic search on a large natural language corpus. Think of it as probabilistic theorem proving (?). 
+
+After Jeopardy, we got involved in health care (cancer treatment). Talk to subject matter experts and make tools they can use. 
+
+How sophisticated do these systems need to be in problem level? AI is mostly syntactic, understanding vocab in particular domain. This is far from understanding the semantics. 
+
+In 1970's: LINPACK to solve linear algebra problems at scale. Required was deep understanding of math behind complex matrix algorithms.
+
+Now: full stack deep learning to train deep learning networks at scale. Required is deep understanding of math behind training algorithms and performance of hybrid (CPU/GPU) architectures.
+
+%scene, transcript, tone, facial expressions.
+
+%.pdf, fragment, section, bulleted list, line plot, obligation
+
+Ex. understanding obligations from pdf document. Transform into logical forms that you can prove theorems about. The reason for doing this is so companies don't go to jail. Given analyses of obligations and company policies (internal control documents), check that companies are following the obligations.
+
+Figuring out semantics of document is NLU, decompilation problem. Build a model of documents so we can decompose into chunks. Taking a picture of a line plot and reasoning about the data generating the plot is difficult.
+
+Example: Take a horror movie (Morgan) and create a trailer for it.
+Decompose into scenes, do PCA for every feature. Every horror movie has important scenes either tender, scary, or suspenseful. 
+We turned something that takes a month to something that takes an hour.
+%good trailer, bad movie
+
+Story: Studio came to us, ``we want you to help us design the trailer. We're launching it during Super Bowl, please monitor social media.'' We thought the trailer was disastrous. Fans made their own trailers. We analyzed social media reaction to those. At the end, they were listening to us, but not before they lost \$100+ million dollars, head of studio was fired.
+
+%vs. trailer humans have created.

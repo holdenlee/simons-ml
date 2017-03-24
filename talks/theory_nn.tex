@@ -1,0 +1,204 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Learning theory in the age of neural networks (Amit Daniely)}
+\chead{} 
+\rhead{} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+
+I will discuss the extent to which learning theory, as we know it
+today, can explain modern machine learning practice.
+
+The starting point is that linear function classes are the main tool
+that learning theory currently has for providing guarantees on
+learning. Indeed, most known efficiently learnable function classes
+are either linear or contained in a linear class. Furthermore, the
+picture arising from various hardness results, is that it is hard to
+learn non-linear function classes.
+
+In light of that, I will present recent work, which associates a
+linear function class to a network architecture, and that shows that
+modern neural network (NN) algorithms are guaranteed to learn a
+function that is at least as good as the best function in that class.
+This result provides the first polynomial time and distribution-free
+guarantees on modern NN learning algorithms, and applies to a
+relatively rich family of network architectures.
+
+Yet, our results are still far from constituting a satisfying
+explanation to the success of NN, as they are quantitatively weak for
+the regime of parameters that is used in practice. I will end the talk
+with a short discussion on how better understanding could possibly be
+achieved.
+
+
+Based on joint work with Roy Frostig, Vineet Gupta and Yoram Singer.
+\section{Learning theory in the age of neural networks}
+
+We want to learn $h^*:X\to Y$.
+Assume the input space is $X=\{\pm 1\}^n$ and the output space is $Y=\{\pm 1\}$.  We have a data source $(x,h^*(x))$, $x\sim D$ where $D,h^*$ are unknown.
+
+The goal is to find $h:X_n\to \{\pm 1\}$ with small 0-1 loss
+$$
+L_D^{0-1}(h) = \Pj_{x\sim D}(h(x)\ne h^*(x)).
+$$
+
+A network $N$ is a DAG with $n$ inputs and 1 output. Each non-input $v$ is labeled by an activation function $\si_v:\R\to \R$. Assume $\EE_{X\sim N(0,1)} \si^2(X)=1$.
+
+Sample weights $w_{uv}\sim N(0,\rc{\deg^+(v)})$ (indegree). This is Javier initialization.
+
+If you fix 1 input example, and look at a particular neuron, this initialization makes sure that the $L^2$ norm of the random variable is 1.
+
+Define
+$$
+L_D(w) = \EE_{x\sim D}l(h^*(x)h_w(x))
+$$
+for $l(z) = \ln (1+e^{-z})$. 
+ Minimize $L_D(w)$ using SGD:
+ \begin{align}
+w_{t+1}&=w_t-\eta L_S(w_t)\\
+L_S(w) &= \rc m\sumo im l(y_ih_w(x_i)).
+\end{align}•
+ 
+How do we analyze learning algorithms in general? %Analyze neural networks with linear classes.
+It is impossible to efficiently learn any function $h^*:X\to Y$, but it may be possible under conditions on $h^*, D$. We want conditions that are clean and intuitive and valid in many real-world scenarios.
+
+In PAC learning assume $h^*\in H$. This is valid in many cases when $H$ is large enough.
+%Input is $\ep>0$ and access to $(x,y)\sim D$ where $h^*\in H$, where $D,h^*$ are unknown . Output is $h:X_n\to \{\pm 1\{$ with $L^{0-1}<\ep$.
+
+What hypothesis classes are learnable?
+For $\Psi:X_n\to \R^k$, 
+$$
+\text{Linear}(\Psi) = \set{\sign\circ h_w\circ \Psi}{h_w(x)=\an{w,x}\text{ for }w\in \R^k}.
+$$
+Large margin linear classes are learnable:
+$$
+\text{Margin}(\Psi,M):= \set{\ol{\sign} \circ h_w\circ \Psi}{\ve{w}\le M}.
+$$
+$\F_q$-linear classes are learnable (using Gaussian elimination).
+
+Beyond linear, with a few exceptions, virtually all known learnable classes are linear or contained in learnable linear class. Exception: decision lists with parity leaves. Open: find more exceptions!
+%efficiently learnable and not linear
+ 
+In the statistical queries model, all known learnable classes are linear or contained in learnable linear class. Open: find exceptions or prove that no exceptions exist.
+ 
+ Very simple nonlinear classes are hard to learn.
+ Hardness implies hardness of predicting better than random (boosting).
+ 
+ How to analyze neural networks? One idea is to formulate new models and conditions on $D$. Instead, we give guarantees for known learnable classes such as linear classes.
+ We associate a linear class to a network.
+ 
+Previous work involves
+\begin{itemize}
+\item
+Depth 2 networks (Whilliams98)
+\item
+Deep fully connected networks (Cho, Saul09)
+\item
+Deep convolutional networks (Mairal, Konlusz, Harchaoui, Schmid14)
+\end{itemize}
+SGD on top layer for depth-2 has guaranttes for depth-2 nets. 
+%regre not class
+
+Networks often have a concise skeleton. %determined by membership in cluster.
+We can break up into clusters, such that presence of an edge depends on the clusters that the 2 endpoints are in. The connectivity of these clusters is the \vocab{skeleton}.
+
+To go from a skeleton to a network: a replication parameter $r$ and a skeleton induce a network. Replace each noninput node in the skeleton with $r$ nodes.
+
+Define embedding to higher dimension. For $x\in X$ and $A\subeq [n]$ let $x^A = \prod_{i\in A} x_i$. For $\mu=\{\mu_A\}_{A\subeq [n]}$ with $\mu_A\ge 0$ and $\sum_{A\subeq [n]}\mu_A=1$ define
+\begin{align}
+\Psi_\mu:\{\pm 1\}^n&\to \bS^{2^n-1}\\
+\Psi_\mu(x) &= (\sqrt{\mu_A x^A})_{A\subeq [n],\mu_A>0}.
+\end{align}
+Think of this as a family of kernels, distribution says which are important.
+In this case,
+$$
+\text{MARGIN}(\Psi_\mu, M) = \set{\ol{\sign}(f)}{\ve{f}_\mu \le M}
+$$
+where
+\begin{align}
+\ve{f}_\mu &= \sqrt{\sum_A \fc{\wh f(A)^2}{\mu_A}}\\
+f(x) &=\sum_{A\subeq [n]} \wh f(A)x^A.
+\end{align}
+Ex. if $\mu$ is uniform over degree 1 monomials, then $\ve{f}_\mu = \sqrt{n\sumo in \wh f(i)^2}$. If $\mu$ is uniform, then $\ve{f}_\mu = 2^{\fc n2}\ve{f}_2$.
+
+\begin{align}
+\mu_i(i) &=1\\
+\wt \mu_v &=\rc{|in(v)|}\sum_{u\in in(v)}\mu_u\\
+\mu_v &= \sumz i\iy a_i^2(\wt \mu_v)^{*i}
+\end{align}•
+where $\si_v=\sumz i\iy a_i h_i $ is Hermite expansion of $\si_v$, $\mu^{*i}(A) =\sum_{A_1\De\cdots \De A_i=A} \mu(A_1)\cdots \mu(A_i)$.
+%adj coord
+%ReLU $\rc{n^3}$.
+%vs. sigmoid exponentially
+
+Fix constant depth, poly-sized skeleton $S$ with $C$-bounded activations ($\ve{\si}_{\iy}, \ve{\si'}_{\iy}, \ve{\si''}_{\iy}\le C$). 
+
+\begin{thm}
+For replcation $r\ge \poly(n,M,\rc \ep)$, SGD wrt the network $N(S,r)$ efficiently learns $\text{MARGIN}(\Psi_S,M)$.
+\end{thm}
+%you don't know how realistic...
+%of course it's not
+
+%don't derive empirical conclusions based on this theory
+
+Fully connected skeletons contain polynomials.
+\begin{fct}
+Constant degree polynomials with poly-bounded coefficients are contained in $\text{MARGIN}(\Psi_S, \poly(n))$. 
+\end{fct}
+\begin{cor}
+SGD on fully connected nets are guaranteed to learn large margin polynomial threshold functions, constant length DNFs, and constant length decision lists.
+\end{cor}
+\footnote{What's the benefit vs. linearizing? There is none. The goal is to provide some bounds on what NN to do. We have a followup paper about how to train those kernels.}
+
+Fully connected skeletons contain only polynomials. By symmetry, $\mu_A=\mu(|A|)$. Hence if $\mu(A) \le \rc{\binom n{|A|}}$. Then
+\begin{align}
+\ve{f}_S^2 &\ge \sum_{A\subeq [n]}\binom n{|A|}|\wh f(A)|^2\\
+\ve{f-f^{\le d}}^2&\le \fc{\ve{f}_S^2}{\binom n{d+1}}
+\end{align}
+
+Convolutional skeletons contain complex local functions. $f:X_n \to \R$ is $n'$-local if $f=\sumo im f_i$ where each $f_i$ depends on $\le n'$ adjacent coordinates.
+
+Super constant degree $n'$-local polys with poly-bounded weights are contained in MARGIN. %$\text{MARGIN}(\Psi_S,\poly(n))$.
+%svm well0co
+
+Weight sharing is neglected here.
+
+What is captured by our theory? 
+\begin{itemize}
+\item
+Structure: theory adapts to network's architecture.
+\end{itemize}•
+
+
+What is missing?l
+%calc kernels? why wel
+\begin{itemize}
+\item
+Quantitative bounds: for networks with $m$ parameters, guarantee with VC dimension $m^{\rc{12}}$. 
+
+Challenge: does depth-2 NN with $n$ hidden neurons learn some class of VC dimension $\gg n$?
+\item
+Hiearchical learning:
+
+Inherent limitation of linear methods: linear classes amount to fixing embedding and  learning linear threshold on top of that. You don't learn the embedding.
+\item
+Challenge: find tractable model for hierarchical learning. Doesn't have to be function class; can be assumption on $D$.
+\end{itemize}•
+
+
+\printbibliography
+\end{document}

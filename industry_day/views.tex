@@ -1,0 +1,101 @@
+\section{Views from the programs}
+
+\subsection{Pseudorandomness (Luca Trevisan)}
+
+Under standard assumptions (you cannot speed up algorithms by making them longer), 
+there are polytime PRGs with seed length $O(\ln n)$.
+
+Bounded memory: random generator, seed length $O((\ln n)^2)$, universal for space-bounded algorithms. Gets good hash functions for streaming algorithms. Reasonable bounds.
+
+Pseudorandomness for cuts: up to error, number of edges depends up to small error on $|A|$ and $|B|$.
+Find sparse things with properties of dense things. A generalization of expanders is cut sparsifiers: $H$ is sparsifier of $G$ if for every cut, the number of edges $G$-edges from $A$ to $B$ is about the same as the number of $H$-edges from $A$ to $B$. (Expander is sparsifier of clique.)
+
+Another property of random graphs: Every graph has large clique or independent set. Erdos invented probabilistic method to show there exist large graphs without large cliques or independent sets. There are breakthroughs in explicit constructions, Cohen- Chattopadhyay-Zuckerman 2016 through extractors.
+
+Models for primes: primes have or are conjectured to have properties of random set. Pick $N$ with proability $\rc{\ln N}$. Refinement, get sequence of probabilistic models that are better: $\fc 2{\ln N}$ if not even, $\fc 3{\ln N}$ if not even or divisible by 3. 
+
+%To show certain patterns occur in primes, show that ? can't be distinguished from random sets by certain tests
+Van der Corput, 1939: infniitely many triples of primes in arithmetic progression. Proof: Fourier transofrm of smoothed version of indicator function of primes.
+
+Green-Tao: infinitely many $k$-tuple. Proof of Szemeredi's theorem does not distinguish primes from a dense set of integers. Reason about Gowers norm of almost-primes. 
+
+%any set is not random set.
+2 starting points:
+\begin{enumerate}
+\item
+Szermeredi's Theorem: if $S$ is set of integers of constant density, $A$ contains arbitrarily long arithmetic progressions.
+\item
+Almost primes pseudorandom in strong sense measured by Gowers norms. Primes have constant density in almost primes.
+\end{enumerate}•
+Dense model: all integers indistinguisheable from almost primes.
+
+Model set has infinitely many $k$-progressions by Szemeredi's Theorem. Primes have infinitely many $k$-progressions by indistinguishability.
+
+This is similar to how we reason about pseudorandomness in complexity theory, like a reduction.
+
+\subsection{Machine learning (Sanjoy Dasgupta)}
+
+Theoretical machine learning is a flourishing field and made high-impact contributions (boosting, online learning and bandits, generalization gives a way to think about sample complexity).
+
+What's not so wonderful: community is working on a small subset of machine learning, where the math framework is well-defined and there are clear problems to make progress.
+
+We want to grow the fields of inquiry within ML.
+
+Three area/workshops: Interactive, representation, computational challenges. We also include talks from non-theoreticians because we're interested in making models when there isn't so much theory.
+
+\subsubsection{Interactive learning}
+
+Much of success in ML has been in supervised learning. Dataset is obtained, someone labels, human goes away, and a machine is started up and told to find a classifier. We're interested in situations where human and machine collaborate closely in hopes of better outcome. Ex. label points when necessary.
+Hope this leads to better outcomes and reduced human involvement.
+
+%Because machines mediate more of what we need, we want
+Most work is ad-hoc in one-off systems. The general model is not clear.
+
+Some areas:
+\begin{itemize}
+\item
+explanations and interpretations. Ex. explain to Alexa why you like the movie. The additional information can be much more informative than just the label. 
+
+Conversely, how to get classifier to explain prediction to us, ex. why reject a loan application?
+
+Ex. In each step see a picture, make a prediction. Human corrects and points to some part of picture that explains the difference. How to use this to build classifiers more efficiently, that explain their predictions?
+\item
+teaching. Human teaching machine. Like supervised learning, but human takes more active role, choosing informative examples. Usual sample complexity results don't apply---how much better can we do?
+
+Intelligent tutoring, human teaching human, machine teaching machine. We want a formal theory of teaching.
+
+Theory has basic failings---teacher knows internals of learner, ex. what type of classifier. Model could be complicated/inscrutable, ex. neural nets. Develop more general models that don't require detailed knowledge of what learner looks like. This would be useful in all these different contexts.
+\item
+Improving unsupervised learning by interactions. There has been huge progress in unsupervied learning: clustering, embedding, topic modeling. For a long time these were solved by local search algorithms without guarantees; there are counterexamples. Progress: sophisticated linear algebra, using geometry...
+
+Even if you obtain optimal solution, it may not be the clustering you want, simply because in high-dimensional data there are many different salient structures, and it's not clear which one you actually want; it may not coincide with the one the the  cost function picks out. This can't be done with improving the algorithm; you need interactive feedback loop. 
+
+Ex. learning similarity or distance function.
+\end{itemize}
+\subsubsection{Representation learning}
+
+This has been a preoccupation in AI because having good representations facilitates learning. A decade ago, people focused on manifolds. Data lies close to low-dimensional manifold. Find it and project data to manifold. This would make learning magically easier.
+
+Now a lot of representation learning focuses on neural nets. 2 types of questions:
+\begin{enumerate}
+\item
+how to find this structure in data?
+\item
+How much data is needed?
+\end{enumerate}•
+Ex. generalization behavior of neural nets. Why does learning from training set do well on distribution? If class of models is not too rich, generalization theory explains this. But neural nets work when the number of parameters is more than the number of data points. 
+Generalization is more complex than number of data points!
+%margin
+Train using modified SGD where final product is nonvacuous generalization bound. Another model: framework for building generators. 
+
+Model to the point where you can generate samples that look like they came from the distribution. Generative adversarial nets is recently popular. Distinguishing tries to tell apart real and generated data. Both are updated at the same time.
+
+Do this is a way that has rigorous guarantees. This has been a point of synergy between the two programs: dense model theorems are helpful in this context. Pseudorandomness has been thinking about how to fool various tests.
+
+\subsubsection{Computational challenges}
+
+Deployment of optimization algorithms.
+
+Bayesian algorithms has a host of unanswered questions: complexity of sampling problems, mixing rates of MCMC methods, other forms of approximate inference; relation between ML, MAP, and sampling.
+
+%architectures vs. features

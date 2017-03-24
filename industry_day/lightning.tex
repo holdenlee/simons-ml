@@ -1,0 +1,250 @@
+\section{Lightning talks}
+
+\subsection{(Aviad Rubinstein)}
+
+In progress work with Schramm and Weinberg.
+
+Secret graph has 5 vertices A, B, C, D, E. Objective is to find minimum cut. You can guess subset of vertices (partition) and I'll tell you how many edges cross the cut. 
+\begin{itemize}
+\item
+For ED/ABC, 3 edges.
+\item
+A: 2.
+\item
+B: 1.
+\item
+CD: 2.
+\end{itemize}
+%I lied. The graph is moved to 116. 
+The graph is ACD, EB. 
+You want to minimize number of queries. You can do this in $\binom n2$ steps: beyond that there is linear dependency.
+
+Conjecture: You need $\wt \Om(n^2)$ queries. 
+
+\begin{thm}
+For $s$-$t$ MinCut we can achieve $\wt O(n^{\fc 32})$; for approximate MinCut, $\wt O(n)$.
+\end{thm}
+
+\subsection{The high-dimensional geometry of binary neural networks (Alex Anderson)}
+
+Joint work with Cory Berg. Supervised by Bruno Olshausen.
+
+\url{http://alexanderganderson.github.io}
+
+A typical feedforward neural network: apply matrix, nonlinearity, 
+
+Binary: binary values at nodes. Binarized function: $\sign$. This executes faster and requires less memory access.
+
+Bourbariaux, Hubara 2016: train with binary weights and activations, augment with continuous latent variables, use SGD.
+
+These networks work because of high-dimensional geometry of binary neural networks. Angle between vector and binarize vector is small. Binarizing approximately preserves direction in high dimension.
+We validate in BH network. Dot products for original and binarized are highly correlated.
+%Grpah $Wb\cdot A$, vs. continuous. 
+
+Our theory is a foundation for understanding BNN and low-precision NN. This is foundation for understanding other architectures. 
+
+\subsection{Sparsification for graphs (Anup Rao)}
+
+One important tool for graph algorithms is the ability to solve Laplacian linear equations in almost linear time.
+$$
+L_G=D_G-A_G.
+$$
+We can solve linear equations of the form $L_Gx=b$ in time $\wt O(m)$, $m$ the number of edges. Most algorithms rely on graph sparsification. 
+Spectral sparsifications: given graph $G$, approximate by sparse $H$, in certain sense, $L_G\approx_\ep L_H$. Use sparse graph as preconditioner to solve equations. 
+
+Every graph has a linear $\wt O\pf n{\ep^2}$ size approximator, constructed in linear $\wt O\pf{m}{\ep^2}$ time. 
+
+This has led to improvements for min cut, max flow, matching algorithms. So far the algorithms are for undirected graphs. The main bottleneck for directed graphs is the right definition of sparsification. Cut sparsifiers don't exist. We defined a notion of sparsification for directed graphs. Diagonal is out-degree matrix, $L_G=D-A$. We recover desired properties of spectral sparsifiers. We can compute PageRank vector, etc. in nearly linear time.
+
+\subsection{Proofs of work (Manuel Sabin, UC Berkeley)}
+
+Eve sends an email to Bob. Dear Sir, I've recently come to inheritance to Nigerian prince and want to share. Spam!
+\begin{itemize}
+\item
+for each email, need to solve a puzzle that takes some work. 
+\item
+DoS
+\item
+Recently important in cryptocurrency, Bitcoin.
+\end{itemize}
+
+Have a proof of work that secures the blockchain. Majority vote: to convince people of your timeline, need majority of computing power. Find preimage to hash.
+
+But such work is useless. Bitcoin is a big industry: 5 times computing power of Google. This is an environmental disaster.
+
+We propose proofs of useful work.
+
+Ex. for graph, find shortest path. This is useful but easy.
+
+We want average-case hardness. For random graph, this is hard but useless.
+
+We marry hardness and usefulness.
+
+We use all-pairs shortest path, and use fine-grained complexity.
+
+\subsection{ETH hardness for densest $k$-graphs (Pasin Manurangsi, UC Berkeley)}
+
+We want to show hardness of approximation. Typically reduce from NP-hard problem to optimization problem. If 3SAT is satisfiable, optimum is large $OPT\ge c$. If it's not satisfiable, we want $OPT\le cr$. If reduction is polynomial time, then the 2nd problem is hard to approximate to ratio $r$. Many problems are known to be hard to approximate, ex. 3SAT. Others are fundamental but we don't know how to prove.
+
+Find densest $k$-subgraph. There is approximation algorithm $\rc{n^{\rc 4}}$. 
+We don't even know NP-hardness to approximate to within $0.9$. 
+
+We can use a stronger assumption that $P\ne NP$. The assumption is ETH: no subexponential time algorithm for 3SAT. This allows us to make the reduction size huge.
+Before we had to have poly-size reduction. Large reduction but slightly less than $2^n$, ex. $2^{n^{0.99}}$ is fine. 
+
+We show under ETH, DkS is hard to approximate to within $n^{\rc{\poly\log\log n}}$.
+
+\subsection{Non-malleable commitment (Akshayaram Srinivasan, UC Berkeley)}
+
+A commitment scheme is protocol between committer and receiver. 
+\begin{enumerate}
+\item
+Commit phase: At the end, receiver doesn't learn any information about message m.
+\item
+Opening phase: Opener cannot open to any meesage beyond m.
+\end{enumerate}
+Ingredient in ZKP, multi-party proofs.
+
+But if channel is not authenticated, some attacks are not captured by this model.
+
+Consider man-in-model: inject new messages and tamper with communication.
+
+Goal of MiM is to get R to commit to message that is related to original message. To product against these attacks, notion of non-malleable commitment introduced [DDN91].
+
+Only way to get certain multi-party  protocols. 
+
+Want to understand communication and round complexity.
+
+[GPR16] got 3-round NM $|m|^7$. We show 3 rounds, quasi-optimal $|m|\ln k$, $k$ security parameter. We connect to 2-source non-malleable extractors.
+
+\subsection{Learning dynamics of neural networks (Maithra Raghu, Cornell University \& Google)} 
+
+Deep learning is everywhere. We're just at the beginning of principled understanding. Random neural networks, generalization, probability distributions.
+
+One fundamental question: how network evolves to final state. 
+At the end it learns useful representations. 
+Look at network representation to understand how learning happens. For each neuron, consider as vector $[z_1,\ldots, z_n]$, encode input $[x_1,\ldots, x_n]$. We can do this for every layer. Because we can linearly combine, we have a subspace for each layer. We hope to use this to compare representations.
+
+Use CCA. 
+Patterns
+\begin{enumerate}
+\item
+Network converge bottom up: layers at bottom converge first. Perfectly correlated along diagonal.
+\item
+Blocks of batch normalization layers.
+\end{enumerate}•
+Should we treat layers similarly? Freezing lower layers before end of training doesn't hurt performance. Vary learning rates in layerwise fashion.
+
+\subsection{Algorithm design for massive data (Xiaorui Sun)}
+Massively parallel computing: hadoop, spark are used everywhere. Implementations are different, but they share the same model, mapreduce. Have large set of data, too large to fit in single machine. Each machine processes data on local memory. After local computations, results are aggregated and sent back to cloud. We cannot do much in a single round, need to layer and to in multiple rounds. We want small number of rounds of communication.
+
+What kind of problems can be efficiently solved/not in this framework?
+\begin{itemize}
+\item
+Divide and conquer: naturally parallelizable.
+\item
+Greedy: [Kumar-Moseley-VV13], [Barbosa-Ene-NW16]
+\item
+Dynamic programming: wide open. Results depend on results on previous stages.
+\end{itemize}•
+We propose new principled methods to approximately solve dynamic programming in $O(1)$ rounds. This gives efficient algorithms for longest increasing subsequence, weighted interval scheduling, optimal binary search tree... Key ideas are decomposability and monotonicity.
+
+\subsection{(Dylan Foster, Cornell University)}
+
+%Joint work with Sasha Rakhlin, 
+
+Online learning. Protocol: at time $t$, get $X_t$, predict label $\wh Y_t$, and get loss $l(\wh Y_t, Y_t)$.  This is in adversarial setting.
+Measure performance by regret, loss compared to benchmark
+$$
+\sumo tn l(\wh y_t, y_t) - \inf_{f\in F} \sumo tn l(f(x_t),y_t).
+$$
+$F$ a hypothesis class.
+ZigZag is instance-optimal---match on any setting up to constant factors. Ex. iid, adversarial. More generally,  interpolate between regimes. 
+
+We characterize when this is possible. 
+
+Theorem (for linear predictors): If it is possible to achieve instance optimality, then $F$ is a decoupling space: normed vector space, weakly dependent processes (martingales), depend like random processes.
+
+We leverage Burkholder's Theorem. There is a special function, Burkholder/Bellman function with zigzag convexity. We can drop it into our algorithm.
+
+\subsection{Logical clustering (Marcell Vazquez-Chanlatte, UC Berkeley)}
+
+Motivating example: suppose you have a highway, car,
+want to change lane. Guarantee that it changes lanes. End up with traces, some follow reference well, some going crazy. Get gigabytes at time, group by how well achieving criteria in unsupervised fashion.
+Try dynamic time warping, etc., but because traces satisfy logical criterion that doesn't do any good.
+
+Use rich language of temporal logic. 
+For example,
+$$
+((x-x_{ret})<\al \cup \text{step}) \wedge G(\text{stop}\to \diamond_{[0,\iy)} (|x-x_N|<\al))
+$$
+Split up, divide and conquer. Approximate Hausdorff distance. Group and project to single point. Find traces. Grow template library.
+
+\subsection{Statistical and computation tradeoffs (Ahmed Alaoui, UC Berkeley)}
+
+Try to detect signal with much less data than what is possible in computational efficient way.
+
+Often in compressed sensing gap is constant.  We're inspired by data collection in genetics.
+Large pool, analyze pool. Get frequency spectrum of characteristics.
+
+Get histogram of types. We characterize information-theoretic thresholds to reconstruct signal. Let $m$ be number of measurements.
+$$
+m = \fc{\ln d}{d-1}\fc{n}{\ln n}
+$$
+where $d$ is number of types, $n$ is number of people. Computationally efficient threshold:
+$$
+m=\fc{\ln d}{d-1}n \cdot BP
+$$
+There is phase transition.
+%not as large as gap
+%cute problem intersting
+%$$
+%\int e^{-\fc{\sum x_{rr}^2}{2\si r^2}} = (2\pi)^{\dim(F)}\pf{\prod wrs}{P_G(w)}^{\rc 2}
+%$$
+Formula related to spanning tree polynomial.
+
+\subsection{Regularized clustering is noise-robust (Shrinu Kushagra, University of Waterloo)}
+
+Clustering: group similar points together and separate distant points. 
+
+Define cost; find the minimum-cost partition. One way is $k$-means. Find clustering so square of distances to centers is minimized, 
+$$
+\min_{c_1,\ldots, c_k}  \sumo ik \sum_x \ve{x-c_i}^2.
+$$
+If data is separated, then minimizing this finds the clusters. 
+
+Noise: add 1 point (outlier). It has to be in a cluster of its own; otherwise its cost is too large. All other points become 1 cluster. One point can dramatically change structure.
+
+%shai
+Make objective noise-robust. Add a garbage cluster
+$$
++ \la |c_{k+1}|.
+$$
+Now we can dump the outlier in the garbage cluster. This objective is also NP-hard. We have heuristic based on convex relaxation. If there is nice structure, the heuristic gets the optimal clustering and dumps the garbage points.
+
+\subsection{Sample complexity of neural nets (Abbas Mehrabian, University of British Columbia)}
+
+Join work with Nick Harvey and Chris Law.
+
+Each node in graph takes a linear combination and applies nonlinear function, send to next node.
+
+Fundamental theorem of machine learning: number of samples for PAC learning within error $\ep$ with VC-dimension $v$ is $\Te\pf v\ep$.
+
+If activation function is piecewise poly
+$$cel \le v(e,l) \le C(el^2 + el\ln e), Ce^2.$$
+
+We improve bound if activation function is piecewise linear
+$$
+ce\ln \pf el \le v(e,l) \le Cel \ln e.
+$$
+\subsection{Genome assembly problem (Ilan Shomorony, UC Berkeley)}
+
+Figure out genome of some organism. Output of sequencer is $N$ reads (subsequences). Assembler puts them together $\wh S$. 
+
+Standard method: combinatorial optimization. Define read-overlap graph. Put directed edge with overlap amount. Visit every node once, find path that yields shortest possible sequence. This is NP-hard; people use heuristics.
+
+Alternative approach (Bresler, Bresler, Tse): put model in sequencing. Assume substrings uniformly sampled. Focus on real genome. Divide set of instances (defined by $N$ number of reads, $L$ length) into possible/impossible instances---do the reads have enough information to allow perfect reconstruction?
+
+Even though the original problem is Hamiltonian path, if you start with feasible instance, there is a pruning graph making the graph sparse, solution into a Euler path.
+
+We evaluate HINGE, does better than other algorithms, helps sequence other species.

@@ -1,0 +1,29 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+%https://github.com/holdenlee/templates
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Simons Industry Day}
+\chead{} 
+\rhead{Simons Institute, Spring 2017} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+\tableofcontents
+\input{industry.tex}
+\input{lightning.tex}
+\input{views.tex}
+%INSERT_HERE
+
+\end{document}

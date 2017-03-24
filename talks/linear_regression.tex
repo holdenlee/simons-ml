@@ -1,0 +1,219 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Multiplicative regret bounds for fixed design linear regression with a small number of labels}
+\chead{} 
+\rhead{} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+
+Speaker: Michal Derezinski
+
+Joint work with Manfred Warmuth
+
+We use volume sampling to obtain exact multiplicative
+regret bounds for linear regression.
+The learner is given a fixed set of $n$ input vectors in $\R^d$ of a
+linear regression problem (aka fixed design).
+Each vector has a real hidden label. The goal is
+to approximately solve the linear least squares problem for all $n$
+labeled vectors while seeing only a small number of the labels.
+
+In our most basic setup, the
+learner selects a random subset of $d$ vectors from
+the fixed set of $n$ vectors (without knowing any of the labels).
+The learner then is given the labels of the chosen subset of $d$ vectors.
+We show that if the random subset is chosen based on volume sampling,
+then the linear least squares solution for the subset of $d$ labeled vectors
+\begin{itemize}
+\item
+is an unbiased estimator of optimum solution on all $n$ labeled vectors,
+\item
+and in expectation, the total square loss (on all $n$ labeled vectors)
+of the solution found for the subset is by a factor of exactly $d+1$ larger
+than the minimum achievable total square loss
+(provided the vectors are in general position).
+\end{itemize}
+We next show how $d/\epsilon$ subsamples (of d points each) can be
+used to produce a solution with expected loss at most $1+\epsilon$
+times the optimum. It is common to develop additive regret bounds
+for linear regression, ie. bound the expected loss of the algorithm
+minus the loss of the best.
+Instead we bound the multiplicative regret which
+is the additive regret divided by the optimum loss. Viewed this way,
+the above method based on $d/\epsilon$ subsamples of size $d$ has
+multiplicative regret epsilon.
+
+We compare our work to other approaches and give many open problems.
+Our results are elementary and we will give a flavor of the proof methods.
+
+\section{Intro}
+
+Given $n$ labeled points $(x_i,y_i)\in \R^d\times \R$, find $w^*$ that minimizes square loss $\sum_i (x_i^T w-y_i)^2$, i.e.,
+$$
+L(w) = \ve{Xw-y}^2, \quad X\in \R^{n\times d},y\in \R^d.
+$$ 
+We can compute the exact solution using the pseudoinverse.
+%The exact solution is 
+%$$
+%w^*:= 
+%$$
+
+Our goal is to approximately minimize $L(w)$ without using all labels.
+
+Solve subproblem $(X_S,y_S)$ getting an approximate solution $w_S^*$. 
+
+Approach: choose $S$ to get most informative labels.
+Instances with larger norm $\ve{x}$ are more informative.
+
+In volume sampling (Deshpande, Rademacher, Vempala, Wang), generalize the norm to sets of examples. The distribution over $d$-element subsets $S$ is 
+$$
+\Pj(S) \propto \det(X_S^T X_S),
+$$
+the squared volume of parallelopiped $P(x_i,x_j)$. 
+%square volume of simplex = /n!
+$d$ is the number of features.
+The normalization factor is 
+$$Z=\sum_{S:|S|=d} \det(X_S^TX_S) = \det (X^TX)$$ by the Cauchy-Binet formula. This is the volume spanned by the columns of the data matrix.
+
+There is a sampling procedure based on SVD, matrix decomposition.
+
+This is a special case of determinantal point processes.
+
+Let $w^*=\E(w_S^*)$ ($w_S^*$ is unbiased estimator of optimal). We will obtain expected loss $\E[L(w_S^*)]$ that is at most $dL(w^*)$ more than the optimal loss $L(w^*)$. 
+
+Note volume sampling doesn't see the labels! Linear regression is special: if there is outliers, the best solution $w^*$ also pays. %no range restrictions.
+
+%$n\gg d$, penalty is just $d$.
+
+Main result: 
+For a volume-sampled $d$-element set $S$,
+$$
+\E [L(w_S^*)] = (d+1) L(w^*)
+$$
+where $w^*=\E[w_S^*]$ if $X$ is in general position.
+
+Zeroing out everything in $X$ except $S$ and taking the pseudoinverse we get an unbiased estimator: If $X$ is full rank,
+$$
+X^+ = \E[(I_SX)^+],
+$$
+Then the predictions are also unbiased
+\begin{align}
+\E[w_S^*] &= \E[(I_SX)^+ y_S] = X^+y = w^*\\
+\E[\wh y] &= Xw^* = y^*.
+\end{align}
+
+If $X$ is not in general position, then we have an inequality
+$$
+\E[L(w_S^*)] \le (d+1) L(w^*).
+$$
+Note $\E[L(w_S^*)]$ is sensitive to subsets $S$ such that $\det(S_X)=0$. Ex. consider $(X|y) = \mattn 111110100$ and $(X_\ep|y) = \mattn 1{1+\ep}1110100$.
+
+Bias-variance decomposition gives
+\begin{align}
+(d+1) L(w^*) &= \E[L(w_S^*)] = \E[\ve{\wh y-y}^2]\\
+&= \E[\ve{\wh y-y^*}^2] + \ve{y^*-y}^2\\
+&=\sumo in \E[(\wh y_i - \E\wh y_i)^2] + L(w^*) = \sumo in \Var[\wh y_i] + L(w^*)\\ 
+\sumo in \Var(\wh y_i) &= (d+1)L(w^*)
+\end{align}
+
+We can get arbitrarily close to 1 by taking many ($T$) samples of size $d$.
+$$
+\E\ba{L\pa{\rc T\sumo tT w_{S_t}^*}} = \pa{1+\fc dT} L(w^*).
+$$
+Note that we're calculating the $w^*$ for each subset separately, rather than aggregating the samples.
+
+Proof. By bias-variance decomposition,
+\begin{align}
+&=\sumo in \Var\ba{\rc T\sumo tT \wh y_i^{(t)}} + L(w^*) .
+\end{align}•
+
+Q: Why not just select subset $S$ with maximal volume? 
+
+A: To protect against adversarial labeling. Example: $X=\colthree{1+\ep}{1}{\vdots}$, $y=\colthree{0}{1}{\vdots}$.
+
+Any deterministic algorithm can be fooled.
+
+Related work:
+\begin{enumerate}
+\item
+Leverage score sampling for linear regression 
+(sample independently. We sample $d$ examples non-independently which gives more informative samples.)
+\item
+Hadamard transform and sketching for regression
+\item
+Volume sampling for matrix approximation
+\item
+Online regression regret bounds
+\end{enumerate}
+
+What do additive bounds on average loss look like?
+\begin{align}
+R(\wh w_k):&=\E[\ol L(\wh w_k)] - \inf_w \ol L(w)\\
+\ol L(w):&= \rc n \sumo in l_i(w)\\
+R(\wh w_k)&= O\pa{\fc{d\ln k}{k}Y^2}, &Y&=\max_i |y_i|
+\end{align}
+This is typical bounds under uniform sampling. We show averaged volume-sampling weight vector achieves
+\begin{align}
+R(\wh w_k) & = \fc{d^2}k \ol L(w^*), &k&\ge d.
+\end{align}
+where $k\ge d$.
+
+Proof techniques:
+\begin{itemize}
+\item Geometry: 
+\begin{itemize}
+\item
+Base$\times$height formula
+
+How to relate volume to linear regression? Prediction $\wh y$ is projection of label vector onto column spam. $BH$ formula gives  ($\wt X = (X|y)$)
+$$
+\det(\wt X^T \wt X) = \det(X^TX)L(w^*).
+$$
+\item
+Cauchy-Binet formula
+\item 
+New volume formula for leave-one-out loss: 
+%if $n=d+1$ and $S=[d+1]_{-i}$, then $\det(\wt X^T \wt X) = 
+\end{itemize}•
+\item Expected pseudo-inverse:
+\begin{itemize}
+\item
+determinant derivative formula
+\item
+induction using Sherman-Morrison
+\end{itemize}•
+\end{itemize}
+
+Extended volume sampling: sample susbet $|S|=k\ge d$. Still $\Pj(S)\propto \det(X_S^TX_S)$. Normalization is $Z_k=\binom{n-d}{k-d}\det(X^TX)$.
+
+Composition property: hierarchical volume sampling gives the same as one-shot volume sampling.
+
+Pseudo-inverse formula still holds. Square inverse formula:
+$$
+(X^TX)^{-1} = \fc{k-d+1}{n-d+1}\E_S[(X_S^TX_S)^{-1}].
+$$
+
+%sum everything except for 1: essentially taking out 1 element
+
+Open problems: extend results to regularized regression, show $O(d/k)$ rather than $O(d^2/k)$ (likely achievable when using optimal predictor $w_{S_1:T}^*$), find minimax optimal sampling distribution.
+
+(Adversary tries to labels. Adversary tries to maximize the payoff, the ratio between expected loss and best loss.)
+
+
+
+\printbibliography
+\end{document}
