@@ -1,0 +1,117 @@
+\section{Intrinsic motivation and automatic curricula via asymmetric self-play (Rob Fergus, NYU)}
+
+RL typically requires a huge number of episodes, and often requires a supervision signal (reward) that is expensive to obtain.
+
+Can we learn about environment in an unsupervised way? The assumption is that interaction with environment is cheap.
+
+Agent plays a game where it challenges itself. A single physical agent has 2 separate minds: Alice proposes a task (by doing it), Bob completes the task. 
+
+Consider 2 classes of environment:
+\begin{enumerate}
+\item
+Actions are reversible within same time (reverse self-play)
+\item
+Reset to initial state is allowed (repeat self-play)
+\end{enumerate}•
+Jointly train with self-play and target task.
+
+For reverse self-play: take some actions; at some time take ``STOP'' action handing control to Bob. Bob's goal is to take reverse action.
+
+For repeat self-play: take some actions, issue STOP. Reset and Bob tries to repeat.
+
+Incentivize exploration (internal) through reward structure. Bob's reward is $R_b=-t_b$, time spent, with $t_{\max}$ if fail. Alice's reward is $R_a=\max(0,t_b-t_a)$. Make Bobh fail with less effort.
+
+Alice's optimal behavior is to find simplest tasks that Bob cannot complete. This makes learning for Bob easy since the new task will be only just beyond his current capabilities. 
+
+Use use policy gradient. Parameterize policy functions by
+\begin{align}
+a_{A}&=f_A(s_t,s_0)\\
+a_B&= f_B(s_t', s_0')\\
+a_{\text{target}} &= f_B(s_t'',e)
+\end{align}•
+where $e$ is a dummy vector/task description.
+
+The policy that Bob learns will be used for the target task.
+
+We hope self-play will be useful for target. Try different, both discrete and continuous settings. %In practice learn with reinforcement learning.
+
+Under strong assumptions (tabular policies, finite state) Bob must learn all possible tasks (how to transition between any pair of states as efficiently as possible). If Bob fails on a certain task, then Alice would propose to increase reward. Then Bob sees the task and learns it to increase reward.
+%alice should p
+
+There might be tasks that Alice fails to propose. 
+(Q: how do you know you will reach equilibrium?)
+
+Related work: self-play (checkers, backgammon, Go, RoboSoccer), GAN's (think of Alice as generator of hard examples, Bob as discriminators), intrinsic motivation (they have reward for novelty of state, we learn to transition between pairs of states), robust adversarial reinforcement learning (adversarial perturbation to state).
+
+Experiments:
+\begin{itemize}
+\item
+use Reinforce algorithm with learnt baseline and entropy regularization
+\item
+2-layer NN model for Alice and Bob (separate)
+\item
+Train on 20\% target task and 80\% self-play
+\item
+discrete vs. continuous environments
+\item
+measure target task reward vs. number of target task episodes (self-play is free)
+\end{itemize}
+Toy example: long hallway.
+%target and self-play same thing. 
+
+MazeBase: LightKey task (2-D world)
+
+Grid is procedurally generated. Toggle key to lock/unlock door, toggle light on/off (only switch is visible when light is off). Goal is to reach flag in other room.
+%The number of objects touched 
+Alice takes more time steps as training goes on. This means Bob is solving the shorter paths.
+
+Mountain car
+\begin{itemize}
+\item
+control car stuck in 1-D valley (need to build momentum by reversing)
+\item
+Sparse reward (+1 if reach left hill top)
+\item
+hard task because random exploration fails
+\item
+asymmetric environment, so do repeat self-play
+\end{itemize}
+Reinforce + self-play does as good as other exploration methods (TRPO + VIME, TRPO + SimHash). Reinforce alone fails.
+
+Ex. Alice goes halfway up the wall.
+
+%hash based exploration, vine
+
+%how can gradient help alice explore harder things?
+
+%alice is not smarter than bob. she gets to choose what the problem is.
+Bob gets gradient both from self-play and target task. Alice only has to fool Bob.
+
+Swimmer Gather:
+\begin{itemize}
+\item
+control worm with 2 flexible joints, swimming in 2d viscous fluid
+\item
+reward +1 for eating green apples and -1 for touching red bombs
+\item
+reverse self-play
+\end{itemize}
+To swim anywhere, coordinate over multiple time steps. 
+
+
+Alice may find one particular task and keeps giving it. It can concentrate in a single point.
+%try mixture?
+We want meta-exploration for Alice---have multiple Alices? 
+Future work: mark target state, propose task by communication, propose a hypothesis for Bob to test.
+
+We can control how similar the self-play and target episodes are: ex. whether the light is on. For repeat self-play, if light is off consistently during self-play it helps; for reverse self-play, if light is on consistently it helps. %repeat is more robust, 0.3-0.4 still gain.
+
+%1703.05407
+
+%ex. Atari
+%What if large part of the environment is not under the agent's control?
+%how to distinguish self from env?
+
+%alice knows target task?
+%we want to min reward from environment
+%convergence on states?

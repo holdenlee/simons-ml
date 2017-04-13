@@ -1,0 +1,236 @@
+\section{Representations in deep reinforcement learning (Peter Abbeel, Berkeley)}
+
+In RL, agent chooses action, environment changes state, and gives reward signal. Supervision is in terms of reward accumulated over time rather than on which actions to take. You can model robotics, dialogue, logistics, gameplay, anything where after acting the world changes state and agent acts in the changed world.
+
+Before people used heavily engineered features; now there's neural nets.
+
+There are many approaches. Two big approaches are policy optimization and dynamic programming (decompose into pieces, solve based on temporal decomposition).
+
+I'll look at policy gradients (policy optimization), Q-learning (DP), and actor critic methods.
+
+\subsection{Classical RL}
+
+In policy optimization, $\pi_\te(u|s)$, the policy, is parameterized by $\te$. Environment is stochastic, so we want
+$$
+\max_\te \E\ba{\sumo tH R(s_t)|\pi_\te}.
+$$
+Stochastic policy can smooth out the optimization landscape.
+
+Likelihood ratio policy gradient: Let $\tau$ be state-action sequence $s_0,u_0,\ldots, u_H$. Optimize
+$$
+\sum_\tau P(\tau;\te)R(\tau).
+$$
+We don't need a dynamics model of the world.
+Take the gradient wrt $\te$:
+\begin{align}
+\nb_\te U(\te) &= \sum_\tau \fc{P(\tau;\te)}{P(\tau;\te)}\nb_\te P(\tau;\te)R(\tau)\\
+&=\sum_\tau P(\tau;\te) \nb_\te \ln P(\tau;\te)R(\tau)\\
+\nb_\te U(\te) &\approx \rc m \sumo im \nb_\te \ln P(\tau^{(i)};\te) R(\tau^{(i)}).
+\end{align}•
+We can estimate this by sampling.
+Point in direction to make the trajectory I just experienced more likely, by amount proportional to the reward.
+
+%rollouts from policy, generate distribution over trajectory.
+%can smooth out
+
+Gradient increases probability of paths with positive $R$ and decreases probability of paths with negative $R$. The likelihood ratio shifts mass on paths, and does not try to change the paths.
+Decompose path into states and actions
+\begin{align}
+\nb_\te \ln P(\tau^{(i)}; \te) &= \nb_\te\ba{\sumz tH \ln P(s_{t+1}^{(i)}|s_t^{(i)}, u_t^{(i)}) + \sumz tH ...}\\
+\wh g&=\rc m \sumo km \sumz t{H-1} \nb_\te \ln \pi_\te(u_t^{(k)}|s_t^{(k)})R(\tau^{(k)})\\
+&= \rc m \sumo km \sumz t{H-1} \nb_\te \ln \pi_\te(u_t^{(k)}|s_t^{(k)})\sum_{t'=t}^{H-1}r_{t'}^{(k)}\\
+&=\rc m \sumo km \sumz t{H-1} \nb_\te \ln \pi_\te(u_t^{(k)}|s_t^{(k)})\sum(r_{t'}^{(k)}- b(s_{t'}^{(k)}))\\
+b(s_{t'}^{(k)}) & = \rc m \sumo im \sum_{t'=t}^{H-1} r_{t'}^{(k)}.
+\end{align}
+($=$ here means in expectation.)
+
+Notes:
+\begin{enumerate}
+\item
+Original expression is high variance. We only need to look at reward in future.
+\item
+Compare with average rather than push everything up
+\end{enumerate}
+Make gradient update $\te_{i+1}\leftarrow \te_i + \al \wh g$.
+
+Can we do better. Use a function to represent $b$ to generalize from past data. Introduce $V^\pi$ and plug in for $b$.
+Bellman equation is
+$$
+V^\pi(s) = \sum_u \pi(u|s) \sum_{s'} P(s'|s,u) [R(s,u,s') + \ga V^\pi(s')]
+$$
+(immediate reward plus reward after that).
+For large state spaces, do fitted $V$ iteration, 
+$$
+\phi_{i+1} =\min_\phi\sum_{(s,u,s',r)}\ve{r+V_{\phi_i}^\pi(s') - V_\phi(s)}_2^2 + \la \ve{\phi-\phi_i}_2^2.
+$$
+If you have a rich representation this works well.
+
+This gives Actor-Critic algorithm: policy gradient and fitted V iteration.
+\begin{itemize}
+\item
+Initialize $\pi_{\te_0}$, $V_{\phi_0}^\pi$.
+\item
+Collect data $(s,u,s',r)$
+\item
+Update $\phi_{i+1}$ as above. 
+\item
+Update $\te_{i+1}$ with $V_{\phi_i}^\pi(s_{t'}^{(k)})$ rather than with $\phi_{i+1}$. 
+\end{itemize}•
+
+Generalized adventage estimation (Schulman 2016) also uses learned value function to better estimate first term $\sum r_{t'}^{(k)}$. 
+
+%After each iteration, get more data.
+%value takes in whole policy?
+%tricky to parse in a whole neural net
+
+Exploration: force to have certain entropy. Exploration is small. Another approach is to insert exploration bonuses.
+
+%why not constrast 2 trajectories.
+%Does directly contrasting trajectories do better?
+
+%In practice people use moderate amounts of data.
+How much data to collect? It's not clear how much you need; it's more stable with more data. Stability has been more the focus than data efficiency.
+
+Is it useful to batch data collection.
+
+Initial premise: reset and re-rollout, does that give higher signal-to-noise ratio? I couldn't get that to work. Which state to roll-out from (information theoretic considerations, e.g., say one state is particularly interesting).
+
+%Rate that environment might change?
+%If environment is adapting quickly, may not keep up
+
+%more tailord
+%extra into value func
+%get to work if adapt too solution afterward
+Won't work well if environment adapts/changes too quickly for you to keep up with. (Ex. adversaries adapt to you.)
+
+Another approach is Q-learning: instead of representing value of state, represent value of (state, action).  Actu $u$ and then act optimally.
+$$
+Q^*(s,u) = \sum_{s'} P(s'|s,u) [R(s,u,s') +\ga \max_{w'} Q^*(s',u')].
+$$
+%If you have small state space, do actions.
+Fitted Q-iteration:
+\begin{enumerate}
+\item
+Init $Q_{\phi_0}$
+\item
+Collect data $(s,u,s',r)$
+\item
+Update $\phi_{i+1} \leftarrow \ve{r+\max_{u'} Q_{\phi_i}(s',u') - Q_\phi(s,u)}_2^2 + \la\ve{\phi-\phi_i}$.
+\end{enumerate}•
+Interleave collecting data and updating.
+
+%Why is Q-learning unstable in general?
+%It's a contraction in general, in whole space.
+
+%There is bias towrard s 
+Double DQN: keep 2 Q functions. Compute argmax from 1, help other to not have that much drift. 
+%\ga trims back down.
+
+%if 1 run, regularize $\la$ to be high. If more data, allow yourself to move further. 
+%overfit on current experience
+
+%A lot is unknown about how much data  you should have.
+
+You can use off-policy data. You don't have to just have to use $Q$-data from current policy, unlike Actor-Critic. It's more data efficient, you can replay all past data.
+
+%Exploration in Q-learning vs. AC
+
+%\subsection{Representation in exploration}
+\subsection{Different approaches/architectures}
+
+In DQN, use 3 conv nets and 2 fully-connected layers to play beyond human level. 
+
+TRPO+GAE: output probability distribution over actions. $V_\phi$ output 1 value to subtract out. It's easy to stabilize because you can put trust region on policy.
+
+A3C: merge $\pi_\te$ and $V_\phi$. Have one extra output.
+
+Dueling: Q-learning approach. What is in the Q-function? Differentiate between different actions. Q-value is dominated by state. Signal dominated by value of state. Separate this out. Fully connected to get V and advantage $Q-V$. Combining gives $Q$ function. Zone in on value separately from differences between actions. Best performing algorithms use this. ``Dueling'' for attention of Q-function.
+%$Q=V+(A-
+Certain rescaling of gradients are the right thing to do.
+
+TRPO+GAE can be used for continuous control.
+%robot change over time. friction, lengths, feed in.
+
+Random exploration. Rewards are well-shaped---reward based on standing head height, moving north. 
+
+For real robots: Amount of data is impractical. We modify architecture. Bottleneck (attention) layer: look at conv responses; for each filter, check where it is most active and extracting coordinates. There are 92000 parameters. Have 1 controller that has access to state (learn quickly) and 1 controller with access to image (which has to agree).
+
+Hanging coat hanger, hammering nail.
+
+How generalizable are these policies? They are specific to task. How do you learn things that generalize beyond the skill?
+%, inserting block
+
+You can have A3C with LSTM, auxiliary losses (learn Q-function for other objectives---you can in parallel train Q-functions with same trunk). 
+
+You can learn to navigate maze environment from first-person vision.
+
+They store whatever is relevant to making decisions in future. Can you predict coordinates based on activations in LSTM? There are some results that these things happen.
+%Mnih, Cza 16
+
+%predictability?
+
+Exploration through reward bonuses: give reward for seeing something you haven't seen before.
+\begin{itemize}
+\item
+VIME: Bayesian neural net (Houthooft 2016)
+
+Posterior over dynamics models changes. KL divergence is how informative what you saw.
+\item Pixel-CNN density estimation (Ostrovski 2017)
+\end{itemize}
+
+Steer towards things that are novel
+
+Value interation network (VIN): A lot of problems are planning problem. It's not clear how to plan over raw sensory inputs. Put VI in module, obsevation feeds into it. Force observation processing to extract something like state so that planning against it does well. 
+%You don't know dynamics or rewards.
+Prior on what you think should happen to learn more effectively.
+
+First-person mapping and navigation with VIN.
+
+Embed to control: LQR in middle.
+
+Predictron (Silver 2016): solve search problem. Look at where I am. Predict reward in future. I don't have dynamics, reward model, but train to be good at predicting and plan against. Plan to hit billiards ball.
+
+If you just learn dynamics model, it's easy to spend resources on wrong thing (ex. how leaves on tree move). Zone in rewards and values.
+
+Modular networks: 2 robots, 2 tasks, a network associated with each robot, each task, and mix and match. Train to be good at being sequenced together.
+
+Option-critic architecture. Critic computes value function. Low-level policy: 1 is active. High-level gates say which one is active. Choose which one goes next. Higher-level think about longer horizons.
+%hierarchy relevant.
+
+Feudal networks: most promising results (Dayan Hinto 1993, Vezhnevets 2017). Tell someone else to do it. Hi level just say what outcome it wants. Decompose into hierarchy, don't need to reason forward more than 10 steps at each level.
+Manager has internal reward representation, goes into LSTM, feeds into goal state, project to worker space. Weighted sum of distributions over actions. Selects an action to sample. High level sets goals, low level tries to achieve goals. Reward is how well you satisfy goal of level above you. What goals should you be setting?  Naively the high level can run standart policy gradient. It's not aware of the effect of request. $\nb g_t = A_t^M \nb_\te d_{\cos}(s_{t+1}-s_t, g_t(\te)).$ How good was what happened compared to average, set goals according to what just happened (rather than asked for)
+
+
+
+\subsection{Meta-learning}
+
+Wheere are the ImageNet features of motor control?  ImageNet is large-scale, emphasizes diversity, evaluated on generalization.
+Problem:
+\begin{itemize}
+\item
+small-scale
+\item
+emphasizes mastery
+\item
+evaluated on performance
+\end{itemize}
+Can we emphasize generalization? We want a few gradient updates to solve a new task. We want a gradient on the gradient update. After gradient update we do really well (MAML),
+$$
+\te \mapsfrom \te + \al \sum_i \nb_\te[\te + \al \nb_\te R_i(\te)].
+$$
+%go to center
+Ex. after 1 gradient step, learn forward or backward motion!
+
+Ex. omniglot few-shot classification.  %Simple setup outperforms cla
+
+
+RL2. Deep RL takes 40 days, human takes 2 hours.
+TRPO, DQN, A3C are fully general RL algorithms. MDP's in real world are a tiny subset of all MDPs that could be defined. Can we build a good prior for real-world MDPs, design algorithms that make use of such prior information?
+
+Key idea: learn a fast RL algorithm that encodes this prior?
+
+RL2 is trained on many different environments. It does as well as carefully designed bandit algorithms, Bayesian optimal algorithms, good strategies for mazes. Once trained, it learns to remember the maze when dropped in a new maze.
+
+Deep RL code bases: rllab, rlpy, GPS.
+
+%train neural nets so that gradient updates are effective

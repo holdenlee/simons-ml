@@ -1,0 +1,176 @@
+\section{Representations of relationships in text and images (Hal Daum\'e III, University of Maryland)}
+
+I'll describe recent work on modeling complex relationships in a neural setting, based primarily on a combination of topic-model style dictionary learning (for interpretability) and recurrent neural networks (to capture the flow of time). This all ties in to the question of how to learn common-sense knowledge; for this, I'll talk first about understanding how relationships between humans evolve, learned from text alone; and then how this can be extended to multimodal (image and text) settings. Joint with many people, especially Snigdha Chaturvedi, Mohit Iyyer and Jordan Boyd-Graber.
+
+%unsupervised
+%supervised learning
+Fundamental goal is deep understanding of text.
+``Arthur shall strike the blow that sets Lucy free.''
+
+BiLSTM hegemony does named-entity recognition, syntactic parsing, machine translation, factoid question answering (Bram Stoker wrote this (Dracula)). 
+
+Complex question answering: what does Lucy need to be freed from?
+
+I'm not going to talk about learning through interaction (see webpage) or bag of n-gram and logistic regression. Everytimes there's a LSTM result, I try this as my go-to representation; often it does almost as well.
+
+\subsection{Relationships in narratives}
+
+I'll talk about a long project of trying to understand the nature of narratives, fictitious and real (newspapers, history texts). We'll try to do this in an unsupervised way. What is an objective for unsupervised learning? I want to produce something people can understand in a meaningful way. You're trying to take a huge amount of data and whittle it down to something a human can understand. (This is hard to quantify.)
+
+I'll talk about relationships. If a digital assistant doesn't understand how humans interact, it'll be unnatural.
+
+There's a reasonable amount of work on understanding narratives from the role that characters play. A lot of narratives are about relationships between multiple characters.
+
+Ex. Calvin and Hobbes: not clear who's hero or antihero, it's just a story about how their relationships evolve over time.
+\begin{enumerate}
+\item
+Relationships are not static.
+%evolve
+\item
+We don't know what kind of relationships exist in the world.
+\end{enumerate}•
+Ex. Tom Sawyer.
+\begin{itemize}
+\item
+Tom falls in love with Becky.
+\item
+Romance collapses.
+\item 
+They become friends again.
+\end{itemize}•
+At first we looked at it as binary classification---friends or enemies. 
+More interesting than the progression of relationship over time is that you have effect: friend of friend is probably a friend; friend of enemy is probably enemy. Ex. Saddam Hussein is not friends with everyone else, and everyone else is friends. 
+
+Real-world relationships have multiple facets. 
+Going back to Dracula,
+\begin{itemize}
+\item
+Arthur and Lucy get married. Marriage, joy, love.
+\item
+Lucy feels bad because she got bitten by a vampire. Sickness, sadness.
+\item
+Lucy dies. Relationship devolved.
+\item
+But she's not actually dead. Arthur has to kill Lucy. This is predominately murder, not so much murder going on.
+\end{itemize}•
+Why should humanities scholars care? Distant reading (Moretti 2005) can help rapidly collect examples of specific relationship types. Can we detect positive or negative subtexts underrlying meals between 2 characters? (Dostoyevsky) It's highly indicative of what happens later! We can try to automate this.
+
+We want to look at subtext, secondary things that are going on.
+
+We have a dataset of character interactions from Project Gutenberg. %Confederacy of Dunces. 
+Find spans of text with both characters.
+Assume books proceed linearly in time.
+
+Model as dictionary learning over time. %similar to topic modeling.
+We want results we can show to people and have them understand. 
+
+Each span is probability distribution over states (violence, sadness, politics, love, suffering, etc.). 
+
+Relationship modeling network is recurrent autoencoder with dictionary learning. 
+\begin{enumerate}
+\item
+Start with span of text mentioning 2 characters. Take word representations, and average them. %make chris sad
+%Have specific embedding for each character.
+%Have embedding for book.
+\item
+Mix with embedding for characters and books.
+\item
+A recurrent connection copies some of the previous hidden state.
+\item
+Use softmax to make hidden state a probability distribution over states.
+States are probability distribution over topics. 
+%take probability distribution over states
+\item
+Multiply hidden state by dictionary matrix to obtain reconstruction of span vector
+\item
+Make reconstructed vector close to the input span vector. (Minimize square error.)
+\end{enumerate}•
+%emo state of two people
+Two things are going on: things about relationship (marriage, love), about one character (death). 
+We tried enforcing sparsity: softmax and threshold, ReLU and renormalize, but it didn't help. Vectors did end up reasonably peaked.
+Dimension of word embeddings is 300. $d_t$ (number of topics) is 10, 30, 50.
+
+%beauty contest:
+Baseline is hidden topic markov models (HTMM). Relationship modeling network:
+\begin{itemize}
+\item
+sadness: regretful rueful pity pained despondent.
+\end{itemize}•
+HTMM picks out concrete things. Relationship modeling picks out more abstract things.
+
+Evaluation: Word intrusion task. Show turker the words and a word that doesn't belong. If turker picks out the word then the topics are good.
+Precision is $0.7$ to $0.8$. Random guessing is $\rc 6$. The two variants of our model are markedly better than standard topic models and topic models over time.
+
+You have to be careful about word frequency. Pick a random intruder about as frequent as other words in the topic.
+
+Where in the model was there anything about relationships?
+If the relationship is important, affecting words appearing, needs to capture relationships to accurately capture. We're encouraging it by giving the characters it's looking at.  (Look at neighborhood of characters.) There's no explicit cross product term. 
+
+%recurrent net?
+%introducing relationship info?
+%ablation: 
+(Remove recurrent connection does worse. There's 2 things that help: neural and temporal.)
+
+We tried to evaluate. This is super-difficult. We pick the most likely topic at each moment in time and graph. 
+Give people plot summaries and ask people which graph is better.
+%no boats
+%We show this to people.
+
+People prefer our things to the baseline things by 70\%-30\%. Reading is super-difficult. 
+
+We name the topics by looking at the list and picking the name.
+%precision: intruder detection.
+
+%people here probably don't care about humanities:(
+
+We are moving in the direction of interpretability.
+The main point: We care a lot about showing the result to people and making sure they can make sense of it. How do people use this output in a useful way, whether it's a humanities task or something else.
+%learn global relatinship
+%
+%Contributions: 
+
+\subsection{Comics}
+
+We care about commonsense inferences. ``Lex Luthor's limousine came late today. The driver had overslept.'' 
+
+Get from dataset of comic books. Comic books are well-studied in humanities literature. 
+
+``What is exploding, and why?'' The roadblock. This is bad, a ghost will come out. It's not stated explicitly the relationship between panels.
+Closure is the process by which we connect panels together. Cf. jump cuts in movies.
+
+We have 4000 comic books from digital comics museum. Extract 1.2 million panels with 2.5 million textboxes. NN do extraction and OCR. It's a fun dataset!
+
+Cloze tasks for testing closure. ``The Simons workshop has been interesting so far. I hope the rest of the week will be as (compelling).''
+
+Predict dialogue in a panel given previous panels as context.
+
+Use BiLSTMs. Take text panels (thought bubbles, dialogue boxes, OCR'd), run through LSTM, run panel through CNN. If no text box, there's no LSTM connection. Predict correct text.
+
+%if you ignore images. 
+There are image and text datasets: visual question answering. One frustrating thing is that you can ignore the image and do well with the text. ``Is there a steam engine in the image?'' If no, no one would have written the question, there are these biases!
+
+Image-only is 48.7\% accuracy, Text-only is 51.9\% accuracy, image-text with no/full context is 59.6\%, 63.4\%. Human accuracy is 84\%.
+
+How to generate confused text? Hard configuration: pick distractors from adjacent pages from book. If you pick text from different comic books it can be pretty obvious (different styles of speaking).  In the easy setting people are in the high 90's.
+
+%lots of not ok by today's standards material. You can have datasets.
+COMICS: new dataset and tasks, deep learning can learn some degree of closure, our best models lag behind humans despite lots of data.
+
+\subsection{Inductive bias in networks or data}
+
+As a NLP researcher, my job is to get inductive bias into ML systems. I don't know how to put connections in NNs for inductive biase. 
+
+I want to do machine translation as you're speaking rather than wait until the end. 
+Get things in an order where it's easier to be monotone.
+
+Reorder the output to be more like order of input.
+
+Parse English side, rewrite in lots of ways and generate lots of training data.
+
+Evaluate in 2 ways: how simultaneous in input (how much delay between word spoken and translation output) and quality. Evaluate against rewritten data. Model using rewritten data does better. %Surprising: get same effect if evaluate against unrewritten data. 
+Extra data is not perfect but makes better. I as language person can cast inductive bias and transform output to enforce invariants.
+
+
+%Have you tried generating sentences? Evaluation is difficult. OCR errors are nontrivial, 1 error per word. We were worried of getting nonsense. We should try the panels too...
+
+Implications for humanities: the most solid thing is a paper under submission with an English professor (Krause) looking at the question: in Dickens type novels, how does the relationship between characters map to socioeconomic status (rentor, rentee). 

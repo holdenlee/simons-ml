@@ -1,0 +1,131 @@
+\section{A Non-generative Framework and Convex Relaxations for Unsupervised Learning (Elad Hazan, Princeton University)}
+
+We'll describe a novel theoretical framework for unsupervised learning which is not based on generative assumptions. It is comparative, and allows to avoid known computational hardness results and improper algorithms based on convex relaxations. We show how several families of unsupervised learning models, which were previously only analyzed under probabilistic assumptions and are otherwise provably intractable, can be efficiently learned in our framework by convex optimization. These includes dictionary learning and learning of algebraic manifolds.
+ 
+%bullins, hazan, kalai, livni (arxiv)
+
+We have much more data that is unlabeled than labeled. Ex. wikipedia text contains 6b tokens, common crawl has 840b tokens, while Stanford question answering has 100k+ Q/A pairs. Compare all images on the web vs. ImageNet which has 1.2m.
+
+A successful example is word embeddings trained on Wikipedia corpus.
+
+Wikipedia: 
+Unsupervised machine learning is the machine learning task of inferring a function to describe hidden structure from ``unlabeled'' data (a classification or categorization is not included in the observations). Since the examples given to the learner are unlabeled, there is no evaluation of the accuracy of the structure that is output by the relevant algorithm.
+ 
+We give a proposed definition for evaluating the solution and convex relaxations for 3 problems.
+
+Unsupervised learning has a lot of topics without a common foundation (clustering, EM, PCA, ICA), while supervised learning has a common learning theory as foundation.
+
+We're missing improper learning. Learning a sparse linear separator is a nonconvex, hard problem. 
+\begin{enumerate}
+\item
+The statistical approach is by reconstruction. Under statistical and structural assumptions, learn in poly-time.
+
+\item
+Forget about the constraints. Learn a dense separator by minimizing $l_1$ (LASSO).  Get comparable sample complexity and better generalization error. 
+\end{enumerate}•
+Matrix prediction/recommendation systems
+\begin{enumerate}
+\item
+Low rank reconstruction (Candes, Recht,...) under satistical and structural (incoherence) assumptions, polytime.
+\item
+Nuclear norm minimization (Srebro...) in polytime, with comparable sample complexity, and no incoherent assumptions.
+%how no incoherency?
+\end{enumerate}•
+
+The second approach (convex relaxations) doesn't exist in unsupervised learning!
+ We'll give new results via convex relaxations.
+ 
+\subsection{Framework}
+
+Learn $h$ from data $x\sim D$. $D$ is unknown, arbitrary, get iid samples. 
+
+Hypothesis $H\ni h=(f,g)$ encoder-decoder, $$l(h,x) = |g\circ f(x) - x|+\la |f(x)|,$$ 
+$err(h) = \E_{x\sim D} [l(h,x)]$. %us hard constraint on $|f(x)|$
+
+Goal: for all $\ep, \de>0$ there exists an algorithms such that after seeing $m=\poly(\ep,\de,\dim(H))$ example, finds $h$ such that w.p. $1-\de$, 
+$$err(h)\le \min_{h^*\in \cal H}err(h^*) + \ep.$$ 
+
+%harder than in sup world
+%pca: best k components of data.
+
+This has been called PAC rate distortion theory + minimum description length. Learn representation of data and use to solve any future (Lipschitz) supervised task.
+\begin{enumerate}
+\item
+compression: explicit succinct representation. Ensures low sample complexity for future supervised task.
+\item
+reconstruction
+\end{enumerate}•
+
+\subsection{PCA, Spectral autoencoders}
+
+Take data in $d$-dimensional space. Encode in lower-dimensional space.
+$$
+B=\amin_{\rank(B)\le k} \E\ve{Bx-x}_2^2.
+$$
+Think of this as linear encoding and decoding, $f(x)=Ax, g(y)=A^+y$. Reconstruction optimization is
+$$
+\min_{A\in \R^{k\times n}} \E|A^+Ax-x|_2^2.
+$$
+This is properly learnable with sample complexity $\fc k{\ep^2}$. 
+
+Why don't we try to come up with more sophisticated encodings?
+
+What if your data lies on some manifold, $Cx^{\ot r}=0$?
+
+Encoding is $y=Ax^{\ot 2}$ and decoding is $v_{\max}(A^+y)\approx v_{\max}(A^+Ax^{\ot 2})$. 
+\footnote{This is related to kernel PCA, which requires reconstruction of $x^{\ot 2}$.} %not encoding of data but encoding of tensor product
+
+We can write an optimization problem
+$$
+\amin_{A\in \R^{k\times n^r}} |v_{\max}(A^+Ax)-x|_2^2.
+$$
+($r=2$ above.)
+This class is improperly learnable. Use surrogate loss based on convex relaxation,
+$$
+\amin_{R\in \R^{d^2\times d^2},|R|_*\le k} \E |Rx^{\ot 2} - x^{\ot 2}|_{op}^2. 
+$$
+Intended solution is $R=A^+A$. Optimization by non-smooth projection-free algorithm returns low rank solution $R$; factorization gives $A$.
+
+We need to show that sample complexity is comparable, and doesn't blow up.
+
+Get: SA learnable with encoding length $\fc{k^4}{\ep^4}$ for error $\ep$. 
+
+(In supervised learning, good predictions means good generalization. What is the notion of prediction here?
+Reconstruction error. 
+You can learn anything you could have learned before, so you do not lose in terms of predictive power.)
+
+%no assumption on generation or structure of data
+
+
+In PCA, what happens if your data does not lie in a low-dimensional subspace? It still works---you only compete with the best?
+
+Is this the right notion of unsupervised learning?
+Fits many schemes that have been used. It doesn't capture everything; it's not clear it captures structure; but it does allow low sample complexity on future tasks.
+
+We're trying to use techniques from supervised to unsupervised learning.
+
+%choosing hypothesis class is an art.
+%given you have hyp class, I show how to learn
+
+\footnote{LB: Two kinds of unsupervised learning. Normal: know how to do---compress information. Mythical: like humans, look at world and understand how it works. The difference between the two is not that clear.}
+
+%Fit to best spectral autoencoder. 
+%best spectral autoencoder
+Reconstruction error is better for SA. Classification error improves in SA (with SVM on top) vs. KPCA, PCA.
+%\subsection{Dictionary learning}
+
+\subsection{Dictionary learning, linear representations}
+
+Dictionary learning: DL is improperly learnable discriminatively.
+
+Word embeddings. We give convex relaxation for linear representations. Consider a distribution over tasks $D\sim \mu$. Each task is a distribution over same domain $(x,y)\sim D$. 
+
+Goal: learn represenation $f(x)$ such that classification over new representation is as good as it is on training tasks.
+
+Theorem: there is efficient improper algorithm. 
+%$$
+%\min_M \E_{D\sim \mu} \min_{w\in \R^d} \EE_{x,y\sim D} [l(w^T Mx,y)
+%$$
+By convex optimization, it is solvable efficiently.
+
+%Structure evaluated by succinctness and reconstruction error

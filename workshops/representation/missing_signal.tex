@@ -1,0 +1,222 @@
+\section{Looking for the Missing Signal (Leon Bottou, Facebook AI Research)}
+
+We know how to spot object in images, but we have to learn on more images than a human can see in a lifetime. We know how to translate text (somehow), but we have to learn it on more text than a human can read in a lifetime. We know how to learn playing Atari games, but we have to learn it by playing more games than any teenager can endure. The list is long.
+ 
+We can of course try to pin this inefficiently to some properties of our algorithms. However we can also take the point of view that there is possibly a lot of signal in natural data that we simply do not exploit. I will report on two works in this direction. The first one establishes that something as simple as a collection of static images contains non trivial information about the causal relations between the objects they represent. The second one shows how an attempt to discover structure in observational data led to a clear improvement of Generative Adversarial Networks.
+
+
+Motivation: 
+
+Don't believe the newspapers: Machine learning is not a success. We have to train on more images than a human can see, more text than a human can read, more games than a teenager can endure, etc.
+
+What are we doing wrong? Are our learning algorithms so inefficient? Absence of prior? (Cramer-Rao)
+Does transfer learning help?
+
+We take another viewpoint: is there more signal in data than we think? 
+Look beyond correlations: at causation, complex moments. Typical supervised machine learning systems use $\E[\phi(x)]$, $\E[y]$, $\E[y\phi(x)]$, $\E[\phi(x,y)]$. 
+
+The parse tree is good not because it compresses, but because it allows us to manipulate the structure.
+It's not about the sentences you see, but all the sentences you can construction.
+
+\subsection{Causation and moments}
+%bernard
+
+Problem with causation is confounding. Suppose we have binary random variables, where $Z$ has positive effect on $X,Y$, and $X$ has slight negative effect on $Z$. If we only observe $X,Y$ we see $X$ and $Y$ are positively correlated. This is the Simpson effect.
+Odd scatterplots hint at causation.
+
+%In other domains of science, 
+Ex. Hertzsprung-Russell diagram.
+
+Reichenbach's principle. Either
+\begin{enumerate}
+\item
+$A$ causes $B$
+\item
+$B$ causes $A$
+\item
+$A$ and $B$ have a common cause $C$ or
+\item
+$A$ and $B$ are independent
+\end{enumerate}
+Ex. additive noise $Y=\al X+\be + \pat{noise}$. 
+
+Sharp corners (high moments) hint at causation. It's not apparent in means or covariances.
+
+%Suppose $x$ is uniform and $y$ is obtained from a sharp distribution.
+
+We featurize a scatterplot to infer causation. Use a neural causation classifier.
+
+We don't have access to large causal direction datasets, but we can generate artificial scatterplots. 
+%$f$ is a cubic spline with random number of random knots. Draw noise $\ep\sim $gaussian with random variance $\sim U[0,5]$. $v(X)$ is cubic spline with random knots.
+%Generate causal scatterplot. Train with $(x_i,y_i)$ and $(y_i,x_i)$.
+
+Generate artificial scatterplots $Y=f(X) + v(X)\ep$. Take $k\sim U_{\{1,\ldots, 5\}}$, $r,s\sim U_{[0,5]}$. Draw $f$: cubic spline with random number of random knots. Draw noise, Gaussian with random variance $U_{[0,5]}$, cubic spline with random knots. Draw $x_j,\ep_j$, and then compute $y_j=f(x_j) + v(x_j)\ep_j$. Rescale.
+Generate training examples: $(\{(x_i,y_i)\},1)$, $(\{(y_i,x_i)\},0)$. 
+
+After training on artificial data, NCC achieves state-of-the-art performance on T\"ubingen cause-effect dataset, \url{https://webdav.tuebingen.mpg.de/cause-effect/} (79\%). 
+
+This also works for detecting confounding variables. How to validate this? 2-dimensional scatterplots are limited...
+
+Take something without a causal signal. 
+
+\subsection{Finding causal signal in images}
+
+Ex. if you remove bridge from a picture, you also have to remove the cars.
+
+All images are preprocessed using state-of-the-art pretrained CNN. Feature scores are often interpretable as features of the scene.
+
+For each object categories we can define 2 sets of features.
+\begin{enumerate}
+\item
+Causal features: cause presence of object of interest.
+\item
+Anticausal feature: caused by presence of object of interest.
+\end{enumerate}
+Ex. if there is a causal relationship car$\to$wheel, then we hope it's also visible in the scores.
+
+Apply NCC to feature scores and object scores to %identify top 1\% causal and anticausal features.
+identify top $1\%$ causal and anticausal features for each of 20 categories. 
+%Note that NCC has been trined using artificial data, and no image data.
+
+%intervention
+What is causality, concretely?
+If I remove something, what else do I need to remove to get something consistent? If I remove the car, I need to remove the wheels. If I remove the car, I can keep the lamppost.
+
+%car in swimming pool: less of car because wrong?
+
+In computer vision, one is often interested in another way of splitting features:
+\begin{enumerate}
+\item
+object features: belong to object, most often activated inside bounding box (wheels, eyes)
+\item
+context features: activated outside bounding box: road under car, shadow.
+\end{enumerate}•
+``Bags of visual words.''
+
+To empirically identify, black out the context, vs. black out the object.
+
+Hypothesis: there exists observable statistical dependence between object and anticausal features. Statistical dependence between context fatures and causal features is nonexistent or weaker.
+
+This implies: Image datasets carry observable statistical signal revealing asymmptric relationship between object categories that result from causal dispositions.
+
+
+%regression with 2 variables not good, but what we know how to do.
+Top anticausal features have higher %context/
+object scores (whether it is a feature or not, from  knowing bounding boxes) for all 20 categories. 
+%each one 5 features.
+There is no clear relation between top causal and context scores.
+%indirect but indicative.
+%context score: whether feature or not because we know bounding boxes.
+
+Effect disappears if we replace NCC by correlation coefficient between feature and category.
+
+We've indirectly shown that high-order statistics can inform causation in the scenes. To our knowledge, no prior work has established or considered presence of such a signal.
+
+\subsection{On uses of Wasserstein(ish) distance}
+
+The notion of cliff: ex. a uniform distribution stops, and translates into a sharp edge in the scatterplot.
+
+``Mythical unsupervised learning.'' Not about using unlabeled data to discover probability ratios, but using unlabeled data to discover (causal) generating mechanism.
+
+Causal footprints include corners, cliffs, shocks, low-dimensional causl models.
+
+Low-dimensional causal models: there is no density because it is supported on low-dimensional manifold. One way is to add noise.
+
+$X\sim P_r$ is observed data. From $Z\sim P_z$, typically low-dimensional, transform by $G_\te(Z)$ to get $P_g$. This has low-dimensional support, a cliff-shaped density.
+\begin{enumerate}
+\item
+TV distance.
+\item
+KL divergence requires density.
+\item
+ JS divergence is symmetric and does not require density.
+Lose 1 bit of information by considering the mixture.
+\item
+Earth-mover (EM) or Wasserstein-1 distance, 
+$$
+W(\Pj_r,\Pj_g) = \inf_{\ga\in \Pi(\Pj_r,\Pj_g)} \E_{(x,y)\sim \ga} [\ve{x-y}].
+$$
+\end{enumerate}•
+
+In generative adversarial network, the discriminator $D_\phi$ tries to say whether the sample comes from the real or generated distribution, $X\sim P_r$ or $G_\te(z)\sim P_g$. Train $D_\phi$ to differentiate as well as possible, and generator to make this as hard as possible. Discriminator maximizes and generator minimizes
+$$L(\phi,\te) = \EE_{x\sim \Pj_r} \ln D_\phi(x) + \EE_{z\sim p_Z}[\ln (1-D_\phi(g_\te(z)))].$$
+
+If you keep discriminator optimal, $\min_\te L(\phi^*(\te), \te)$ minimizes $JS(P_r,P_g)$. Keeping generator optimal and maximizing $\max_\phi L(\phi,\te^*(\phi))$ yields garbage.
+If you train discriminator too much, there is no gradient.
+
+Alternative update is $\De \te \propto \E_{z\sim p_Z} [\nb_\te \ln(D_\phi(g_\te(z)))]$, which optimizes $KL(\Pj_\te||\Pj_r)-2JSD(\Pj_r||\Pj_\te)$.
+
+Consider distributions with low-dimensional support. Ex. uniform distributions supported on parallel line segments separated by $\te$. $W$ is continuous in $\te$; the other metrics are not.
+
+To optimize, use the dual formulation (Kantorovich duality), 
+$$
+W(\Pj_r, \Pj_\te) = \max_{\ve{f}_L\le 1} \EE_{x\sim \Pj_r} [f(x)] - \EE_{x\sim \Pj_\te}[f(x)].
+$$
+Parametrize $f(x)$, e.g. with neural networks. Enforce Lipschitz constraint for instance by aggressively clipping weights. Maintain $f(x)$ well-trained, and train $G_\te(z)$ by back-prop through $f(x)$. There are no vanishing gradients.
+
+%subset of lipschitz functions.
+
+Figure: For a GAN discriminator if the distribution the gradient vanishes; for WGAN, the gradient does not vanish.
+
+We have $\nb_\te W(\Pj_r,\Pj_\te) = -\E_{z\sim p(z)} [\nb_\te f(g_\te(z))]$. If you manage to generalize on $f$, you get the gradient.
+%generalize vs. whether can use gradient and algorithm can work.
+%generalize: VC dimension. sufficient condition
+%
+\footnote{Wasserstein is defined on empirical distributions. Why not minimize on empirical distributions? 
+Wasserstein between continuous distribution and discrete approximation has bad asymptotic properties.} %$n^{\rc d}$.
+
+%manifold dimension for real images?
+%If you don't have many points... If draw person for first time: head, body, 4 limbs. 
+I'm not sure there is a real manifold of data. I want manifold of generated data to be low.
+
+WGAN loss correlates with sample quality: when Wasserstein distance goes down, quality goes up.
+%images of bedrooms.
+
+With a normal GAN, loss increases but image gets better. 
+%until now, no way...
+%use W distance as discriminator for GAN.
+%isolate new W-ish distance. Can I gain something  from applying techniques before?
+%better if discriminator is convolutional.
+%This tells you it's crap because loss is high.
+%bedrooms if discriminator is not CNN.
+
+WGAN is less sensitive to modeling choices. Without batch normalization WGAN still works, but GAN  doesn't. 
+%MLP takes gaussian noise and reconstructs.
+
+\subsection{Conclusion}
+
+In search for lost signal:
+\begin{itemize}
+\item
+Causal signal in high moments
+\item
+Takes form of cliffs, corners, shocks, etc.
+\item
+Mythical unsupervised learning
+\item
+Weak distribution distances such as Wasserstein seem more able to catch it.
+\item
+This is the beginning.
+\end{itemize}•
+
+%test generalization performance. How do you know not just memorizing data?
+%Quantifiable way to say something?
+MNIST digits: create 3-digit number. How many of 1000 numbers do you get? Normal GAN completely fails, it does lots of mode-dropping, gets $<15$. Reverse KL, JSD has wrong sign. High price for incorrect, low price for learning something that isn't there.
+
+How much is your model memorizing the data?
+
+BR: conditional GAN's/regression: rather than make Gaussian noise into images, make images look like other images.
+%have you seen the cats though?
+
+You can interpolate between bedrooms.
+
+SBD: There's a huge gap between theory and practice. How can I generate something that looks like real life from few bits? Why would a person think this is a bedroom?
+
+GAN's are a beauty contest now... It's not satisfying. 
+
+%It's interesting that you can generating.
+RS: Want: Given new bedroom scene, say it has high probability.
+
+Noise modeling is bane of generative models.
+
+Can you make generative model roughly invertible to get probabilities? I don't know what to make of the results. Until it's done in a way that's robust...

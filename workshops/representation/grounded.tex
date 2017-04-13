@@ -1,0 +1,190 @@
+\section{Representation Learning of Grounded Language and Knowledge: with and without End-to-End Learning (Yejin Choi, University of Washington)}
+
+Representation learning through an end-to-end learning framework has shown increasingly strong results across many applications in NLP and computer vision, gradually removing the reliance on human engineered features. However, end-to-end learning is feasible only if high quality training data is available at scale, learning from scratch for each task is rather wasteful, and learned representation tends to focus on task-specific or dataset-specific patterns, rather than producing interpretable and generalizable knowledge about the world. 
+ 
+In contrast, humans learn a great deal about the world with and without end-to-end learning, and it is this rich background knowledge about the world that enables humans to navigate through complex unstructured environments and learn new tasks efficiently from only a handful of examples.
+ 
+In this talk, I will present our recent efforts that investigate the feasibility of acquiring and representing trivial everyday knowledge about the world. In the first part, I will present our work that focuses on procedural language and knowledge in the cooking recipe domain, where procedural knowledge, e.g., ``how to bake blueberry muffins'', is implicit in the learned neural representation. In the second part, I will present a complementary approach that attempts to reverse engineer even such knowledge not explicit in language due to reporting bias---people rarely state the obvious, e.g., ``my house is bigger than me''---by jointly reasoning about multiple related types of knowledge about actions and objects in the world.
+
+%Rntelligent communication. Ex
+Intelligent communication requires reading between the lines: understanding what is said and not said. Ex. ``Cheeseburger stabbing'' means someone stabbed someone else over a cheeseburger.
+
+Ex. ``bake for 30 minutes'': we fill in the missing information (bake what? where?). 
+
+Types of knowledge:
+\begin{itemize}
+\item
+Propositional knowledge: encyclopedic, everyday (commonsense)
+\item
+Procedural knowledge.
+
+Compared to encyclopedic knowledge (under information extraction framework), little effort has been made in learning these other types of knowledge.
+\end{itemize}
+
+Representation learning of commonsense knowledge? 
+%70s and 80s
+Only one way to find out!
+What kind of knowledge is learnable? What paradigm makes sense (neural/symbolic, end-to-end or not)?
+
+General theme: machine learned representation is better than human engineering features.
+
+End-to-end is successful if a clean curated dataset exists at a large scale: SQuAD, sentence summarization. We can't do end-to-end for some tasks (ex. sonnet composition). 
+
+How about for learning background knowledge?
+
+I want a robot to cook breakfast for me. Natural language instructions are grounded by nature. Accomplish a goal by interacting, biology wet lab instruction, How to do X (change engine oil).
+
+Unique challenges of procedural language:
+\begin{itemize}
+\item
+traditional parsers have trouble with imperatives.
+\item
+Elided arguments are common. (Bake for 30 minutes.)
+\item
+Reference resolution---identities change over time. (Whisk eggs. Add flour. Fold sugar into wet mixture.)
+\end{itemize}•
+
+\subsection{Procedural language and knowledge}
+
+We want to produce action graphs: model flow of ingredients as DAG. ``In a large bowl, stir together milk, egg, and oil. Add flour to the wet mixture.'' Wet mixture refers to stirred mixture. ``Add flour.'' 
+\begin{enumerate}
+\item
+Predicate argument structure with implicit arguments. This is semantic role labeling.
+\item
+How entities are introduced and flow (reference resolution)
+\item
+Discourse-level parsing.
+\end{enumerate}•
+
+This is unsupervised learning based on probabilistic models. We used EM for learning. 
+
+Probability model has components encoding knowledge.
+\begin{enumerate}
+\item P(New composite entity|entities)
+
+P(dressing|oil, vinegar)$>$P(batter|oil, vinegar).
+\item
+Reference to intermediate entity or initial reference?
+
+P(batter|initial reference)$<$P(flour|initial reference).
+\item
+P(location|action)
+
+P(stove|bake)$<$P(oven|bake)
+\end{enumerate}
+
+Learned good composite words for different ingredients: eggs (yolk, mixture, noodels, whites). Flour (flour, mixture, dough, batter, top, crust). 
+
+We want to translate unstructured recipe text into structured plan, make planning models, and generate new recipes (ex. look at available ingredients).
+
+Can we simplify this? Action graphs are noisy.
+
+Input: a title and list of ingredients.
+
+Output: long text with many sentences. Goal: make dish specified by title with ingredients. Use encoder-decoder NN. 
+Global coherence is missing.
+
+%Alignment ratio
+%Only 6-10\% of words align between input and output. 
+
+%match higherlevel!
+
+We make a neural checklist model. ``Garlic tomato salsa'' with tomatoes, onions, garlic, salt. Build on GRU's. Encode title. Have hidden state switcher: contextually decide new ingredient (look at list of things not used yet), old ingredient, coreference to something produced, etc. After using new ingredient check off. Then move foward. 
+
+Everything has to be differentiable. 
+It's more like a probabilistic checklist.  Switcher is not discrete, but interpolation.
+Only 1 is generic model, other is based on attention mechanism. Attention over available ingredents, used ingredients. Attention accumulated over time.
+
+%Compose ... new ingredients.
+%tomatos and carrots---vegetables.
+Example: oven eggplant.
+%safe language
+
+Sentences in this domain are pretty simple.
+
+Ex. skillet chicken rice. RNN repeats. ``Stir in rice.'' Checklist has cleaner global coherence. We're not modeling it in a precise way.
+
+Human recipe is more complex.
+
+Ex. chocolate covered potato chips. Baseline bakes an empty pan. 
+
+We deployed the same system for hotel dialogue.
+
+What's missing in end-to-end: 
+\begin{itemize}
+\item
+Deep-fried cauliflower, cauliflower, frying oil, sauce, salt, pepper.
+
+Cauliflower wasn't fried...
+
+Surface string-based models won't go very far. We need much better reasoning models.
+\end{itemize}
+
+\subsubsection{Dynamic ??? networks}
+
+Cf. Chris Dyer, recurrent entity networks.
+
+Parsing by simulation, analysis by synthesis.
+\begin{itemize}
+\item
+385 actions from cooking recipes.
+\item
+8 state change types: location, composition, cleanliness, cookedness, temperature, shape, orientation, accessibility.
+\item
+Ask AMT workers to assign state changes to actions.
+\end{itemize}•
+
+Read in sentences. Have actions represented as vectors, ingredient list as list of vectors. Attend over actions and entities. Have attentino coefficients. Compose action representations and entity representations, learn to predict what happens to different entitites. 
+
+\subsection{Propositional knowledge about objects, actions, and events}
+
+\begin{enumerate}
+\item
+Are elephants bigger than butterflies?
+\item
+A horse is eating. Is it standing or sitting?
+\item
+What makes a wedding a wedding?
+\item
+Verb physics (Forbes, Choi)
+\end{enumerate}
+It's hard to learn from text; learn by combining images with text.
+
+``I am usually larger than a chair/pen/stone/ball/towel.'' People don't say these things; how to do we learn?
+
+The way people talk implies this knowledge: x threw y probably means means $x$ is better than $y$, weighs more than $y$, and as a result, $y$ will be moving faster than $x$.
+
+Represent using VerbPhysics Frames. Squashed x with y: x is smaller, lighter than y, etc.
+
+Reverse engineer commonsense knowledge by solving 2 puzzles simultaneously:
+\begin{itemize}
+\item
+learn VerbPhysics frames
+\item
+learn object-object relations
+\end{itemize}
+with respect to relative physical knowledge over 5 dimensions. Vision can't do weight, strength, flexibility.
+
+Create inference network as factor graph. 
+
+Representation learning of commonsense knowledge?
+
+I've been going back and forth between representation choice. I started with action graph, then used implicit representation in network. End-to-end is applicable in some cases where procedural knowledge aligns pretty well with what's in the surface string. End-to-end doesn't help  as much if there's a big gap between language and knowledge.
+Reverse engineering certain types of commonsense may be feasible. Some of commonsense knowlege can be organized as lexical or frame knowledge.
+
+%: unigram 
+Some part of model learned from skip-gram.
+
+Generate the graph? 
+Train to learn from automatically parsed action graphs. It learns patterns in meaningful way. When generate text with graph, overspecify? 
+
+Can we validate whether something makes sense without explicit graph representation?
+The way we prove whether we understood is to predict what happened to each entity at the end.
+
+Cf. story understanding, do things to each other, change each other's feelings.
+
+How often is the model copy? It doesn't happen very often when generation space is constrain: checklist tends to prevent RNN's from just copying and repeat. %RNN tends to do that
+
+Intersect FSA with RNN language model: sample get legal sonnet, but completely random. Intersect with LSTMs. There are many engineering details. It's hard to generate out of LSTM; we generate backwards. We use other data like song lyrics.
+
+Ghazvininejad et. al.: poetry.

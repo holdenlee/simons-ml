@@ -1,0 +1,168 @@
+\section{Continuous state machines and grammars for linguistic structure prediction (Noah A. Smith, University of Washington)}
+
+Linguistic structure prediction infers abstract representations of text, like syntax trees and semantic graphs, enabling interpretation in applications like question answering, information extraction, and opinion analysis.  This talk is about the latest family of methods for linguistic structure prediction, which make heavy use of representation learning via neural networks.  I'll present these new methods as continuous generalizations of state machines and probabilistic grammars.  I'll show how they've led to fast and accurate performance on several syntactic and semantic parsing problems.
+
+Collaboration with group at CMU.
+
+The big idea is that we would like to take natural language system and convert them into dependency trees, useful for downstream tasks. Trust the linguists!
+%tree, graph, or something else.
+%When I say linguistic str
+There's some consensus that building trees is useful.
+
+%We've been thinking about 
+The way we've been thinking about building this trees has evolved.
+\begin{enumerate}
+\item
+Compiling Comp Ling: practical weighted dynamic programming and the Dyna language, Eisner, Goldlust, S.
+
+Everything can be boiled down to DP!
+
+This gives polytime algorithms.
+
+We're still using DP. (Segmental recurrent neural networks, Kong et al. 2016.) At the very top do dynamic programming (HMM). Except now put neural network to calculate scores.
+
+I don't want this to die, because this allows you to study your model without studying the inference procedure. 
+
+Great example for neural parsing, Kiperwasser and Goldberg, TACL 2016. 
+
+Use representation learning (new), get embedding of parts, and put structured prediction on top.
+
+You need strong independence assumptions to make this work. We want richer features, interdependence!
+\item
+Turbo parsers, dependency parsing by approximate variational inference. Martins, S, Xing, Aguiar, Figueiredo, EMNLP 2010.
+
+Use techniques inspired by graphical models. You don't get polytime guarantees, but you get certificates.
+\item
+Transition-based dependency parsing with stack long short-term memory. Dyer, Ballesteros, Ling, Matthews, S.
+
+Move to a different paradigm. Forget about optimality, rely on representation learning. Make greedy decision and do linear-time fast NLP.
+\end{enumerate}
+
+Greedy parsing with a stack is not new. (Nivre, Scholz 04, Henderson 04) Stack starts out empty. Shift words onto the stack, pointer advances. 
+You can do things like
+\begin{itemize}
+\item
+reduce left: take 2 things off top, combine/attach, and put back on. (Stack can hold trees.)
+\item
+reduce right.
+\end{itemize}
+Stack represents state of processing. Looking at stack in buffer, we see where we are and what can happen in the future.
+
+Here it's nondeterministic. In a data-driven way, look at current state and decide what to do next. At runtime it becomes deterministic, take the best choice. You can do search if you want. But greedy works pretty well. There are no guarantees.
+
+Eventually you get the tree as the one thing left on the stack, and you're done.
+
+In 2010 I wouldn't have wanted to do this---there are no guarantees, it's local greedy search, learning is funny: when you train---default way to train assumes you've done the right decisions in the past. These are very fast at runtime, good for real-world applications.
+
+Here's the interesting twist. I'll give you a view of a recurrent neural network and say how to use it.
+
+Think of a RNN as a stack, where you only push. At the end you have a state which encodes the whole sequence.
+% Push data onto stack. 
+There's a relationship and the list of things you've accumulated---I've embedded the stack into a vector. 
+
+In the stack RNN, you can pop! If you query after popping, you get the stack from before.
+%something backpropped through
+%discrete decision is building the computation graph
+%big branchy computation graph. At
+Discreteness goes into construction of graph.
+
+Popping something $X_2$ off stack means moving back. The state for $X_3$ comes off $X_1$.
+
+There are 2 possibilities: 
+\begin{enumerate}
+\item
+train in supervised fashion assume gold sequence of pushes and pops, there is 1 computation graph for each sequence at training. 
+\item
+If there's uncertainty to whether you're pushing or popping at different times, there's no way to straightforwardly do backprop. 
+\end{enumerate}
+
+Default is have supervised sequence of action, not managing uncertainty. There are variations where we start moving in direction of exploration; we haven't figured it out.
+We have fully supervised data here. 
+
+%quadratic down to linear
+
+If you have a stack RNN, you can use it to implement a parser. For the parser, we only pop off the stack RNN. Have a stack and action history (reduce right, shift, shift... we never have to pop off this). 
+
+On my stack I have pieces of tree and need a way to represent them. Use recursive neural net. Assume we have a word vector for each, and label for each attachment. Three things that make up one attachment are fed through feed-forward neural net that assembles into a single vector fed through RNN.
+Do this recursively to vectorize the tree. What's important is that each subtree has head-word that has most of information.
+%We're deciding what to do next.
+
+Learning is an area where more exciting things will happen. End-to-end supervised training maximizes conditional log-likelihood of trees given words,
+%$$
+%\max_{\te}\sumo nN \ln p_\te(y^{(n)}|x^{(n)})...
+%$$
+
+Chen and Manning 2014 do well on English and Chinese.
+
+\subsection{Variations}
+
+As you hoist work on the representation learning, and your design of the structure of problem, maybe you can do more interesting sharing. 
+\begin{enumerate}
+\item
+Characters, not words
+\item
+Many languages, one parser: 
+
+One way to do sharing is to learn many languages together. If you can parse well in one language, you can use to parse in another in language if they share something.
+
+Requirements are multilingual word representations (words that mean roughly similar things in 2 languages are mapped to similar vectors). We need language ID and single annotation scheme across languages (universal annotation). 
+
+Apply same model, and feed in language as part of input. Train on 6--7 languages. Nothing else changes. Learn to share as much as you can across languages. 
+
+Word representations are shared. Learn to share patterns across languages.
+
+MAnyLanguagesOnePArser does well. We have 1 language held out and test on it and do pretty well. We have hope for doing NLP in languages we don't have treebank data for!
+%Tiny Target Treebank
+
+You need to have gotten word embeddings. Get word vectors for both languages. Use languages that maps some of words. Then do CCA. %Chris, Hotelling
+\item
+Add semantics: 
+
+People glaze over when I talk about syntax trees. It's a relatively small (intellectual) step to go to semantic dependencies between words. Extend to build semantic graphs. 
+%blue words are predicates
+%black things
+%edges semantic rel
+
+This is not a tree, there are many cycles. This is what people in NLP really want. You can design transition functions to have a stack LSTM build this, perhaps alongside the syntactic parse.
+
+%AMR inspired, not exactly. More stuff.
+\item
+Ensemble
+\item
+Distillation
+\item
+Grammars:
+
+RNN grammars. This is more widely useful. Stack LSTM can be used to learn state representation in a generative grammar. % (rather than state in the machine).
+
+Ex. (S (NP The hungry cat) (VP meows))
+
+This is often based on context-free grammars, maybe probabilistic. Go one step further. Condition on not just parent but everything you've done so far. Everything you open up you put on the stack. At some point go back up to nonterminal and close.
+
+It's a different set of operations and substructures but parallel to what we had before. 
+
+It's a generative model. 
+\begin{align}
+\max_\te \sumo nN \ln p_\te(y^{(n)}|x^{(n)})\\
+\max_\te \sumo nN \ln p_\te(y^{(n)},x^{(n)})
+\end{align}
+You can train it discriminately or generatively. For reasons we don't understand, training generatively does much better. 
+
+You need the stack, you don't need to represent the other things. (The stack built, words produced, and action history are  redundant but not totally. Words and actions can be derived from the stack.)
+\end{enumerate}•
+
+Other details: no POS or word embeddings, importance sampling for inference, composition function. State of art for Chinese phrase-structures, strong language models. RNNG learns head rules, an important idea in syntax.
+
+Representation learning is great. Inductive bias (set up problem based on stacks and grammars) is great. Classical symbolic structures (stacks, grammars) offer sensible inductive biase. We're moving back to using classic paradigm at top to get guarantees. Questions of model design, loss functions, regularization are still important.
+
+%if drop the stack
+%grammars of a foreign language
+%sequence of parentheses. not constrained to be tree.
+
+When building generative/joint model, when you sample how sentences look like, they look beautiful! 
+%LSTM, samples. we didn't turk it.
+It's better than LSTM's. But there are several decades where people have tried to pack syntax into data, but then someone comes up with a model with more data...
+
+Why a stack and not another data structure? You need to pop off but don't need to look at the other end. You can imagine building other such computational structures; we didn't need it for NLP.
+
+

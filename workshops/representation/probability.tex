@@ -1,0 +1,155 @@
+\section{Tractable Learning in Structured Probability Space (Adnan Darwiche, UCLA)}
+
+Over the past few decades, various approaches have been introduced for learning probabilistic models, depending on whether the examples are labeled or unlabelled, and whether they are complete or incomplete. In this talk, I will introduce an orthogonal class of machine learning problems, which have not been treated as systematically before. In these problems, one has access to Boolean constraints that characterize examples which are known to be impossible (e.g., due to known domain physics). The task is then to learn a tractable probabilistic model over a structured space defined by the constraints.I will describe a new class of Arithmetic Circuits, the PSDD, for addressing this class of learning problems. The PSDD is based on advances from both machine learning and logical reasoning and can be learned under Boolean constraints. I will also provide a number of results on learning PSDDs. First, I will contrast PSDD learning with approaches that ignore known constraints, showing how it can learn more accurate models. Second, I will show that PSDDs can be utilized to learn, in a domain-independent manner, distributions over combinatorial objects, such as rankings, game traces and routes on a map. Third, I will show how PSDDs can be learned from a new type of datasets, in which examples are specified using arbitrary Boolean expressions. A number of case studies will be illustrated throughout the talk, including the unsupervised learning of preference rankings and the supervised learning of classifiers for routes and game traces.
+
+%probabilistic reasoning.
+We will be learning from prior knowledge use  symbolic reasoning. We will identify 3 areas for symbolic reasoning and ML.
+
+Joint work with van der Broock, et al.
+\subsection{Structured probability spaces}
+
+Consider a department with several (4) courses. We have prior knowledge: department requirements and prerequisites. I need to learn from both of these inputs.
+
+Unstructured space has all $2^4=16$ elements. The prior knowledge says, e.g.,  7/16 instantiations are impossible.
+We propose a statistical model which assigns 0 probability to instantiations that violate the constraints.
+
+People deal with this all the time. 
+\begin{enumerate}
+\item
+Ex. identify players in sports videos. Handcraft in the fact that a person can't be in 2 places at once. 
+\item
+Language: at least 1 verb in each sentence; if modifier is kept, subject also kept...stem
+\item
+NASA Ames power system takes into account physics.\item
+DeepMind reasoning about London Underground.
+\end{enumerate}
+
+People deal with this by ignoring, handcraft models, use specialized distributions, find non-structured encoding, trying to learn constraints... There are no statistical ML boxes that take constraints as input!
+
+How to systematically learn distributions over combinatorial objects? 
+
+\subsection{Specification language: logic}
+
+Use boolean constraints. 
+
+For example, consider rankings. People have dedicated distributions. Introduce boolean variables $A_{ij}$, where $A_{ij}$ says $i$ is at position $j$. One constraint: each item $i$ assigned unique position $\bigvee \pa{A_{ij} \wedge \pa{\bigwedge_{k\ne j}\neg A_{ik}}}$.
+
+We can also have a structured space for paths, graphs$\supeq$trees$\supeq$labeled trees$\supeq$parse trees.
+
+%Let's look at the output. 
+The next story has 2 components. %pure logic (put in tractable form), induce distribution that is learned.
+
+First convert into logical circuits. The circuit must satisfy some additional requirements. 
+If I ask you: is this space empty, this is SAT, NP-complete.
+%These three propertie
+The first property will make this linear time.
+Counting is $\#$P complete; the second property will make this linear time.
+The last property allows us to do learning.
+%symbolic.
+The secret to tractability is symbolic.
+\begin{enumerate}
+\item
+Decomposability: look at every $\wedge$ gate. Things leading into it are independent. Dynamic programming.
+\item
+Determinism: for any input, no $\vee$ gate has more than one high (1) input. (Mutual exclusivity.)
+\item
+Sentential decision diagram (SDD): %generalize binary decision diagrams
+%Circuits have recurrent structure
+%Fragment is selecting one as high.
+
+%If you give me 2 circuits, 
+This allows equivalence testing in poly time.
+\end{enumerate}•
+
+The computational bottleneck is in getting this circuit representation.
+
+%Toyota websites.
+
+\subsection{PSDD}
+
+Now we move to PSDD, probabilistic SDD.
+Induce a distribution. Do this by putting local distributions on OR gates. This is a distribution over structured space induced by the circuit.
+
+%prob'ic trees.
+How to find the probability of a given assignment? If the circuit evaluates to 0, it's outside the space. 
+Otherwise, trace the high wire down and multiply the numbers you encounter.
+
+These probabilities are normalized, even though we only ensured local normalization.
+
+We can read probabilistic independences off the circuit structure.
+
+MAP inference, conditional probabilities, and sampling are doable efficiently.
+
+But I want to learn these things. 
+
+PSDDs are arithmetic circuits. These are called SPNs (sum-product networks). 
+
+\subsection{Learning PSDDs}
+
+%logic, probability, ML.
+
+%I'll show an underlying theorem
+Parameters are interpretable. Subcircuits are interpretable, ex. student takes course L, student takes course P, probability of P given L. This is invariant to any change you make in the circuit.
+
+We can do closed form max likelihood from complete data. Do one pass over data to estimate parameters.
+
+What is the structured learning problem?
+%where to put things, break things? SPN
+You don't learn the circuit, you compile it from the constraints. Which circuit do you choose? It defines parameter space. We have only been using the naive way of learning by minimizing its size. It works well. Why are we getting away with minimizing the size? 
+
+Compile constraints to SDD by using SAT sovler (SDD library).  %compile into binary decision diagrams.
+Search for structure to fit data (ongoing work).
+
+What else does this allow you to do? Comparing the naive learning approach with mixture-of-mallows (for permutations). Mallows if unimodal, we have to do 20 mixtures to get comparable results.
+
+%Our box knows nothing 
+
+What happens if you ignore constraints? It's much worse when you don't have enough data; it starts catching up with more data but doesn't completely catch up.
+
+Induce distribution over outcomes of game. Outputs of game are structured probability space. We did this for 3 types of games. We integrated with Naive Bayes. Each attribute is structured space. %outcomes of game.
+
+Ex. Given outcomes, try to decide whether player is optimal, heuristic, or random. 
+%combo object: game outcome.
+I can do naive Bayes when features are coming from structured space.
+
+Quantify $X|C$ using PSDD.
+
+\subsection{Structured datasets and queries}
+
+A complete dataset: each row is a full instantiate. Incomplete: some values are missing. 
+
+I can deal  a more general type of incomplete dataset, where each row is a boolean formula that is true (ex. $X=Y$). Conditioning on arbitrary boolean expression is not part of the ML repertoire. You need to efficiently condition on boolean expression. If you can compile in way that is compatible with the master circuit, you can condition in quadratic time.
+
+A classic incomplete dataset: people have to partially fill in rows. We can have more general incomplete datasets, like partial rankings.
+
+Ex. Movielens dataset. 
+%no other star wars in top 5, at least 1 comedy in top 5.
+%Original circuit: compile structure space. Ex. permutations.
+
+The fact that we were just minimizing sizes of circuits: you can interpret circuit as doing recursive matrix decomposition over space. %You can assign feature int
+You are in a sense identifying features.
+
+\begin{enumerate}
+\item
+Statistical ML, probability
+\item
+Symbolic AI, logic
+\item
+Connectionism, deep.
+\end{enumerate}• 
+PSDD is in intersection.
+
+Version presented is parametric: fix circuit (and hence which parameters) before seeing data.
+
+Now we're trying different circuit structures and regularization. It's tricky.
+
+Logical assertions. How am I sure that will give boolean circuit? Use SDD library. There will always be a circuit, the question is how big.
+
+What if I have incomplete knowledge of constraints. Once you have circuit, queries are cheap. Encoding part of game: domain-specific part.
+
+%relax constraints, reduce size.
+
+Constraints might be loose; real solution might be much better. Can use put a deep NN inside, subject to these constraints? NN in structured space? %know up front that part of space does not exist.
+
+Can you do this for spanning trees?
+We can have routes under simple path assumption.

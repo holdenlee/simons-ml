@@ -1,0 +1,236 @@
+\section{Evaluating Neural Network Representations Against Human Cognition (Tom Griffiths, UC Berkeley)}
+
+How do cognitive scientists think about representation?
+
+I'll focus on the particular problem of categorization: how to tell whether something is a dog or cat? How do people represent categories?
+
+History of cognitive psychology:
+\begin{enumerate}
+\item
+Logic: At the beginning, people though we were using logic, cat is ``small, furry, domestic, carnivore''. Dogs also satisfy this, which means this particular rule is wrong, but there can still be some other rule that works. People had faith in this up to 1970's. 
+\item
+Eleanor Rosch showed that for many natural categories. Think in terms of family resemblance structure.
+
+How to represent this? How to represent categories in a way that captures family resemblance structure?
+%Cognitive science has lag, historically 30 years.
+\item
+Prototypes: you have a prototype cat that you compare against. (Posner Keele 1968, Reed 1972)
+
+A few years later, people figured out another approach.
+
+People are better at classifying for things that look like the prototypes.
+\item
+Exemplar: store every instance (exemplar) in memory. Compare new object to every instance of cat and dog you've seen.
+\footnote{Is this equivalent because of representor theorem?
+If you allow rich enough feature space, this is equivalent.
+Do these predict differences of behavior, or just representational detail?}
+\end{enumerate}
+Prototype corresponds to linear classifier. 
+Exemplar is equivalent to doing Bayesian classification using kernel density estimator. 
+
+Which gives best accounts of human behavior.  People can learn really complex stuff. 
+
+Nosofsky and McKinley 1994. Two mixtures of several Gaussians. You can do classifications from exemplars, not prototypes. After 4000 trials, people could learn the complex boundaries. This supports the exemplar model.
+
+
+What is similarity? A decreasing function of distance in psychological space. 
+Roger Shepard did a lot of interesting work revealing representations people had. You can use this to figure out right similarity for domain, given people's similarity judgments.
+
+Multidimensional scaling: have people judge similarity between colors. Given similarity between points, reconstruct spatial representation of domain. Give you back a color wheel. %This is the representati
+%palette
+It's the representation that makes sense psychologically.
+
+This approach was popular but not universally accepted. 
+
+Amos Tversky %(less famous, but my favorite) 
+%danny kahnemann, 
+%michael louis.
+did work on similarity. Do people's similarity judgments violate the distance axioms? He systematically showed violations of each axiom.
+\begin{enumerate}
+\item
+Ex. They are asymmetric
+S(NKorea, China)$>$S(China, NKorea), S(ellipse, circle)$>$S(circle, ellipse). 
+\item
+Triangle inequality. We can find similarity judgments that violate this: gas lamp, moon, soccer ball. Gas lamp is nothing like a soccer ball.
+\end{enumerate}•
+
+Density hypothesis: You're more likely to compare the outlier thing to prototypical thing. 
+
+Objectives. 
+\begin{enumerate}
+\item
+Use psychological methods to investigate representations in neural networks.
+
+These were methods used by psychologists were developed for insight into learning system with opaque representations. %We can 
+\item
+Explore corresp betweenhuman representations and those of neural networks
+\item
+Leverage neural networks to get deeper insight into human cognitions.
+\end{enumerate}
+%Construct stimulus 
+
+Construct simple stimulus to get knowledge of features (ex. Gabor features). This is a long way from cats and dogs. %---not just simple 
+Neural networks give us ways of classifying tigers, etc., and may give us better, more realistic test of models.
+
+\subsection{Images}
+
+Joint work with Peterson, Abbott, Battleday.
+
+The canonical method is convolutional neural networks.
+
+%How internal representation
+
+Take representations and ask how well hidden layer representations correspond to psychological representations. We use similarity judgments as tools. 
+
+Take similarity judgments from people and models (inner products in hidden layers) and %look at the extent where they are similar representations of domains. 
+see how well they match. Human judgments are pretty stable.
+
+Collect pairwise similarity judgments for 120 images of animals using Amazon Mech Turk (71400 judgments). 
+
+%See how well human similarity judgments match.
+%FC7 in AlexNet.
+
+%HOG+SIFT prehistoric
+
+We get pretty good similarity.
+Clusters of human judgments correspond to different taxonomic groups. Similar representations appear in the deep representations, but they're not pulling out clusters in the same kind of way. 
+
+Hierarchical clustering: deep representations preserve local structure but don't preserve high-level structure (classes of things). %If you take a network being 
+%Learning perceptual, but learning classes of things.
+
+Train on hierarchical structure, do you get something closer to human similarity judgments? What if you add in word similarity? Try to produce something closer to what people do.
+
+Is there enough information in these reprsentations to already reconstruct what human representations are like?
+
+At last layer, try to have a representation useful for many different classification tasks. Is this representation rich enough that we can use it to reconstruct human similarity judgments?
+
+A basis for human representations: can we reweight representation to better capture human similarity judgments? Use classic psychological model (Tversky 1977)
+$$
+S=FWF^T
+$$
+This turns reweighting into a regression problem. %ridge regression
+%0 corre out
+%large predictors, small data
+
+We get a big improvement in performance. %close to human-human
+
+Hierarchical representation works on the transformed representations.
+%reasonable correlations, reweight for human.
+
+We've reproduced on many different domains: fruits, furniture, vegetables.
+
+When we take those representations and apply the model to other images, can we predict human behavior on those images? Take another set of 120 images of animals that were't used in setting the transformations, get a similarity matrix, do clustering, use it to define 1--4 clusters, train humans to classify clusters, see how long it takes them to learn the clusters. 
+
+Can we use these representations as a way of conducting strong tests of psychological models with naturalistic stimuli? Use a dataset of 300,000 human judgments of whether a picture contains a bird or a plane (Project Superman). As computer vision problem, you're interested in producing ground truth. For humans, there are significant deviations. We're trying to predict human judgments.
+
+%aggregated
+
+With more complex stimuli, there's very little difference between performance of prototype and exemplar models. The reason is pretty clear: this is a situation where there is a complex stimulus, but you are constructing a complex representation where you can apply a simple classifier. 
+A simple prototype will do well in this space. 
+
+By focusing on simple stimulus, the only way to produce complex behavior is complex boundaries, but for naturalistic images, we can have a complex representation where we don't need the complex classifier.
+
+\subsection{Text}
+
+I focus on vector space models.
+
+Each word is point in vector space, you can linearly combine them, get out analogies.
+
+Objections to spatial representations:
+Semantic association has same properties: asymmetry. 
+
+Word association: ex. planet$\to$Earth.
+There are asymmetries, $(\text{beer|keg})>P(\text{keg|beer})$. There are also violation of triangle inequality: asteroid, belt, buckle.
+This is potentially problematic for vector space models.
+
+%$\cos(w_1,w_2)$ is symmetric. %$\cos(w_1,w_2)$ is monotonic function of met
+But with more modern vector space models comes a more probabilistic view, $\Pj(w_2|w_w)\propto \exp(w_2^Tw_1)$.  This can predict human associations.
+
+When estimated from small number of words, topic models still outperform vector space models. But vector space models can be estimated from very large corpora and then beat topic models.
+%correct a quarter of time
+
+Conditional probabilities computed from vector space models adequately capture asymmetries and violations of triangle inequality.
+
+Think about  the parallelogram model for analogies, going back to Rumelhard and Abrahamson (1973). Try to evaluate using human data.
+If you have an analogy of this form (man:woman::king:queen), you can find the fourth word by completing the parallelogram. They did MDS of human similarity judgments. %presented analogies
+
+Previous evaluations have focused on automatically generated relational pairs. We wanted to generate a new database across a wide range of relations. Starting point is SemEval2012 task 2.
+Class inclusion, part-whole, similarity, contrast, attribute, non-attribute, case (soldier-gun), cause, space-time, reference. We ask people to generate more relations of similar type.
+
+There are types where the linear transformation parallelogram does capture the relations. Other don't (contrast, similar). It's represented quite differently geometrically. 
+
+Have people generate ratings for these different types. Generate pairs of pairs and write similarity between pairs of pairs (who similar the relation is). How well can we predict those relation similarities? We find a clear variation between relation types on how well they are predicted. Similarity and contrast are relatively poorly predicted.
+
+%An interesting property: 
+This reveal how 1 particular relation corresponds to 1 aspect of human judgment. %What classes of geometric relations can be applied
+
+Do same objections apply in analogies? They are arguments against using a vector space model to capture everything.
+\begin{itemize}
+\item
+hairdresser:comb::pitcher:baseball
+\item
+pitcher:baseball::hairdresser:comb.
+\end{itemize}•
+People think the first is better. (Baseball is though of as object in first, game in second.)
+
+Collect judgments for 500 relational pairs in both directions. Effect of priming? What frame is activated?
+
+Example: nurse : patient::mother : baby :: frog : tadpole.
+This is relational violation of triangle inequality.
+
+lawyer:books::chemist:beakers::librarian:books. Encourages you to think about differences in which lawyers and librarians relate to books.
+
+%Vector space representations give good starting point. More things going on!
+\begin{enumerate}
+\item
+Off-the-shelf deep networks do surprisingly well, but miss important conceptual structure. 
+
+Look at  different tasks, training regimes?
+\item
+Learned representations can be used to make high-fidelity predictors of similarity that can be used in models of human cognition.
+\item
+Lots of open questions: training, data, architectures...
+\end{enumerate}•
+
+
+%most deflationary: enough representation in 
+%why that information might be present?
+%Reweighting is regression problem. 
+
+Q/A:
+\begin{itemize}
+\item
+Using other metrics?
+%L^p. 
+There is psych literature on $L^1$ vs. $L^2$.
+
+\item
+Things that predict better perform better. The higher in network, the better the correlations. 
+\item
+Asymmetries and lack of triangle inequality are superficially similar to KL divergence. This is similar to density hypothesis.
+
+%Bayesian argument: if you make 2 observations, the probability that $y$ falls into subset of space $x$ falls into.
+%if you assume convex regions, prior...
+
+%Why do we believe it has to be a matrix, ex. sigmoid of distance.
+\item
+Similiarity could be a nonlinear function of the metrics.
+\item
+Analogies that don't give linear relationships. Some examples unfair? Linear when clear semantic relationship. 
+%broader set of geometric relations
+%what capture, what don't.
+
+Similarity is better captured by a constraint on distance between points.
+\item
+Text: ``Belt'' has 2 different signals. Image example more fundamental? ``B'' item in A:B::B:C changes the sense vs. the features. 
+\item Can you use image similarity to improve accuracy? 
+
+You get slight defecit in performance using human representation transformation. Original model overfitting tasks. Human representations also do many other tasks.
+I think there's places where it's relevant to have these transformations.
+%In context where you're using these models, 
+\end{itemize}
+%text. Belt has 2 different senses.
+%distance different based on features see
+%represent word - different senses.
+
+%cocosci.berkeley.edu

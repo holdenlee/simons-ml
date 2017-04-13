@@ -1,0 +1,126 @@
+\section{Geometry, Optimization and Generalization in Multilayer Networks (Nathan Srebro Bartom, TTI Chicago)}
+
+Abstract: What is it that enables learning with multi-layer networks?  What makes it possible to optimize the error, despite the problem being
+hard in the worst case?  What causes the network to generalize well despite the model class having extremely high capacity?  In this talk I will explore these questions through experimentation, analogy to matrix factorization (including some new results on the energy
+landscape and implicit regularization in matrix factorization), and study of alternate geometries and optimization approaches.
+
+\subsection{Introduction}
+
+Let $\cal H_{G(V,E),\si}$ be $\{f_w(x)\}$ where $f_w$ is the output of net with graph $G$ and activation function $\si$.
+
+Three things to understand: 
+\begin{enumerate}
+\item
+capacity/generalization ability/sample complexity: This is well understood; it is $\wt O(|E|)$ (with some assumptions).
+
+(There is still some gap between linear and quadratic.)
+\item
+Expressive power/approximation: 
+
+We can represent any continuous function. This is useless because size of network increases exponentially with dimensionality. 
+
+We can represent lots of interesting things naturally with small networks. Have a hierarchy of features...
+
+Any $T$ time computable function can be presented with a network of size $O(T\ln T)$. 
+%T depth 
+\item
+Computation/optimization: Even if function is exactly representable with single hidden layer with $\Te(\ln d)$ units, with no noise, even allowing a much larger network when learning, no polytime algorithm always works. (Kearns-Valiant 94, Klivans Sherstov 06, Daniely Linial Shalev-Shwartz 14)
+\end{enumerate}
+
+But there has been huge success in learning neural networks. What is the magic property that makes local search work? Being representable by a small neural net is not good enough! The main mystery is optimization.
+%function representable. Why I can actually learn it.
+
+For MNIST we increase the network size(by factors of 2) and see what happens to training and test error. (Train to convergence.) Training error decreases monotonically. 
+
+Under classic understanding of learning, initially error drops, but as we increase the hypothesis class/capacity,  test error should increase (overfitting). But we observe something different: the training error continues dropping significantly, and the test error doesn't increase: the network never overfits. This is consistent with what people see in much bigger networks. We routinely fit networks with much more parameters than data points with little or no regularization.
+%neyshabur tomioka S ICLR15
+
+Mysteries: what gives generalization ability? How can we get to good minima?
+
+\subsection{Matrix factorization}
+
+I wanted to work on deep learning and was working on matrix factorization...
+But matrix factorization is deep learning! With 2 layers and linear transfer. 
+$$
+y=U(Vx) = Wx
+$$
+where $W=UV$. $r$ hidden units corresponds to $\rank(W)\le r$.
+
+This has many of the complexities of deep learning. It is the most complex deep learning model we actually understand. 
+
+%NP-hard
+%test if from nonconvex model
+We know how to work with not just the rank, but norm-bounded weights. Instead of $\rank(W)$ consider 
+$$
+\ve{W}_{\tr} = \min_{W=UV} \ve{U}_{Fr} \ve{V}_{Fr}
+$$
+or other factorization norms such as weighted trace norm, max-norm $1\to \iy$, etc.
+
+This is a convex relaxation on the rank so is easier to optimize. There is no spurious local minima in high enough dimension even when optimizing over $U$, $V$.
+
+It's a better hypothesis class, better inductive bias.  This is a richer and more expressive model, allowing unbounded number of factors, with bounded sum of ``importance'' of factors, not their number.
+
+Minimize
+$$W_k = \amin_{\rank(W)=k, L(W)=0} \ve{W}_{\tr}.$$
+This is similar to how we train matrix factorization models. 
+As $k$ increases, $\rank(W_k)$ increases. But $\ve{W_k}_{\tr}$ decreases with $k$. If norm is a better inductive bias, then $W_k$ generalizes better as $k$ increases.
+
+In practice, for many tasks (Netflix),
+$$W_k = \amin_{\rank(W)=k} L(W) + \la \ve{W}_{\tr}.$$
+The test error of $W_k$ monotonically decreases as $k$ increases.
+
+%S BD: secret in data? NS: low trace norm structure. both learn efficiently and generalize well.
+%constraint on rank.
+
+%More hidden units means better generalization.
+
+I'm arguing that rank is not the ``real thing''.
+
+Is improved generalization of neural nets explained by decrease in norm?
+No, the norm increases. But this is the $\ve{W}_F = \sqrt{\sum_e w(e)^2}$ norm, which is not a good norm.
+%\ve{W}_2 in presentation, I think it's \ve{W}_F. -HL
+
+If I scale layers by $\la$ and $\rc{\la}$, then the norm gives different answers even if the function is the same. We want measure of complexity that is invariant to rescaling. 
+Use the path-norm
+$$
+\phi(W) = \sqrt{\sum_{\text{path}}\prod_{e\in \text{path}} w(e)^2}
+$$
+(calculated by dynamic programming).
+The path norm decreases as the number of hidden units increases.
+
+%Recht, Hardt, et al.: You can 
+Train real labels vs. wrong (jump) labels: As training size increases, norm for true labels flattens out, but norm for wrong labels increases.
+
+%$\phi$ calcul
+
+How does path norm compare to test error? We screwed with the optimization algorithms, which still find global minimum, but have different path norm. (There are many ways of fitting data.) As path norm increases, test error increases.
+
+Why does gradient descent work? We minimize unregularized error to convergence. In convex models, we understand how one-pass SGD, or SGD with early stopping, provides for implicit $\ell_2$ regularization, but we are getting implicit regularization without early stopping.
+
+Optimization is biasing us towards specific global optimum. What's the bias introduced by optimization, and can we get better bias by changing optimization?
+
+Steepest descent is with respect to Euclidean geometry. We do path-SGD, approximate steepest descent on $\phi(W)$. 
+
+Optimization is better. Both find global optimium. Path-SGD finds a global optimum that generalizes better. We changed the implicit induced bias!
+
+This is a very overconstrained problem. Local search guides us down towards global optimum. We'll get to some beach, the closest beach. The notion of ``closest'' goes back to the geometry we're using to guide the local search. %Capacity control: everything in neighborhood get to in local search
+
+Mysteries of local search (gradient descent and relatives):
+\begin{enumerate}
+\item
+How come local search succeeds in finding global optimum of nonconvex function?
+\item
+How does gradient descent bias us towards low norm solutions? What norm?
+\end{enumerate}
+
+Our result: local search is sufficient [Bhojanapalli Neyshabur S NIPS16]
+
+%low rank matrix completion.
+%rank 1 problems
+%bandeira boumal voroninski 15 community detectino
+%phase retrieval
+
+Where is implicit bias coming from? For least squares, we understand. Gradient descent converges to least norm solution. %For factorization, model class is unconstrained. 
+
+Optimization and inductive bias (geometry/regularizer) are linked. They affect generalization (learning). 
+

@@ -1,0 +1,205 @@
+\section{3/30/17 Panel}
+
+%YC, CM, DS, YLC, RG, CP, SA
+\begin{enumerate}
+\item
+MT: Societal impact: Last time: answer was not our problem. What is our responsibility?
+
+YLC: Facebook, IBM, Google, Amazon, Apple have partnership for AI, joined by ACLU, etc.  Discuss ethical and safety issues including societal impact. I'm most worried not about Terminator but about the accelerated progress of tech which increases wealth and income inequality, has already created a new gilded age. Marxism 2.0. 
+
+First gilded age created Marxism 1.0 and split the world for 3/4 of a century.
+
+The issue is how political system deals with accelerated tech progress. %There are a set of scales useful for society. 
+Population trails behind. As tech develops, more and more are left behind and they're pissed. European countries are more prepared.
+
+MT: It's our responsibilty to have solutions.
+
+YLC: I'ts our reseponsibility to point the problems. It's arrogant to say we have political solutions.
+
+CP: People like Bertrand Russell did not shy away. It was an even more dangerous era. There were brilliant thinkers of the kind we admire from both sides---von Neumann and Bertrand Russell. 
+%Back then, academics were not of the opinion that they had duties as politicians, they had the prestige, no politician could tell, who the fuck are you?
+
+YLC: Every economist I've heard says: something has to be done at political level.
+
+CM: Sometimes I feel like things are going to be really bad, other times I'm unconvinced the problems are worse than changes that have come before. There have been enormous changes, 90\% to 3\% in farming, number of people making garments. The fear is that it's going faster this time.
+
+People in AI suffer from thinking it's so special, but it's no so different from moving from people hand-sewing cloth to having machines doing that. The fact that we have billionaires now is no different from Andrew Carnegie one century ago. Society will adapt better than some people are fearing.
+
+%youtube
+%People react by looking at individuals doing something small-scale
+People can find employment being artisans again because people look for human quality.
+
+CP: Industrialization, beginning of information era. For the last 30 years there has been social consensus. The world is advancing and people want to get the fruits of that.
+%there is a financial ... 
+
+Back then there was the specter of communism, left-wing ideology that was flourishing. That's not the case now. As a result, you have the disenfranchised believing that the way to go is to let multibillionaires take directly the reins of power.
+\item
+TM: Can we learn something from neuroscience, how the brain is doing representation learning?
+
+CP: The short answer is that it's depression how little we know about representation in the brain. No experimental field gallops faster than neuroscience, my impression is that the field is more and more confused.
+
+YLC: Largely the result of learning, no reason they are easy to understand. More interesting to think about how it learns. I've always been interested in how the brain learns, not how it works once it's learned. A lot of neuroscience has been on the second question. A lot of people in vision are interested, frustrated by NN, you don't need to understand vision anymore, spend time looking at how convnets work, what's the point?
+
+SA: Decoding fMRI: measure blood flow at 6000 places, make sense of it using word embeddings. There's signal like that.
+
+MT: There's no real notion of how to extract what's going on in the brain. Work on correlating connection patterns?
+
+CP: You can measure lots of things, infer synapses by correlating firing. I believe it's much harder to measure weights. 
+
+MT: I meant bigger structure, see Marvin Minksy talks, pillars...
+
+CP: We understand more and more. Learning is an object of intense study. Three layers of Marr: algorithm, program, hardware. Learning is a fourth part. We have to understand how the brain is modified by experience.
+
+We now some of the neural circuits. We know a lot about the sensory, visual cortex.
+\item
+?: What are prospects for understanding errors and uncertainty in predictions by %generative 
+neural nets. Can we bound errors, have confidence intervals? Is this something we can ever do?
+
+YLC: Bayesian averaging: approximate by Gaussian depending on Hessian...  Marginalize over distribution, get confidence intervals. It's not clear whether they're good.
+
+%CP: We hardly know how to do this for 
+: You have to put in a lot of work.
+
+YLC: You can simplify with assumptions, diagonal Hessian, etc., don't lose too much.
+
+MT: I'll take your neural net  diagnosing disease and tell you what drug to take. What does it take for you to trust this?
+
+CP: He wants to be the 10000th patient.
+
+YLC: I'm not convinced there's a principled method better than a hack. Find the place on precision-recall curve...
+
+How do you get reliable scores?
+
+SA: I don't understand the answer for any traditional method.
+
+MT: Sometimes Hoeffding tells me something.
+
+%: In abstract way, if I wanted to propose Monte Carlo, I could . If I trained NN to make Monte Carlo move...
+: Is there a way to know whether you have confidence in your answer? 
+
+*: One issue is that we're focused so much on accuracy in our metrics. If we gave points for saying ``I don't know''... 
+
+: Imagine an autonomous driving system stopping and alerting the driver when it doesn't know.
+
+YLC: Have a watcher neural net, SafetyNet at NVidia.
+\item
+Br: What's wrong with the bootstrap---resample from the training set, rerun convnet and see predictions it makes. We've talked about rep learning. Representation theory is well studied in math, represent algebraic structure. Should we use it as a guide?
+
+YLC: Resample training set and retrain. If you train large net it takes a long time.
+
+Br: If it's drugs I'm going to take...
+
+TM: Assume iid large sample, not theoretically justified.
+
+YLC: Restarting, splitting data set various ways, take samples around solution...
+
+CM: They work!
+
+YLC: If it's worth the trouble use them.
+\item
+J: Meaning and symbols. What are the implications for philosophy and linguistics and vice versa? Are we getting closer to understanding to Wittgenstein meanings? Is there room for philosophy and linguistics and deep learning to come together, or are they different parts of the world that don't need to talk?
+
+CP: I'm surprised that more philosophers haven't put under scrutiny the field of science and tech.
+
+J: In philosophy there was a lot of head-butting, philosophy didn't think there was much to learn.
+
+CM: Interesting implications. Issues of meaning, how to find meaning in different ways relate directly to different things we're doing in deep learning, shaking different theories of meaning. 
+
+There's a lot of space for more denotational theories of meaning, capturing those in deep learning systems. Symbols have been prominent in philosophizing, but more of an epiphenomenon in machine learning.
+
+J: Platonic idea, word vector?
+
+%CM: Rethink traditional models so influenced by language of thought.
+\item
+:Projection 5 years in the future, will deep learning still be front and center?
+
+YLC: I think we'll find something beyond deep learning, but gradients will stick with us. 
+
+There are several aspects. One is gradient descent works, you can run a lot, even things that are complicated. You can make learning model by assembling modules. There are many instantiations.
+
+If you define as learning representations, that will stick with us. 
+
+If you see as more philosophy/AI, replace symbols by vectors, I think that will stick, only way to have differentiability.
+
+I see it disappearing from front and center, being just a tool. We don't talk about computers anymore.
+
+CM: There will be a much bigger swing to something else, I don't know what it is. I feel I have this clear memory, back around 2008, everybody (but Yann) was so convinced that prob models were right, they were the solution being found because prob were obviously the one true path, you would have been laughed out of the room saying that in a few years everyone would be doing nn again. I assume the same thing will happen. In 10 years: people 10 years before were building these discriminative models with no idea what they were doing...
+
+SA: Life is simpler than complexity theorists thought. There could be alternative universe where there is a SAT-solver and you leverage that and do AI.
+
+YLC: The theory that everything is nearest neighbor and you just need a fast NN.
+
+SA: There's a clear reason why that can't work. If P=NP, you could use that to solve AI. There's an alternate reality where that could have happened.
+
+DS: It's a question all of us think a lot about every day. What is missing, what is deep learning not giving us. Is there a hope of getting there going down this path? An important part is how to get better abstraction. It doesn't have the properties we hope, will gradient descent give us that.   I don't see evidence it will, but I don't see better solutions.
+
+First we see advancement at perception level, vision. I come from program synthesis, my goal is to teach computer to write code. Whether gradient descent will give us that is open question. From what we've seen so far, we have significant pieces missing, we just don't know what they are.
+
+YC: Many of us are interested in creating a model that can reason better than how things work today, seems to require background knowledge about world, it's unclear how we do that. One of 2 things can happen: assume what we work on today are applications that make sense as AI challenges. If we run out of applications and datasets we can do well, look at bigger challenges, entirely different classes of algorithms, ML approaches, could be inference coming back, that could introduce new class of directions.  A new name.
+
+At the moment people want to look at different problems compared to several years ago: reading comprehension, image captioning. If we keep doing it... I hope some reasoning will happen.
+\item
+JeffB: Holy grail of real-world knowledge: grounded knowledge, model-based RL. Historically in AI people (ex. Cyc) wanted real world knowledge in some representation, laid out or learned automatically. TO the extent that we want these to mimic human ways, might be the extent we don't want these to be the real world. Humans are enamored with the fantastical, believe in deitic entity. At any point in time, most people are thinking of things that have nothing to do with real-world knowledge, reasoning. (Recent election) Is it the case that efforst to construct real-world model are doomed to failure because they don't fantasize the way a person does?
+
+YLC: Due to 2 things. Exploration-exploitation: exploration means imagining new things that are not necessarily efficient, possibly dangerous to individual, increases chance of population's survival. Ability to predict and act on world, to get to state you like, need causal inference, see what we can influence. That drives us to have a mechanism to establish causal relationships, and find it when there is none.
+
+J: When people using for financial, edge cases. If model is more imaginative and creative (kids coming up with ludicrous situations, things that will never happen).
+
+CP: A lot of fallacies are result of blind spot to understanding probability. What genius is is to see things beyond what is on the table, find associations that shouldn't be there. This is something that we should try to make our machines do.
+
+J: Every human is a genius in our ability to infer things about the real world. Is that a necessary component?
+
+DS: You can come up with deeper models to simulate the world. 
+
+J: It has to be plausible fantasy. Errors GANs make are not plausible, whereas a person vanishing is plausible.
+
+SA: Going back to other questions, that feels more symbolic. Is that in the current models or not? 
+
+J: Symbolic vs. continuous, orthogonal issue. 
+
+SA: Can you do it with a vector.
+
+J: High-level representations are necessary.
+
+: Why do you think GANs will fantasize something will disappear?
+
+J: Is that something that needs to be in the training?
+
+The error: Every AI scientists things everybody thinks like them. It's not ths case that people are, think the same, but they functino perfectly well.
+
+SA: Is an MDP a reasonable model?
+
+YC: I don't think necessarily there should be one repository of commonsense knowlege. If we could randomize the way neural nets learn text, images, interact with world, have internal representation of what it's seen so far, in a way it's the case with robots that learned from interaction, they all have different internal models because of different experiences. We could combine to make stronger, or keep them separate specializations. It's not clear there's one perfect model. Everyone has cognitive dissonance. We think we think but pattern match and believe something not entirely correct (if we sit down and think about it).
+
+: I fantasize based on things I haven't seen, no one has disappeared in front of me but I imagine it. There has to be a mechanism. 
+\item
+Do you think you work on artificial intelligence vs. AI problems? 
+
+MT: I quit music school to solve strong AI.
+
+YLC: I try to solve AI, but it's arrogant to say it's one step towards AI. In a paper you want quantifiable progress on a concrete problem. The paper trail is more applied. I want to get machines to learn forward models.
+
+You have to be scientific about it.
+
+CM: AI problems. I'm not directing myself to think about solving the whole AI, am grounded in human language.
+
+CP: I started grad school in 73, wanting to do AI, that was the first major AI winter, instead did theory. I'm very envious. We started with the question, will AI take over the world, take away everybody's job. How about our world: computer science department. Theoretician, others do graphics, databases, PL. Is AI taking over our world?
+
+DS: I didn't quit security but expanded research scope.
+
+YLC: Applications for Ph.D. 2/3 want to work on AI related fields. 
+
+CP: In our department, 3/4. I remember when this happened in 1993. I was at Stanford, 80\% of applications wanted to do AI. Discriminator we used was whether they talked about G\''odel Escher Bach. If not admit them as theoretician.
+
+YLC: Derive knowlege from data in operational way. The amount of data is growing exponentially, as fast as communication bandwidth of network. %capac of hard drive
+Capacity of brain to analyze is not growing. It's  important for society to turn data into knowledge. It could be a field that spins off from CS, the same way in 60's CS spun off from math and EE. 
+
+In NYU, CS department is malignant tumor on math department. Now we see what AI/ML. Subfield of statistics, where you use computers instead of pen and papers. Vs. subfield of CS?
+
+CP: Now CS is a misnomer. It's obviously about so much more. 
+
+JB: You're aware of the old adage, all problems solved by one additional level of indirection. Including problem of computer science itself. Write programs that write programs. Automatic program writers. Compilers back in 50's was viewed as AI. In some sense it's natural outgrowth of CS.
+
+YLC: When a field is claimed by many fields...
+We're borrowing methods from physics (prob models). 
+\end{enumerate}

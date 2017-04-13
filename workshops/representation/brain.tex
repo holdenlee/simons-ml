@@ -1,0 +1,210 @@
+\section{Formation and Association of Symbolic Memories in the Brain (Christos Papadimitriou, UC Berkeley)}
+
+%logicomix
+
+Joint work with Santosh Vempala and Wolfgang Maass.
+
+Brain and computation: the great disconnects.
+\begin{itemize}
+\item
+Babies vs. computers.
+\item
+Clever algorithms vs. what happens in cortex.
+\item
+Deep nets vs. the brain.
+\item
+Understanding brain anatomy and function vs. understanding emergence of the mind.
+
+Despite insights into how the brain works, we don't understand how the mind emerges.
+\end{itemize}
+
+What are you going to bring to the question? Computation. How does one think computationally about the brain? This is a good question. 
+
+John von Neumann wrote a book in 1950. ``[The way the brain works] may be characterized by less logical and arithmetical depth than we are normally used to.''
+
+%first time the word ``singularity'' was used in relation to brain.
+
+Les Valiant on the Brain (1994): A computational theory of the Brain is possible and essential. The neuroidal model and vicinal algorithms.
+Random graph with language for operations, carefully designed so it can be implemented by neurals. This generates a genre of algorithms, vicinal algorithms. 
+%He came up with the idea ofitems
+
+David Marr (1945--1980), an amazing Turing-like figure. %In his brief life he came up with p
+He came up with the 3-step program
+\begin{enumerate}
+\item
+specs: what the system does
+\item
+algorithm
+\item
+hardware
+\end{enumerate}
+
+Can we use Marr's framework to identify the algorithm run by the brain?
+%backpropagation.
+
+Our approach/disposition:
+\begin{itemize}
+\item
+Start by admitting defeat: Expect large-scale algorithmic heterogeneity.
+
+There are thousands of problems to be solved, find them one by one. Use Marr's method but not in grand way.
+\item
+Small computational theories consistent with what we know from neuroscience.
+\item
+Start at boundary between ``symbolic/subsymbolic'' brain function.
+\item
+Once candidate: assembly of neurons in MTL
+\end{itemize}
+
+Experiment (Ison et al 2016).
+
+Neuron lights up every time Eiffel tower is shown. Show Obama, etc., neuron doesn't light up. Photoshop Obama into Eiffel lights up. Neuron fires. Then show Eiffel tower, it fires. Show Obama, it fires. 
+
+This guy has learned that Obama has been to the Eiffel tower. That's learning. %we all work on learning.
+
+These are the specs. What is the hardware, what is the algorithms?
+
+
+%not fMRI, single neuron.
+
+Speculating on the hardware:
+\begin{itemize}
+\item
+recorded 100 out of $10^7$ MTL neurons in every subject.
+\item
+So each memory is represented by assembly of many $10^4$ to $10^5$ neurons (Hebb 1949, Buzsaki 2003, 2010). This is the nearest we have to consensus in neuroscience.
+\item
+It is highly connected, therefore stable.
+\item
+It is somehow formed by sensory stimuli. 
+\item
+Every time we think of this memory, all these neurons fire.
+\item
+Two memories can be associated by ``seeping'' into each other.
+\end{itemize}
+(What is you ask to imagine Eiffel tower?)
+
+Algorithm?
+\begin{itemize}
+\item
+How are assemplies formed?
+\item
+How are they recalled?
+\end{itemize}•
+Theory challenge: in a sparse graph, how can you select a dense induced subgraph? In theory we have been haunted by this problem for 50 years, the clique problem.
+
+There's evidence that synapses are changing, new ones are formed. It's not unchanging. (We don't need to think about this.)
+
+Everything is a hypothesis. We know this is necessary for the current theory of assemblies.
+
+%valiant invariant items, connectivity is immaterial
+
+MTL has $\approx 10^7$ neurons. Stimulus stimulates $\approx 10^4$ neurons to fire (sensory cortex). $10^4$ neurons in MTL fire as a result of zero-sum war. 
+
+Note that these are scattered neurons. These are extremely important, also philosophically. This is the first time it lost every connection to the world, become an abstract memory.
+
+Metaphor (homology): olfaction in the mouse (Axel 2011). How olfactory is projected: In mouse's nose there is 3 cells that specialize. Once tarragon cell hits, neurons fire, a lot of activity happens in olfactory ball. There's a pea-size sphere that specializes in tarragon. Once it fires, there is a huge strong pathway, projects to prefrontal cortex, where it disperses. This is where you say ``I like tarragon,'' where it becomes an idea.
+
+From the discussion section: A few cells could receive enough input to fire. This small fraction generates sufficient recurrent excitation to recruit a larger population of neurons. Strong feedback inhibition would suppress further spiking. Some cells receive enough recurrent input to fire without receiving initial input.
+
+MTL seems to be a random graph $G_{n,p}$, $p\approx 10^{-2}$. %Our job is to understand how this structure 
+
+We have to take plasticity into account: how neurons learn from experience. ``Fire together, wire together.'' (Hebb 1949) Near synchronous firing increases synaptic weight.
+
+How to verify such a theory? Reproduced in simulations by artificial neural nets.
+
+Look at linearized model, without the threshold. 
+\begin{align}
+x_j(t+1) &=s_j + \sum_{i\to j} x_i(t)w_{ij}(t)\\
+w_{ij}(t+1) &= w_{ij}(t) (1+\be x_i(t) x_j(t+1))
+\end{align}
+Equilibrium equation is translation of Axel's prediction.
+
+Theorem: linearize dynamics converges geometrically to 
+$$
+x_j = s_j + \al\sum_{i\to j} x_i^2,
+$$
+be born rich or have rich friends. (In order to have a good chance to be an assembly, get stimulus or be preceded by neurons in the assembly.) These are small numbers; squares says if all predecessors are small, they don't help.
+%steady state.
+
+%(Inhibitory are used just to specify the first one.)
+
+You're living in a sparse random graph soup. Excitation happens. 
+
+Quantitative narrative theorem:
+\begin{enumerate}
+\item
+Elite (high $s_j$) cells fire.
+\item
+About half of elite cells fire again, and so do some other highly connected cells.
+\item
+``Rich get stably rich'' through plasticity.
+\item
+Part of assembly may keep oscillating (common periods 2 and 3).
+\end{enumerate}•
+
+How can a set of neurons have connectivity? 
+Associations?
+
+Random graph theory does not seem to suffice. 
+
+Song et al. 2005: Some deviation from $G_{n,p}$: reciprocity and triangle completion.  Once you have 2 edges, the probability the triangle is completed is much higher $10^{-1}$. 
+%small world graph
+
+This explains the mystery. Birthday paradox says there is at least one neuron connected to 2 sets, so the 2 sets have a lot of connectivity.
+
+Theory challenge: how to select a dense induced subgraph?
+\begin{itemize}
+\item
+Recruit expressly highly connected nodes
+\item
+Plasticity
+\item
+Edge completion and birthday paradox.
+\end{itemize}
+
+As  von Neumann predicted, the algorithm vanishes. Hardware and task have coevolved.
+
+Another operation is bind, e.g. ``give'' is a ``verb''. It's not between assemblies but between assembly and brain area. Pointer assembly, surrogate for ``give'' is formed in ``verb'' area.
+Legenstein et al 2017.
+
+Internal connectivity is immaterial. Operations are Join, Link $\ne$ association. It's formed by recruiting completely new cells. Through orchestrated precise setting of parameters (strengths, thresholds). Also see Predictive Join (P. Vempala COLT 2015). %After criticism of our theory, we decided to retreat and do thi.
+
+The brain in context:
+\begin{itemize}
+\item
+Environment is paramount.
+\item
+Language: environment created by us a few thousand generations ago.
+\item
+Last-minute adaptation
+\item
+Hypothesis: evolved so as to exploit brain's strength
+\item
+Langauge optimized so babies can learn it.
+\end{itemize}•
+
+Knowledge of language$=$ grammar. Assemblies, association, bind (pjoin) seem ideally suited for implementing language in brain.
+
+On learning representations of the world:  Imagine a mouse running around. The mouse has in its brain a cell. Picture: Every dot is the place where a certain cell fires. It forms a triangular grid. This is representation learning in the real world.
+
+Got Nobel prize for discovering.
+
+This is learned representation of real world. How? For what purpose? See ``Optimality of grid cells.''
+
+Conclusion: how does one think computationally of the brain? Assemblies. Experimental neuro provide specs. Algorithm often vanishes. Language!
+
+QA:
+
+Famous results: regularizing and normalizing even when adults around don't speak well (cf. creolizing pidgin). Is this evidence or challenge?
+
+Randomness is just ``we don't understand it''? If randomness is vehicle for saying we don't understand, we should definitely use it in the brain.
+
+%Operational deviation fron $G_{n,p}$
+
+Cell firing pattern depends on geometry of rat's nest. It adjusts. 
+
+Binding operation: did you go through combinatorics. If you define in connectivity-based way you tear everything up?
+
+%By some attention mechanism, attention spikes and projects
+%Structurally different from oth assem

@@ -1,0 +1,116 @@
+\section{Supersizing Self-Supervision: Learning Perception and Action without Human Supervision ( 
+Abhinav Gupta, Carnegie Mellon University)}
+
+In this talk, I will discuss how to learn representation for perception and action without using any manual supervision. First, I am going to discuss how we can learn ConvNets for vision in a completely unsupervised manner using auxiliary tasks. Specifically, I am going to demonstrate how spatial context in images and viewpoint changes in videos can be used to train visual representations. Next, I am going to talk about how we can use a robot to physically explore the world and learn visual representations for classification/recognition tasks. Finally, I am going to talk about how we can perform end-to-end learning for actions using self-supervision.
+
+Human learning is lifelong, integrated.
+
+Manual labeling is not scalable. Imagenet has collected 1 million bounded boxes over 5 years. Common sense (Cycorp) has 2 million facts. Facebook gets 400 million photos daily.
+
+We talk about
+\begin{itemize}
+\item
+ self-supervised systems. Get supervision from data on auxiliary tasks. 
+\item
+physical exploration
+\item
+300 million images
+\end{itemize}•
+
+%Self-supervised 
+Deep learning is based on promise of learning from mega-scale data. But does more data actually help in representation learning. Maybe performance will plateau.
+Deep learning depends on GPUs, model size, and data. GPUs and model size have increased, but not data.
+
+\subsection{Self-supervised systems}
+
+In supervised learning, hope that in training classification, get useful features (parts, pose, materials, geometry, boundary...). Do we even need manual labels? If we can get rid of this, we can scale to billions of images.
+
+Use context as supervision (Collobert and Weston 2008, Mikolov et al. 2013). 
+
+Train a CNN to predict patches in context. 
+
+Ex. predict toilet paper roll besides toilet. But this is hard:
+Predicting pixels is a high-dimension regression problem.
+
+Easier: predict spatial layout---how 2 image patches are related to each other. Even though the task is nonsemantic, you have to go via a semantic representation!
+
+Sample 2 patches, feed through Siamese network, and learn classifier on top that predicts the spatial layout. The top layer of the CNN should be semantic in nature.  
+Indeed, nearest neighbors are from the same category.
+
+We have to avoid trivial shortcuts, ex. matching boundaries. So include gap and jittering.
+
+Network has learned to encode location inside image itself: ex. nearest neighbors are all from bottom right. Neural net can predict location in image by chromatic aberration. 
+%blue and red lights converge away from center.
+%not spherically symmetric
+%how do you find out.
+%tell student: don't go on until figure out.
+Crop color channels, or work on black and white images.
+
+What is learned? Look at nearest image images. It's comparable to AlexNet.
+%It's better than random init
+
+How to evaluate: Use as pre-trained network for VOC object detection. Compare to ConvNet.
+%We compare AlexNet. 
+AlexNet does 40.7\% for no pretraining, 46.3\% for our pretraining, 54.2\% when using ImageNet labels.
+
+Increase capacity and use VGG, which gets 42.4\%, 61.7\%, 68.6\%.
+
+Within image-context leads to across-image similarities. Significantly better than no pretraining.
+
+Is there not enough supervision? It's hard to learn viewpoint invariance. Ex. a face upside down would make legs above.
+
+There is one source where viewpoint invariance comes for free: videos. Use this data to learn viewpoint invariance between images. Do Siamese triplet: put first patch and last patch of person/object in track so they are close to each other, and other is far (contrastive loss).
+
+%object motion, less camera motion
+
+Space of negatives is huge, and might take lots of time for network to train. Use hard negative mining for triplet sampling. Select negative patches giving high loss to backprop.
+When just learning viewpoint invariances, VGG get 60\%.%.
+
+Given videos, find closest patches. Use transitivity, loop closure to find new invariances we should be learning.
+
+Using both, get 63.2\% for VOC 2008.
+ B
+\subsection{Learning in humans}
+
+We throw things in air, put things in mouth... Build a simliar robot that. %nterstxwith wo
+\begin{itemize}
+\item
+Planar grasping: randomly grasp object.
+\item
+Pushing
+\item
+Poking
+\item
+Pose and scale invariance (change viewpoint). This is hardest; loss in 7th layer.
+\end{itemize}
+
+For retrieval we beat AlexNet. 
+
+We have a drone trying to hit objects to get information (haptic feedback).
+%it has hit multiple grad students.
+
+\subsection{Promise of big data}
+
+Data does not seem to be growing, especially data. There is no real effor in making ImageNet 10x or 100x, why?
+\begin{enumerate}
+\item
+It is not about data anymore, it is all about model; we see plateauing effect.
+\item
+It is not about general representation learning. We should collect task-specific data, COCO, 100k images for object identification and segmentation.
+\end{enumerate}
+
+We revisit unreasonable effectiveness of data.
+
+Network has been training 2.5 months on 50 GPUs (3 epchs).
+%no knowledge of training with such lareg datasets. 
+%How much noise is in labels? 
+
+Surprise:
+Performance between data and performance is linear. There is no plateauing effect at 300 million. 
+
+Data still has the biggest impact. Data is not saturating.
+
+Future is ripe for unsupervised; data seems to be very helpful.
+
+Discriminative models see to be better than generative models.
+%hide half.

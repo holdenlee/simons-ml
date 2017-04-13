@@ -1,0 +1,153 @@
+\section{Learning from Unlabeled Video (Kristen Grauman, University of Texas, Austin)}
+
+The status quo in visual recognition is to learn from batches of unrelated Web photos labeled by human annotators.  Yet cognitive science tells us that perception develops in the context of acting and moving in the world---and without intensive supervision.  How can unlabeled video augment computational visual learning?  I’ll describe our recent work exploring how a system can learn effective representations by watching unlabeled video.  First we consider how the ego-motion signals accompanying a video provide a valuable cue during learning, allowing the system to internalize the link between ``how I move'' and ``what I see''.   Building on this link, we explore end-to-end learning for active recognition: an agent learns how its motions will affect its recognition, and moves accordingly.  Next, we explore how the temporal coherence of video permits new forms of invariant feature learning.  Incorporating these ideas into various recognition tasks, we demonstrate the power in learning from ongoing, unlabeled visual observations---even overtaking traditional heavily supervised approaches in some cases.
+
+\url{http://www.cs.utexas.edu/~grauman/research/pubs.html}
+
+Take a scene and understand object categories, instances, things happening, etc. Look at benchmark datasets that feed the algorithms, BSD, Caltech 101/256, PASCAL, LabelMe, ImageNet, SUN, Places, MS COCO, Visual Genome.
+
+How are we teaching these systems? How do our systems learn about the visual world today? Curate 1000+ images for a category to teach the concept. This is a limitation. It's expensive and restrictive in scope: the way we teach, and what we want them to do at test time.
+
+The status quo is to learn from disembodied bag of labeled snapshots. Our goal is visual learning in the context of acting and moving in the world.
+We want to shift to this more embodied learning.
+Take account of continuous, long-running observations (video), multi-sensory input. This will be inexpensive and unrestricted in scope.
+
+I'll talk about
+\begin{enumerate}
+\item
+learning representations tied to ego-motion
+\item
+learning representations from unlabeled video
+\item
+learning how to move and where to look
+\end{enumerate}
+
+\subsection{Learning representations tied to ego-motion}
+
+Kitten carousel experiment (Held, Hein 1963). Scientists study kittens' visual development. They are in dark every day except one hour, when they are on the carousel. The active kitten controls motion, while the passive kitten doesn't. Tha active kitten's vision develops normally, while the passive kitten doesn't. Key to perceptual development is self-generated motion and visual feedback.
+
+How do we get this into a modern visual recognition system? 
+
+Teach computer system the connection: how I move (ego-motion) vs. how my visual surrounding change. 
+It could be on glasses, a car, or handheld camera. Take unlabeled video and sensor data external to vision (accelerometer, GPS). Build representation prior to tackling a specific challenge.
+
+Cast in terms of view prediction task, conditioned on ego-motion. Predict before making ego-motion what world will look like after making action.
+%You can imagine new view 
+Fundamental vision cues give us hints.
+
+What is the vision system forced to pick up on? Semantics---street intersection even if not observed. Geometry: occlusions. Grouping (other face of building).
+%What properties will it be required to succeed in on the way?
+
+Cast in terms of equivariant feature learning. 
+\begin{enumerate}
+\item
+Invariant features are unresponsive to some classes of transformations $z(gx)\approx z(x)$. 
+\item
+Equivariant features are predictably responsive to some classes of transformations, through simple mappings (e.g., linear), $z(gx)\approx M_g z(x)$. 
+\end{enumerate}•
+
+Invariance discards info, equivariance organizes info.
+
+Pairs of frames related by similar ego-motion should be related by similar transformation. 
+%how I move, what I see.
+
+Take unlabeled video and learn equivariant features, $z_\te(gx)=M_gz_\te(x)$. Use a pair of Siamese embeddings (identical convolutional NN's). An additional network takes care of transformation, $M_g$. Loss is
+$$
+\ve{M_g z_\te(x_i) - z_\te(gx_i)}_2.
+$$
+We discovered 6 ego-motions by clustering. We've played with continuous motions but not been successful yet.
+%why not explicitly modeling viewpoint change?
+We do 2-D view prediction conditioned on ego-motion. You could try including depth information, etc.
+
+You can jointly train recognition models, or do unsupervised learning first and then do classifications on the learned features.
+
+Learn from unlabeled car video (KITTI). Exploit features for static scene classification.
+
+Can we build up the fundamental vision cues on semantics, context, geometry when we have few labels for the target task?
+
+%DrLIM+, LSM
+Our results improve on baselines.
+
+Next steps: one-shot shape reconstruction for feature learning. Predict entire 3-D object shape. Given one view from unknown viewing angle, reconstruct entire view grid (view from all angles). 
+%mapping back from save
+%feature learning from unsupervised way
+
+\subsection{Learning representations from unlabeled video}
+
+What if we have passively watched video? This is attractive because of the large volume of such video.
+
+Prior work is slow feature analysis: high-level information changes slowly over time, most of time. 
+%invariant feature learning
+Look at nearby frames. Learn feature map $z$ such that $$z(a)\approx z(b)$$ where $a,b$ are adjacent frames.
+
+We introduce steady feature analysis: do higher order temporal coherence. Change from $a$ to $b$ should be like change from $b$ to $c$, 
+$$z(a)-z(b) \approx z(b)-z(c).$$
+This is equivariance. Do Siamese triplet embeddings. 
+%how different is mapping for first frame (after mapping) and second.
+Use contrastive loss: I want the correct ones to be close, closer than negative pairs (random, from the wrong ego-motion). 
+%Hard negative mining---find the most useful negatives.
+%At what point does steadiness persist in temporal stillness? Locally 
+
+\subsubsection{Pre-training a representation}
+
+Suppose I have a new task for which I have a few labels. If I have a related enough task, I can take a network, train it for the original task, and use it as a starting point for learning the new task (fine-tuning).
+
+What if pre-training is watching the video? 
+
+Can we learn more from unlabeled video than related labeled images?
+%We want to push past limits of what can be done with related
+%Even when I exhaust 
+Yes, unlabeled video (HMDB) does better.
+
+Is it because there's more video, or because video is better?
+%amount of supervision and data.
+%This is more like a passive kitten.
+
+\subsection{Active recognition}
+%Acting in embodied way
+
+Benchmark challenges limit our scope. We have passive, disembodied snapshots at test time, too. If we have active systems, have it move around and make decisions that way. This is active recognition: move around to recognize.
+
+If you don't take static photos, you have motion blur, composition, etc. But you have the ability to move to change input. If you can't tell from one angle if something is bowl or mug, move to disambiguate.
+After perception, do action selection. Perceive again, do evidence fusion. 
+
+Each of these 3 modules are tackled independently. Now we have the opportunity to learn all these things jointly, end-to-end learning. Do multi-task training of active recognition components and look ahead.
+
+Settings:
+\begin{itemize}
+\item
+360 panorama, choose which glimpses to take.
+\item
+robot manipulate object, how to choose movement of hand
+\item
+ModelNet---artificial objects.
+\end{itemize}•
+%Qualitative example of scene recognition system.
+
+Ex. 3 views to decide on ``plaza courtyard.''
+
+FusionSeg: pull objects out of video. Foreground segmentation out of video.
+%We get these results from a network looking at flow
+
+Challenge of viewing $360^{\circ}$ videos: if you try to watch, you have to click around to swing the camera.
+How to find the right direction to watch?
+
+Input is $360^{\circ}$ video, output is natural looking regular video. We can learn what human-taken videos look like from YouTube. We'll select a trajectory of viewpoint that looks human-taken. Ex. track the human diver.
+
+
+%Summary:
+%\begin{itemize}
+%\item
+%Visual learning benefits from context of action and motion in world.
+%\item
+%Continuous unsupervised observations.
+%\item
+%Ebodied feature learning
+%\item
+%\end{itemize}•
+
+$g$'s are local actions.
+%$g$'s have structural rhythm. 
+Can you enforce a composability structure?
+%infinitesimals?
+

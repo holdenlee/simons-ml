@@ -1,0 +1,80 @@
+\section{Performance Guarantees for Transferring Representations (Daniel McNamara, Australian National University)}
+
+A popular machine learning strategy is the transfer of a representation (i.e. a feature extraction function) learned on a source task to a target task. Examples include the re-use of neural network weights or word embeddings. Our work proposes sufficient conditions for the success of this approach. If the representation learned from the source task is fixed, we identify conditions on how the tasks relate to obtain an upper bound on target task risk via a VC dimension-based argument. We then consider using the representation from the source task to construct a prior, which is fine-tuned using target task data. We give a PAC-Bayes target task risk bound in this setting under suitable conditions. We show examples of our bounds using feedforward neural networks. Our results motivate a practical approach to weight transfer, which we validate with experiments.
+
+Joint work with Nina Balcan, CMU.
+
+%ICLR
+
+I want to automatically create separate photo albums of my dog Rufus and cat Macy! Maybe use a neural net model? But my dog and cat are unique!
+
+When does transfer help you?
+
+We want to learn a task for which labelled data is scarce, but we have abundant data for another related task. 
+
+%pretrain neural net. would be fine-tuning
+Ex. in computer vision, pre-train and fine-tune.
+
+Let $F$ be class of representations $f:X\to Z$, $G$ a class of specialized classifiers $g:Z\to Y$, $g\in G$. , $H=\set{h}{\exists f\in F, g\in G, h=g\circ f}$. 
+
+Learn $\wh f:X\to Z$ from source task $S$. Can we restrict representations $F$ when learning target task $T$?  Use statistical learning theory to provide tighter risk upper bounds for $T$? 
+
+Idea: keep a neighborhood $\wh F$ around $\wh f$.
+
+%How do you initialize nonconvex? Can you restrict hypothesis class to get better generalization?
+
+Try to learn $\wh g_S \circ \wh f\in H$ on $S$ and extract $\wh f\in F$. Then conduct empirical risk minimization over 
+$$
+G\circ \wh f = \set{g\circ \wh f}{g\in G}
+$$
+on $T$ to get $\wh g_T = \amin_{g\in G} \wh R_T(g\circ \wh f)$.
+
+\begin{thm}[Risk upper bound for fixed rep]
+Suppose we have a transfer function $\om:\R\to \R$ and transferability property: if I do well on the first task, it gives a bound on how well I do on second, $\min_{g\in G} R_T(g_T\circ \wh f) \le \om(R_S(\wh g_S\circ \wh f))$, then $R_T(\wh g_T\circ f) \le \om(\wh R_s(\wh g_S\circ \wh f)+...)$.
+\end{thm}
+Bound is tighter than learning $T$ from scratch and using VC dimension-based risk bound.
+
+On the target task, fix the representation.
+%When you do target task do you 
+
+Ex. fix first level of weights in neural net. %In this case, if we make assumptions about simplified NN architecture. 
+%We want to reliably indicate usefulness of representation.
+
+Assume a shared representation exists, $\exists f\in F$, $g_S,g_T\in G$, $\max[R_S(g_s\circ f), R_T(g_T\circ f)]\le \ep$. But is the $f$ we learned good?
+
+\begin{thm}[$\om$ for neural network, fixed representation]
+$\om(R):=cR + \ep(1+c)$.  For all $\wh g_S\in G$, $\min_{g\in G}R_T(g\circ \wh f)\le \om(R_S(\wh g_S\circ \wh f))$.
+\end{thm}
+
+Representation fine-tuned using target task: PAC-Bayes result bounds generalization error using KL divergence between prior and posterior hypothesis. Want for all $\wh h$, $KL(\wt h||\wt h_{\wh g_S\circ \wh f}) \le \om(R_S(\wh g_S\circ \wh f))$.
+
+\begin{thm}[Risk upper bound with fine-tuning]
+Given this, $R_T(\wt h)\le \wh R_T(\wh h)+\cdots$
+\end{thm}
+
+Modified regularization penalty: penalize for diverging from source task. It could vary for different layers. Ex. let higher layers vary more.
+
+Set up task to test this out. Make MNIST into binary classification task, divide into source and target tasks.
+
+MNIST: best results from using regularization penalty. Baseline: learning target task from scratch. 
+
+Newsgroups: low level groups already encoding disjunctions because of sparseness. Weights were less transferable.
+
+Conclusion: 
+\begin{itemize}
+\item
+Step towards theoretical foundation for transferring representations, both with and without fine-tuning.
+\item
+Theory motivates tranfer regularization penalty to prevent target task overfitting.
+\end{itemize}•
+
+Fine-tuning without regularization? There are 2 perspectives: generalization/learning theory, vs. optimization perspective. There is distinct regularization and optimization effect.
+%still works with early stopping.
+%if don't do reg, stop early if you have small data.
+
+Can you break down risk bounds: Intrinsic risk, model-independent, vs. model uncertainty?
+
+%notion of size of datasets?
+%small
+%target task.
+%if you have source task with a lot of data...

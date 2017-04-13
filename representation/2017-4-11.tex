@@ -1,0 +1,242 @@
+\section{Large-scale Machine Learning: Theory and Practice (Anima Anandkumar)}
+
+Large-scale machine learning requires blending computational thinking with statistical frameworks. Designing fast, efficient and distributed learning algorithms with statistical guarantees is an outstanding grand challenge. I will present perspectives from theory and practice. I will demonstrate how spectral optimization can reach the globally optimal solution for many learning problems despite being non-convex. This includes unsupervised learning of latent variable models, training neural networks and reinforcement learning of partially observable Markov decision processes.  In practice, tensor methods yield enormous gains both in running times and learning accuracy over traditional methods  such as variational inference. I will also discuss the broad challenges in non-convex optimization and the recent progress in this area.
+
+Currently I see a huge gap; my goal is to bridge this. I'll discuss the challenges and some of the solutions. In the second part you'll see recent things Amazon is working on, infrastructure and software support,  that will make it easy for researchers to deploy algorithms on the cloud.
+
+Recent successes include image classification, speech recognition, and text processing.
+
+Two important challenges:
+\begin{enumerate}
+\item
+Guaranteed methods: if you don't understand when algorithms succeed, when to declare success, you require a lot of trial and error.
+\item
+Unsupervised learning: most recent successes are attributable to lots of labeled data.
+
+Humans do a lot of unsupervised learning.
+\end{enumerate}
+On the computational side, you can cast most ML problems as an optimization problem. In most cases this is nonconvex. As soon as you have hidden neurons, there are symmetries in the objective function.
+
+In nonconvex optimization we have multiple local optima.
+
+Not all nonconvex problems are created equal. I'll focus on matrix and landscape problems which we understand a lot better. 
+Don't limit to the given objective function; we can change the objective function and still solve the underlying ML problem.
+
+%more intensive methods
+
+The push in practice is towards local search heuristics but in theory we know it doesn't always succeed. When does it succeed; for what problems?
+
+There are also saddle points, where the gradient vanishes in some directions. How quickly can you find the direction of escape? In practice you do see plateaus (?). 
+This makes it hard to know when to stop.
+
+The number of saddle points explodes as you increase the number of dimensions. 
+
+Do guaranteed learning through tensor methods.
+\begin{itemize}
+\item
+Replace objective function: max likelihood vs. best tensor decomposition
+\item
+Preserve global optimum (infinite samples): the method of moments provides a consistent estimator under simple conditions. The set of parameters from maximizing likelihood or fitting moments are identical.
+$$
+\amax_\te p(x;\te) = \amin_\te \ve{\wh T(x) - T(\te)}_F^2
+$$
+where $\wh T(x)$ is the empirical tensor and $T(\te)$ is low rank tensor based on $\te$.
+%pca with kernel?
+\item
+Finding globally optimal tensor decomposition: simple algorithms succeed under mild and natural conditions for many learning problems.
+\end{itemize}
+%Have small approximation error. 
+%want small training error
+%how to select right model class?
+
+Classical statistics had method of moments, but didn't use it in practice because not robust. They require lots of samples. But now we have lots  of samples.
+Adding noise helps smooth/condition the problem better. There are techniques to overcome robustness.
+
+It's the same reasons that complexity theorists were pessimistic. Min-max bounds are worst case. Under adversarial noise these problems are hard.
+
+\subsection{Why tensors?}
+
+First and second moments aren't enough to learn everything about the model. First and second moments just give a Gaussian approximation. %additional constraints or higher-order moments
+
+Tensors can encode additional information and constraints.
+
+Matrix decomposition helps discover latent factors. But decomposition is not guaranteed to be unique. If you do SVD you only get orthogonal factors. But these factors may not be orthogonal to one another. This is a shortcoming of matrix decomposition, you only have uniqueness under orthogonality.
+
+Ex. decompose students' exam scores into verbal and math component.
+
+If I have 2 sets of matrices (ex. oral and written tests), I have more information. I can hypothesize that the same factors occur between these sets.
+
+%Question : what if pass through threshold etc.?
+
+Can we then have uniqueness?
+
+We can't solve it all the time. When can we solve it? %identifiability.
+
+Combine matrix slices as a tensor.
+\begin{align}
+T&=u\ot v\ot w + \wt u\ot \wt v \ot \wt w\\
+T_{i_1,i_2,i_3}&= u_{i_1}v_{i_2}w_{i_3} + \wt u_{i_1}\wt v_{i_2}\wt w_{i_3}.
+\end{align}
+The problem of shared matrix decomposition is a tensor problem.
+This gives notion of CP rank. There are also other notions, ex.  Tucker decomposition.
+
+Instead of asking for uniqueness of matrix decomposition, I ask for uniqueness of tensor decompositions. We expect conditions to be weaker.
+
+The goal here is to learn the latent factors.
+%pay with more assumptions. The idea is there's a reality out there.
+%I'm not addressing model selection problem.
+
+Kruskal 1977: Tensor decomposition is unique when rank 1 pairs are linearly independent. In the matrix case, tensor decomposition is unique when rank one pairs are orthogonal.
+
+%rank can be more than dimension, can relax for uniqueness. Learning becomes harder.
+
+Tensor contraction extends the notion of matrix product, $T(u,v,\cdot) = \sum_{i,j} u_iv_j T_{i,j}$. 
+
+Simplest method to compute top eigenvector is the power method. Whether you can extend to tensors, we'll see.
+
+Extend matrix products to tensor products, there is a lot of room for improvement in hardware: StridedBatchedGEMM, CuBLAS 8.0. Vector-vector is level 1, matrix-vector is 2, matrix-matrix is 3. ``Tensor contractions with extended BLAS kernels on CPU.''
+
+We can also extend to asymmetric tensors:
+Alternate between 2 directions.
+
+Extend matrix power to tensor power method
+$$
+v\mapsto \fc{T(v,v,\cdot)}{\ve{T(v,v,\cdot)}}.
+$$
+If tensors are orthogonal the only stable points are the components. If you start from a random points you will converge.
+
+But my goal was to move away from orthogonality. We'll use this as a subroutine for the more general decomposition.
+
+Local search, etc. has no guarantees.
+
+For the general tensor we can't directly run the power method because a component may not even be stationary.
+
+First convert convert tensor into orthogonal one.
+%top ev different from components.
+%don't know how to directly solve the original optimization problem, can we recondition it to solve it?
+Find whitening matrix. Then use power method. Recover original components when whitening matrix is invertible. This is exactly when components are linearly independent.
+
+Find $W$ using SVD of matrix slice.
+%Use notion of shared decompositions.
+
+Greedy may not work: best rank 2 and rank 3 may not share components.
+
+(Pseudo-whitening: rescale the components. Condition number and robustness are much worse.)
+
+How robust are these? They are much less robust than matrix decompositions. %There's a huge gap.
+When $\ve{E}< \fc{\la_{\min}}{\sqrt d}$ power method recovers $\{v_i\}$ up to error $\ve{E}$ with linear number of restarts.
+(Matrix methods don't have $\sqrt d$ factor.) 
+$$\wh T = T+E,\quad T=\sum_i \la_iv_i^{\ot 3},\quad\ve{E}=\max_{x:\ve{x}=1}|E(x,x,x)|.$$
+
+Homotopy analysis: we can match SoS guarantees with power method when noise is Gaussian. 
+%matching lower bound?
+
+%any way to initialize without SVD? Random init lose $\sqrt d$ factor
+How to apply to different problems and do in a computationally efficient manner? 
+We want number of latent factors to be much smaller than the dimension (ex. the vocabulary could be in the hundreds of thousands). We can further reduce complexity by sketching on tensors. We know a lot about matrix sketching, but not much about tensor sketching. We know how to conv-sketch vectors. Sketch using count-sketch. A set of simple operations helps maintain a sketch; do power method on sketch instead. You can keep increasing the order of the tensor! Determine the dimension of the sketch you would like and do operations in this space.
+
+``Guaranteed tensor decomposition via sketching.''
+
+One practical application: visual question answering. We use multimodal processing. This is bilinear. We can do count sketch and FFT operations.
+
+Conv-sketch is like random neural net layer? 
+
+Individually sketch vectors and take convolution. In frequency domain this is multiplication and addition (take FFT and then componentwise multiplication). Given a bunch of rank 1 tensors we can do this in streaming fashion.
+
+Use as intermediate layer in neural network.
+
+Sketch while preserving higher-order moments.
+
+Current sketching techniques only gives elementwise accuracy. Can you sketch for different norms? What assumptions? Tradeoff between accuracy and length?
+
+%Sketching and dropout? Dropout is regularization in any context.
+
+\subsection{Learning using tensor methods}
+
+Given hidden variable and observed variables that are conditionally independent, any order moments have a decomposition,
+$$
+M_r = \E[x_1\ot x_2\ot x_3]=\sum \la_i a_i^{\ot3}.
+$$
+We can use this to extract topics from documents. ``Two SVDs suffice: spectral decompositions for probabilistic topic modeling and latent Dirichlet allocation.''
+
+Looking at cooccurrences of word triplets, get 3rd order moments. Do small adjustments. If you find the decomposition, each will be one of columns of topic-word matrix.
+
+You can also do this for learning communities in social networks, if you hypothesis how people connect is a function of their underlying communities. Mixed membership model: people belong in different proportions to different communities.
+You can look at common friendships among triples. ``A tensor spectral approach to learning mixed membership community models.''
+
+%prob of edge is function of communities drawn for two people.
+
+Experiments: learn topics from PubMed on Spark, network communities from social network data (we have ground truth, ex. schools people went to---how many of these did we recover?).
+
+``Online tensor methods for training latent variable models.'' (Local optimum is  a problem for variational inference.)
+
+Overcomplete dictionary learning (power method). See Learning sparsely used overcomplete dictionaries, Overcomplete tensor decomposition, Convolutional dictionary learning through tensor factorization.
+
+We can extend to other frameworks. Learn convolutional model. Impose shift-invariant constraints. 
+No guarantee for global optimization: we have problem of symmetry even in rank 1 case. 
+For higher rank it's more challenging.
+
+Use to learn embeddings of sentences. 
+
+Pretrained word2vec didn't seem to help because there were too many out-of-domain words. If we had a bigger corpus with in-domain words, it may possibly help.
+
+%many times can do with smaller data give good results.
+
+Local optimal in backpropagation: ``few researchers dare to train their models from scratch... small miscalibration of initial weights leads to vanishing or exploding gradients... poor convergence.'' ``Data-dependent initializations of convolutional neural networks,'' ICLR 2016.
+There are exponential number (in dimension) of local optimal in backprop.
+
+Moments of neural network, 
+$$\E[y|x] = f(x) = \an{a_2 , \si(A_1^Tx)}.$$
+``Score function features for discriminative learning: matrix and tensor framework.''
+Hardness of supervised learning comes from lack of knowledge of distribution of input.
+Score functions
+$$
+S_m(x) := (-1)^m \fc{\nb^{(m)}p(x)}{p(x)}.
+$$
+For Gaussian $x$, these are Hermite polynomials.
+
+%How different conditions enable hard problems to have guarantees.
+Reinforcement learning of POMDP's. RL is harder because actions change the state; you want to learn aspects of the environments. Turn into tensor decomposition problem and do explore/exploit using upper confidence bounds to get strong regret guarantees.
+
+Deep reinforcement learning is providing good representation of screen. When you have only partial info, DQN isn't the right framework. Get representations from deep learning, and then use POMDP methods.
+
+\subsection{Machine learning at scale}
+
+Practical considerations for machine learning:
+\begin{enumerate}
+\item
+software packages: don't require you to start from scratch, provide primitives.
+\item
+diverse and large datasets: we need good quality and amount.
+\item
+utility computing: gap between academia and industry. AWS credits for research, courses.
+\end{enumerate}
+%
+
+Desirable attributes in ML software package:
+\begin{enumerate}
+\item
+programmability: higher-level functions
+\item
+portability: GPU, CPU, smartphone...
+\item
+efficiency
+\end{enumerate}•
+Amazon's MXNET is completely open-source. This is important. With the other companies, the open-source version does not scale well.
+
+Performance guarantee regardless of which front-end language is used.
+
+Mix of imperative and declarative programming. Imperative programming gives no room to optimize for parallel computing. In declarative programming, build computation graph, so compiler can do optimization.
+It's essential for performance to know sequence of operations.
+%take sequential code and parallelize?
+
+Mixed programming paradigm: imperative API and declarative symbolic executor. You can mix paradigms. Embed symbolic expressions into imperative programming. Only mxnet does this.
+When performance is not the bottleneck, you can do imperative.
+
+If you have memory limitations (don't have room to store all  activations) you can trade off memory for computation. This is good for small devices. In forward pass, instead of storing all computations, only select subset to store. In the backward pass, recompute. Determine what you want to store or recompute for complex network architectures. You can save a lot of memory from doing this.
+Compression: quantization, etc. It can be done in a more principled manner; deep learning has to catch up with compression schemes.
+Mxnet has hierarchical parameter server.
+
+AWS grand program: \url{http://aws.amazon.com/grants}
+
+%

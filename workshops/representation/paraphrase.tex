@@ -1,0 +1,123 @@
+\section{Learning Paraphrastic Representations of Natural Language Sentences (Kevin Gimpel, TTI Chicago)}
+
+I will discuss our experience in learning vector representations of sentences that reflect paraphrastic similarity. That is, if two sentences have similar meanings their vectors should have high cosine similarity. Our goal is to produce a function that can be used to embed any sentence for use in downstream tasks, analogous to how pretrained word embeddings are currently used by practitioners in a broad range of applications. I'll describe our experiments in which we train on large datasets of noisy paraphrase pairs and test our models on standard semantic similarity benchmarks. We consider a variety of functional architectures, including those based on averaging, long short-term memory, and convolutional networks. We find that simple architectures are easier to train and exhibit more stability when transferring to new domains, though they can be beaten by more powerful architectures when sufficient tuning and aggressive regularization are used.
+
+This is work on learning to embed natural language sentences.
+
+We all have an impression that word embeddings are very important. Pretrained word embeddings are really useful. They are a go-to technique for NLP. Use to initialize for your supervised task.
+
+When  it comes to longer things (phrases, sentences), there aren't pre-trained models. 
+
+Socher, Huang, Pennington, Ng, Manning (2011) introduce recursive neural net, composing based on syntactic parse. It's one of the early examples of getting a generic vector space model. 
+
+Another famous example is paragraph vectors, Le and Mikolov (2014). In your training set, learn representation not just for words but sentences or paragraphs; have a sentence predict its own words. At the test time you have to do the same procedure (gradient descent).
+
+In neural machine translation, encode source sentence and then decode translation. (Sutskever, Vinyals, Le 2014, Cho et al. 2014)
+
+RNN used to translate language can be used as sentence embedding model. They plotted the vectors to see what it's capturing.
+
+Skip-thoughts: encode sentence, decode neighboring sentences. %Representation for sentence is box. 
+Condition on sentence vector in generating the words in neighboring sentences.
+
+Nearest neighbors. RNN's are excited when you see the same sequence of categories of words: ``I'm sure you'll have a glamorous evening, she said, giving an exaggerated wink.'' vs. ``I'm really glad you came to the party tonight, he said, turning to her.'' There is both shallow and topical similarity.
+
+LSTM autoencoders: encode sentence and decode same sentence. Hill, Cho, Korhonen (2016) made a LSTM denoising autoencoders---encode corrupted sentence and decode sentence.
+%!
+
+I want to learn paraphrastic embeddings---sentences with the same meaning should be close.
+Applications:
+\begin{itemize}
+\item
+Multi-document summarization (see if sentence to add is already there).
+\item
+Automatic essay grading.
+\end{itemize}•
+Evaluate by semantic textual similarity. Humans evaluate 1--5 how similar 2 sentences are.
+This is different from relatedness, topicalness; it's about similarity in meaning.
+
+Evaluate on 22 datasets from many domains.
+
+Would 2 sentences that mean the opposite be rated less similar than sentences about orthogonal things? Contradiction vs. unrelatedness---the dataset conflates these thigns. (Contradiction may be higher.) It may make sense to have 2 axes: contradiction vs. relatedness judgment.
+
+See also Wieting, Bansal, G, Livescu (2016). 
+
+If we take pretrained word vectors and do averaging, it does better than the LSTM, etc. models! If you do fine-tuning, the other models can do better.
+
+There are lots of freely and cheaply available data, like paraphrase databse (PPDB). Ex. ``I can hardly hear you'' and ``you're breaking up.'' It's a bit noisy (arbitrary boundaries) but huge.
+
+\subsection{Learning}
+
+Goal: learn sentence embedding function $g_\te(x)$. First, do averaging. For learning, use hinge loss
+$$
+\min_\te\sum_{(u,v)\in \text{Train}} [\De - \cos(g_\te(u),g_\te(v)) + \cos(g_\te(u),g_\te(t))]_+,
+$$
+where $t=\amax_{s:\an{\cdot, s}\in \text{batch}, s\ne v} \cos(g_\te(u),g_\te(s))$ is a negative example. We do argmax over current mini-batch for efficiency. (Over the whole dataset, we will actually find true paraphrases.)
+
+(What about adversarial models?)
+
+We find sometimes that this objective can be too easy.
+%good paraphrase pairs still bad in some way.
+
+Regularize by penalizing squared $L_2$ distance to original. 
+
+We do 71\% (average on PPDB), improvement over 65\%. How about LSTM?
+Using the same learning framework, we get 52\%. What's going on here?
+Why is the LSTM struggling so much? 
+
+Do in-domain evaluation on held-out annotated PPDB pairs. Then LSTM does a little bit better (61.3\% vs. 60\%). It is able to learn something.  
+%less generalizable?
+%much worse on semeval.
+Word averaging is better at all sentence lengths in test data. Characteristics of phrase pairs themselves are the issue.
+
+Why does the LSTM struggle on out-of-domain data? 
+
+Maybe the problem is the training data. 
+
+New data: sentence pairs automatically extracted by Coster and Kauchak (2011), English and simple English Wikipedia.  Simple English is often longer and uses simpler words. Data is noisy. 
+
+Training on simple-standard Wikipedia, both get better, but LSTM improves more (averaging is still ahead). 
+
+Maybe LSTM is memorizing training sequences. 
+We tried other ways to regularize. For people who cared about language this is a shocking regularization. We shuffled the sentences. The LSTM learns to not pay too much attention to the sequence but remember all words. We get gain of $\approx 6\%$. A critical point: you're just learning averaging.
+Combining with more tricks (dropout) gets equal performance to average. (Dropout on whole words also helps.) Averaging over hidden states helps a bit more. 
+
+Word averaging underestimates similarity when there are multiword paraphrases. (Ex. imposed = being introduced by force.)
+Averaging doesn't pick up info on cooccurrences of words. 
+
+SA: do TF-IDF instead of averaging.
+%180,000 sentence pairs.
+
+There are cases when LSTM overestimates similarity---with similar sequences of syntactic categories but different meanings. (birds $\ne$ dogs) Which differences in words lead to different meanings?
+
+%Compare to translation model?
+
+%LSTM is mostly about conditional language modeling.
+%Source encoder? to generate fluid output.
+
+We can train as neural translation system. It seems to give reasonable results. One challenge is that anytime you have to generate words, it's harder to scale up. This way you never have to do softmax over large vocabulary, you can scale to larger datasets, training is fast. You get same results at 30,000 as 160,000 sentence pairs; for translation model you need more data.
+
+%train based on co-occurrence.
+
+In the dataset, contradiction is less common than unrelatedness.
+
+Gated recurrent averaging network (GRAN): Inspired by the success of averaging and LSTM, we propose
+$$
+a_t = x_t \odot \si(W_xx_t + W_hh_t+b),\quad g(x) = \rc{|x|}\sum_t a_t.
+$$
+This is more stable to train. 
+
+We can look at the magnitudes of the gates and look at which parts they are focusing on. %Top 10 are NNP, NNPS, etc.; bottom 10 are prepositions, etc. 
+Direct objects and objects of proposition phrases have larger weights than subjects. I think the reason is that looking at the sentence pairs, the new information resides more at the object than the subject level. 
+
+We see this pattern across different parts of speech.
+
+Using unsupervised representations to initialize and regularize, we have gains.
+
+New data: automatically translated bilingual sentence pairs. 
+%typos in human
+
+Q/A:
+
+Middle ground between averaging and sequence, it seems there are lots of ways to do it. $w_{h-1}$ vs. average over previous or average over previous $w_i$'s. How would those do? Try more variations...
+%Two gates.
+

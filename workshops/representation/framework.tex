@@ -1,0 +1,124 @@
+\section{A formal framework for representation learning (Andrej Risteski, Princeton University)}
+
+We will introduce a formal framework for thinking about representation learning, endeavoring to capture its power in settings like semi-supervised
+and transfer learning. The framework involves modeling how the data was generated, and thus is related to previous Bayesian notions with some new twists.
+ 
+In simple settings where it is possible to learn representations from unlabeled data, we show: 
+\begin{enumerate}
+\item
+it can greatly reduce the need for labeled data (semisupervised learning)
+\item 
+it allows solving classification tasks when previous notions such as nearest neighbors or manifold learning either don't work or require too much data.
+\end{enumerate}•
+ 
+We also clarify two important settings---linear mixture models and loglinear models---where representation learning can be done under plausible assumptions (despite being NP-hard in the worst case). 
+ 
+Joint work with Sanjeev Arora. 
+
+I will 
+\begin{enumerate}
+\item
+introduce formal framework
+\item
+clarify in two settings: mixture and log-linear models
+\item
+illustrate power of representation learning vs. nearest neighbor classifiers and reducing labeled data.
+\end{enumerate}•
+
+
+Why learn representations? What do we want out of our model? Our approach is motivated by variety of uses and successes. 
+\begin{itemize}
+\item
+Unsupervised learning: discover structure
+\item
+Transfer learning: features for one task helps for others
+\item
+Semi-supervised learning: help do classification with smaller number of labeled samples.
+\end{itemize}•
+I'll focus on the last. Our model is inspired by Bayesian considerations.
+
+\subsection{Formal model}
+
+Think of representation as high-level succinct representation of object. Map is intuitively many-to-one. Our proposal:
+$$x=g(h,r)$$
+%german short-haired pointer.
+where $x$ is raw data, $h$ is representation, and $r$ is random seed. 
+The distribution of $g(h,\cdot)$ is raw data manifestions of some representation.
+
+We want benefit from passing to the representation: classification is easier in representation space. There is a classifer from representation space with low error.
+%There exists $C$ with low error
+
+Since $x=g(h,r)$, learning a representation is ``inverting'' $g$.
+
+\begin{df}
+A function $f$ is $(\be,\ga)$-valid encoder if wp $\ge \be$, 
+$$
+\ve{f(x)-h} \le (1-\ga )\ve{h}
+$$
+\end{df}
+So for $\al$-Lipschitz classifier $C$, wp $\ge \be$,
+$$
+\ve{C(f(x))-C(h)}_\iy\le (1-\ga)\al\ve{h}.
+$$
+
+This notion depends on what you're trying to classify. This is tied to a task.
+%A representation can have many classifiers.
+%you need a good classifers
+%set for representation space.
+
+Comparison with related notions:
+\begin{itemize}
+\item
+manifold learning: assume points lie on low-dim manifold. Sample complexity is exponential in dimension of manifold.
+\item
+kernel learning: 
+We exhibit encoder examples involving thresholding; it is unclear if they correspond to a kernel.
+%linear map, then threshold.
+\end{itemize}
+Point: our notion is different.
+
+Relationship to Bayesian modeling. 
+From Bayesian perspective, we have posterior distribution over $h$. 
+\begin{thm}
+If $(1-\de^2, \ga)$-encoder exists, wp $1-\de$ over choice of $x$, posterior $h|x$ concentrates close to $f$
+$$
+\Pj_{h|x} [\ve{f(x)-h}\le (1-\ga)\ve{h}]\ge 1-\de.
+$$
+\end{thm}
+We can exhibit simple settings involving mixture models where 
+\begin{itemize}
+\item
+encoders are efficiently learnable.
+\item
+encoders help for semi-supervised learning: nearest neighbors in representation space require few samples.
+\end{itemize}•
+
+\subsection{Recommendation systems}
+
+See many users and subset of movies they like. There isn't a numerical values. Then ask whether the user likes another movie.
+
+We need to impose latent structure. Make a linear structure (mixture model). There are a bunch of genres, subsets of movies. A  user is mixture of genres. 
+$$
+\Pj(\text{movie $i$ is emitted}) \propto (Ah)_i
+$$
+where $A$ is genre matrix and $h$ is genre proportions. Encoder maps liked movies to latent genres $h$, and semi-supervised learning learns encoder first and then does classification knowing $h$.
+
+\begin{thm}[Corollary of AGKM16]
+If $A$ is $l_1$ well-conditioned ($\ve{A(h_1-h_2)}_1\succsim \ve{h_1-h_2}_\iy$), then there is good encoder learnable in time $\poly\pat{movies}$ even if number of emitted movies is logarithmic in total number of movies.
+\end{thm}
+%existence of encoder. Nothing to do with classification tasks.
+Classification tasks are the ones that use $h$.
+%unique way to reconstruct?
+%want something close to correct $h$.
+%repeat many times...
+
+\subsection{Power from representations}
+We get power from these representations. Quantify by 2 phenomena:
+\begin{enumerate}
+\item
+Nearest neighbors: if $T\ll \sqrt m$, NN doesn't reflect latent genres. If $T\gg \sqrt m$ with natural genre assumptions NN works.
+\item
+Semi-supervised learning: for constant number of genres, label $ l(h)=\sign(\an{w,2h-\one})$,...
+\end{enumerate}
+Similar results for log-linear models. 
+

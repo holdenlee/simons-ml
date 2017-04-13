@@ -1,0 +1,269 @@
+\section{Meta learning, black box optimization, and unsupervised learning (Ilya Sutskever, OpenAI)}
+
+The first part is on $RL^2$:  fast reinforcement learning via slow
+reinforcement learning.  The idea is to use a slow reinforcement
+learning algorithm to train a recurrent neural network policy that
+would, in effect, act as a fast reinforcement learning algorithm.  We
+demonstrate the validity of this method by showing that it can learn to
+solve bandit problems and small tabular MDPs, and show that the method
+scales up reasonably well with today's RL techniques to maze navigation
+in 3d environments.
+
+The second part is about Evolution Strategies, a derivative-free
+optimization method that has been rediscovered and explored by many
+research communities. We show that 
+\begin{enumerate}
+\item
+it competitive with today's RL
+algorithms on standard RL benchmarks, and 
+\item it scales \textbf{extremely} well
+with number of workers.
+\end{enumerate}•	   This result is unexpected, because our models
+have hundreds of thousands of dimensions, and it wasn't obvious that
+Evolution Strategies would be successful on problems with so many
+dimensions.
+
+I'll finish the talk with a brief overview of a few other research
+projects that are taking place in OpenAI.
+
+\subsection{Meta learning}
+
+$RL^2$:  fast reinforcement learning via slow
+reinforcement learning.
+
+How do humans do RL? Excellent data efficiency, prior knowledge.
+
+What do we want? We want to solve lots of problems and become good at solving at problems as a result, learn to learn.
+
+We can express prior experience as a distribution over environments (problems we've solved before). We've reduced meta-learning to supervised learning.
+%\begin{itemize}
+%\item
+%fundamental nature of rules
+%\item
+%app
+%\end{itemize}•
+
+Given a distribution of environments, which RL algorithm does best? 
+
+Idea: Train an RNN policy to solve many environments.
+
+Embed the RNN in different games and play.
+
+%The slow RL algorithm is training to solve
+RNN becomes policy and learning algorithm. 
+At a high level it works because of supervised learning.
+%imitation to same extension that NN generalizes.
+
+%learn to explore, because you can in principle imaging putting it in many MDPs, see different rewards.
+The RNN is the same in different environments. What changes are states of RNN.
+
+You can go pretty far with stateless policy (state refers to state of RNN). 
+
+How does the slow RLer train the RNN? 
+
+You want to train a policy that solves a MDP, using policy gradients. $\pi_\te(S)$ outputs a distribution over actions, $\pi_\te(a|s)$. We have an MDP $P(s_t,r_t|s_{t-1},a_{t-1})$. Use the MDP and policy together to generate sequence of states. 
+$$
+J(\te) = \EE_{s_1,r_1,a_1,s_2,\ldots} \ba{\sum_t r_t}.
+$$
+There is a reasonably clean way to Monte Carlo estimate $\pd{J(\te)}{\te}$. %Once you have a low-variance estimator, you can . 
+Gradient descent takes you very far. You have to use some kind of algorithm.
+
+Create composite MDP, distribution over environments. Reinterpret as learning on the fly.
+
+A task is training point, and a training set is the set of training tasks.
+
+The slow RL algorithm is trust region policy optimization.
+We want to train to become a fast RLer.
+
+Take a multi-armed bandit problem. These have asymptotically optimal policies. For short horizons we should do better. 
+
+A bandit problem is determined by a vector of probabilities $p_1,\ldots, p_k$. On each episode, probabilities are randomly selected. RNN needs to know if the bandit returned a reward. (It remembers which does well.) $n$ is the number of steps you take. 
+Optimal strategy is only optimal asymptotically. When you only have 10 pulls you do better.
+If does better than Gittins for small horizons/number of arms, worse for large horizons/arms. (Gittins index is optimal for discounted case. The cost function is different.)
+%Gittens. Bayes-optimal.
+%don't always recover
+
+Now we have distribution over mazes. It can turn 3-D information into a representation of a map.
+This method is bottlenecked by fidelity of outer RL algorithm. Conceptually it has attributes of the right thing.
+
+How is this limited? You have a distribution over tasks and want to do well on new tasks from the distribution---I think this is policy. Consider policy gradients; this algorithm does not make a distributional assumption. I'm not hiding a complicated distribution inside myself. 
+
+I think the truth is some kind of extrapolation between the two things. %Start with prior, if things don't fit expectations, fall back.
+Ex. I'm talking to someone about topic, high level. Talking about details is painful. Pain is a sign the second algorithm is being activated.
+
+Difference is orders of magnitude.
+We haven't done meta-learning on Atari. We need a much denser sample of games.
+
+Is this how people learn how to play games? %If I play all the 
+
+%It would pretty cool to come up with trick that makes the system reasoning. 
+We don't have a good way to benefit from planning in the general case.
+
+There are various works on adapting the learning rate. Is this important? Use Adam. Learning rate is not dependent on tasks. Sample in iid manner. Give me a minibatch of tasks. Humans would learn 1 task well, then move onto a second, etc.
+
+Do you observe differences in presenting order? In a learning system there are continuum of tasks. There are periods where you are in a very different environment. 
+
+Incremental learning: how to learn new without forgetting old. I think this is hard because there isn't any real problem that demands this. We don't do it because why do you need it? Once we have robots that have to learn to solve new tasks on the job, this will be central.
+But there is spam filtering, fake news detection---the environment adapts; you need to change in response.
+Practitioners prefer to retrain the whole thing because it's a predictable approach. You don't need it badly enough yet.
+
+\subsection{Black box optimization}
+
+Evolution strategies as a scalable alternative to reinforcement learning.
+
+This is the simplest algorithm imaginable: add noise to parameters. If result improves, keep the change. Repeat.
+
+Actually, sample a bunch of points and take a weighted average. In 2 dimensions it works just like gradient descent, but it's not obvious it works for high-dimensional problems.
+
+For supervised learning it's always going to be worse, 1000 times slower on MNIST. There are advantages, in RL. If your reward signal is sparse, delayed... You want to learn policies that aren't very compact.
+
+People have been using this for training low-dimensional policy all the time. You can train a model with 1000 parameters.
+
+Evolution strategies is competitive with today's RL algorithms on standard benchmarks. It parallelizes really well. Have a bunch of workers. Each computes own noise vector, add to parameters. Then to communicate information. Normal distributed deep learning: all send gradients. With ES, just broadcast tiny scalars. All can agree in advance on random seeds for noise vectors. Communication is free here.
+
+%18 cores, 657 minutes. 
+Variance decreases as you increase CPU cores. In distributed DL: at some point variance is low enough so this doesn't help. Here it always helps to reduce variance.
+
+Cf. randomized finite differences.
+
+Pick $v\sim N(0,I)$. This is an unbiased estimator of the gradient,
+$$
+v\fc{F(x+\ep v)-F(x)}{\ep}.
+$$
+This is only good for cases where you struggle with the real gradient. But in policy gradients there are things you can differentiate...
+
+We don't have a clear example where this outperforms policy gradients. Policy gradients work better than we thought. Take away various things we thought were variance reduction techniques. 
+
+Policy gradients forces stochastic actions. Explore by iid noise in actions. Here explore by systematic change in policy. This may explore better. %You can make a setting where you're computing the same gradient, but if you remove noise, computing a different gradient.
+
+What's the difference between this and other derivative-free optimization, particle swarm? Novelty is that old method works better than what most people thought.
+
+Is this evolutionary strategies: sample neighborhood and go to point with best value. I think these formulations are identical. 
+$$
+J(\te) = \EE_{P(x|\te)} [F(x)]. 
+$$
+%(Rewriting 
+$P(x|\te)$ is continuous. If $P(x|\te)=N(\mu=\te, \si=\ep I)$, you get exactly $v\fc{F(x+\ep v)-F(x)}{\ep}$. 
+(Also called 0-order optimization.)
+%ES optimizes the final target function. 
+%relative to $F(x)$.
+
+Atari results: we can match one-day A3C on Atari with 1 hour of distributed implementation with 720 cores. We need 3x--10x more data; we don't need backward pass, twice as expensive as forward pass. In terms of actual compute it's not far off.
+
+Better for exploratory, slower to learn overall? Is there a good interpolation? 
+
+One interpretation: policy gradients: take a different random action at each timesteps, decide. Learn random microdecision. 
+
+ES: Make 1 decision and stick with it the entire episode. 
+
+I think you want to make multiple random decisions, just not at micro-level.
+
+Long horizons are hard for RL. ES is better at this than RL. It is relatively invariant to horizon length, action frequencies. Things like action frequencies have big effect on RL. 
+You can have your agent make action every frame (1/6s), but this means it makes a lot of actions before it gets a reward. 
+It's better in principle to force agent to stick with action.
+
+ES may be more robust. Exploration at parameter level not at action level. %more action doesn't increase variance.
+
+%vN different profiles
+von Neumann architecture biases towards certain profiles of algorithms?
+
+Dropout is basically the Bayesian method.
+
+Speed of evolution strategies depends on the intrinsic dimensionality of the problem. If you run policy gradients in practice, as you make policies larger it gets harder to train. 
+
+Shouldn't derivative-free optimization become harder in higher dimensions?
+%75\% be true
+
+Evolution strategies automatically discards the irrelevant dimensions, even when they live on a complicated subspace. We got a performance boost on going to bigger policies.
+
+As long as there exist a subspace that determines the performance, optimization will be fast.
+
+
+%fact you get better solution is not surprising.
+
+%meaning of faster, when you get to different points?
+%models with greater dimensionality should be harder? What's the intrinsic dimensionality?
+
+%projection on subspace is all that matters.
+
+This works because it's a derivative method.
+
+%Backprop vs. ES:
+%\begin{itemize}
+%\item
+%Evolution strategies does not use backprop. 
+%\item
+%Scale of ininitalization, batch norm, vanshing gradients
+%\end{itemize}•
+
+\subsection{Unsupervised learning and the sentiment neuron}
+
+Unsupervised feature learning is the dream of pre-deep learning deep learning.
+
+Train a big 4096 mLSTM (multiplicative LSTM) to predict next character in Amazon reviews. The result: model that learned excellent sentiment representation. 
+
+On Stanford sentiment analysis treebank.
+
+Graph: Amount of supervised data needed to match other approaches.
+One neuron does most of the work!
+
+Train classifiers on top of the state after the end of the sentence.
+
+Trained on 40GB of text for a month on 4 GPU's.
+
+Forcefully set neuron to positive, get positive sentiments.
+You can change one neuron to get completely different sentiment!
+
+What are the conditions under which training gives the representation you want? Train your model to do one thing and it does well on a different thing.
+
+There is some mysterious effect that would be useful to sort out.
+
+Other cool stuff:
+\begin{itemize}
+\item
+more meta learning
+\item
+robotics
+\item
+lots of RL
+\item lots of unsupervised learning, generative models
+\end{itemize}
+
+%no progam induction? We haven't found the right... It hasn't happened yet.
+%Goal: see if approaches like this one
+
+Unsupervised learning: Shooting in dark: we don't have great theory/story for why this should work. Word2vec is a clear special case. In general you train a big model, why do you get a good representation? The fact that sometimes you do get that is mysterious. 
+
+If you try to model images, complicated, if your model doesn't do a good job of modeling room, floor, it won't care about faces. %30\% GPU faster...
+
+%Train on review data: clusters that correspond to sentiment in data. Cluster with Naive Bayes model?
+
+%angry happy
+%why linear extract things
+I don't feel we can confidently predict whether an unsupervised feature learning algorithm can succeed.
+
+%model all aspects of distribution.
+%vs. doesn't notice certain aspects.
+%counterfeit
+%good generative model, then by compression...
+%matter of getting a truly convincing demonstration
+
+Why are our brains so big? Classification models are small but need huge net for generative model? 
+
+Angry cats and happy dogs?
+
+%91.8\%.
+
+You can take word embeddings and do well; there's no mystery there.
+%You can take 4000 dimensions. There's 
+
+Standard method: predict the next word, or missing words. Is there a different paradigm; predict something else you can get in an unsupervised way?
+
+Make GAN's work for text.
+
+It's possible the question is wrong. Put 2 baby cats on carousel; one cat can control the rod; the other cannot. The cat who doesn't get to move the rod doesn't learn to see. Action is important to learning. It creates natural place for causality.
+
+
+
+
+

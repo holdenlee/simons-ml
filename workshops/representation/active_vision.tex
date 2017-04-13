@@ -1,0 +1,199 @@
+\section{Learning Representations for Active Vision (Bruno Olshausen, UC Berkeley)}
+
+The human visual system does not passively view the world, but actively moves its sensor array through eye, head and body movements.  Here we explore the consequences of the active perception setting for learning efficient visual representations.  This work focuses on two specific questions: 1) what is the optimal spatial layout of the image sampling lattice for visual search via eye movements?  and 2) how should information be assimilated from multiple fixations in order to form a holistic scene representation that allows for visual reasoning about compositional structure of the scene?   We answer these questions through the framework of end-to-end learning in a structured neural network trained to perform search and reasoning tasks.  The derived models provide new insight into the neural representations necessary for an efficient, functional active perception system.
+
+Synthesis of EE, CS, neuroscience. 
+
+Joint work with Alex Anderson, Brian Cheung, Eric Weiss, Pentti Kanerva. %foviated retina
+
+What are the principles governing information processing in this system?
+
+The eye is a 10 Mp camera that's always on. It's remarkable from an engineering perspective---a camera power-hungry. Optic nerve: 1Gb/sec datastream to the brain. Where does all this data go? It has to be assimilated on the fly. What parts are new, what have I seen before. If you don't do it, the data is gone, you don't get a second look.
+
+This is done with 20 watts.
+
+I'll talk about another remarkable property: the eye moves 3--5 times per second, mostly because of self-generated motions. The data is highly dynamic.
+
+We can look at how things are done in biology, see things that are important that we've overlooked. We're not aware of eye movements. They're not random scanning, they're purposeful. You're mostly unaware of them. Yarbus, 1967. From the view of biology it's immesnsely important. Lots of animals use this.
+
+Ex. jumping spider has 8 eyes, 2 high-resolution eyes, eyes at side are fish-lenses iwht wide field of vision. Between all the eyes it has $360^{\circ}$ cover. It doesn't use a web; it hunts its prey. It uses low-res system to see things that are moving, then uses its high-res system. It can solve 3-D mazes.
+
+1-day old: tubes for eyes moves back and forth in scanning pattern. Retina is not 2-D array, but 1-D photoreceptor. It has about as good spatial resolution as a cat. (And has behavior similar to cat.) It scans back and forth to form an image. (Bair, Olshausen, 1991)
+\begin{enumerate}
+\item
+It's not about the image. In computer vision, spend a lot of time on the image. There's 8 eyes. Sensors are just a set of measurements from the world. It has to build a model of the outside world! It's about forming internal representations.
+\item
+There's no learning. It's born out of the box ready to go, optimized by evolution. Mammals are also this way. We need experience to fine-tune it, but it's not born with a pile of mush. 
+\end{enumerate}•
+3 questions.
+\begin{enumerate}
+\item
+How do we see in the presence of fixational eye movements?
+
+This teaches an important lesson about how active vision works.
+
+Subject tries to hold eye still. There is still natural movement, but the subject doesn't notice the motion. Image of human retina looking at a ``E''. Track in real time. They have complete control on stimulus, look at perception at pixel-grain of retina. (Austin Roorda, UCB, adaptive optics. Use mirrors to correct.)
+
+Is this a bug or a feature?
+%There's no %If you stabilizie it fades away
+
+You can take the stimulus so that it moves with the retina. If you do that it fades after a second. If you paralyze your eyes, you go blind.
+
+They have AC response characteristic. %no use coding DC
+
+The motion helps you. Look at perception under 3 conditions: natural, stabilized (move with retina, look at timescale $<1s$, when it hasn't faded), incongruent (not related to motion of retina).
+
+Any motion (even incongruent) helps you see better.
+
+How does the brain do that, take all these spiking messages and make sense of them, build a model?
+
+We have to average over time, because we have a spike train we have to integrate.
+
+Simple averaging (integrating) is not sufficient. Movement blurs and destroys the pattern.
+
+Why might movement help? All  the photoreceptors are different types, L cones, etc., not packed regularly. You don't want to depend on where the image lands on the retina.
+
+The problem from a math point of view: try to infer $S$,
+\begin{align}
+I(x,t) &=S(x-\De x(t)) + \ep(x,t)\\
+\De x(t)&=\amin_{\De x(t)} |I(x,t) - S(x-\De x(t))|^2\\
+S(x)&=\int I(x+\De x(t))\,dt.
+\end{align}
+We don't know the movement. If we have it we can estimate the pattern. If we have the pattern, we can estimate the movement.
+
+Build a probabilistic graphical model (Alex Anderson, Ph.D. thesis).  %Observations are spikes. Infer 
+Eye position$\to$spikes, pattern$\to$spikes.
+$$
+\wh S = \amax_S \ln P(R|S) %= \amax_S
+$$
+Build EM algorithm. Given current estimate of position $X$ update $S$, and vice versa.
+
+Do gradient descent. These are better explained by neural computation. Somewhere in primary vision cortex, we need 2 populations of neurons. 
+
+Internal position estimate multiplicatively gates to get internal pattern estimate.
+
+There is evidence that you build up stabilized representations. Cross-correlate current reprsentation with inputs, combine distributions of location and image. This can all be done in a neural circuit.
+%binary spikes
+
+Demo: Irregular hexagonal sampling, E moves.
+
+Does eye get no feedback about movement? There are signals about the microsaccades, but we're looking at drift. Neural correlates are unclear. If you introduce uncorrelated motion it still helps; the brain is not relying on external signals about motion.
+
+Performance is better with motion (because of gaps in sensors---you get benefit from moving in and out of the photoreceptors. We haven't put in the heterogeneity yet). 
+%relax vs. driven
+
+$$\wt A \amax_A \ln P(R|A) + \ln P(A).$$
+We don't think the brain is building up a pixelated representation, it's building in a feature space. Don't infer any type of noise; instead impose a sparse prior on features. Learn a dictionary.
+%Represent in terms of sparse coefficients.
+
+Incorporating a prior helps.
+
+This is a microcosm version of the question of the big saccades. %Even if you want to hold your eyes still
+\item
+What is the optimal spatial layout of the image sampling array?
+
+Consider a deep network solving the ImageNet challenge. A scene is not just one thing but a composition of things. %pomeranian, Afghan hound
+
+When we give neural network a task and label with a single word, it's an artificial task. You put perception through a linguistic bottleneck. %What goes . 
+You can write a novel about what you see in these images.
+
+We don't take in scene all at once, we use attention to look at it piece by piece in a serial fashion. 
+
+People have built NN models of attention. (DRAW: recurrent neural network for image generation) Have a glimpse window. It trains how to move around the scene to answer the question.
+
+Given you're going to move it around, you do you want to sample within the glimpse window? 
+
+Almost all animals have spatially inhomogeneous lattice (retinal ganglion cell sampling array), high-res in middle (fovea), %retinal ganglia
+%fovea, 
+falls off towards edges.
+Tradeoff between high-resolution and wide field of view? %6 degrees of visual space. 
+If I spread out uniformly, I have wide field of view but very low resolution (you can't even see the largest letter on the eye chart).
+
+This is the intuitive argument. Can we show that quantitatively? 
+
+Cheung, Weiss, Olshausen, 2017.  Learning the glimpse window sampling array. Network trained end-to-end to correctly classify digit in scene. To do this it must find a digit and move its gimpse window to that location. It learns how to control its attention.
+
+Start out uniform, and adjust by learning. Train by gradient descent. Glimpse window chooses to move sample nodes, pack in middle with higher resolution. It shrinks size of dots in the middle.
+%high res, tunnel vision. 
+%conv net? 
+
+Try datasets with translation, with translation and rotation.
+
+Imagine an animal with a zoom lens. %It can change the size: 
+It chooses not to build a fovea.
+%mechanically hard
+
+%some birds has 2 foveas. Maybe we can take these systems and immerse them in different environments.
+
+Looking at sampling interval, get linear increase in eccentricity.
+
+There is intimate connection between foveated sampling system, and movement. It doesn't make sense to build foveated system if you move it around. We can take info from such a system.
+\item
+How is information integrated across multiple fixations (saccades)?
+
+We have a complete disconnect between perception of world and what's going on inside brain.
+
+Info coming in is replaced 3--5 times a second.
+
+Yet it appears to you like the world is stable. It seems like 1 world you see in high-res all the time.
+
+Where does this exist in the brain, the world-view part of the brain?
+
+No one has found a neural correlate, part of brain that does this. There's no clear explanation. 
+
+In the meantime, we can try as modelers to do this. What would you do to use these fixations to build a model?
+
+Two things must be encoded and combined at each fixation:
+\begin{enumerate}
+\item
+Position at glimpse window.
+\item
+Contents of glimpse window. 
+\end{enumerate}
+We need to bind these two things together. A scene may then be represented as a superposition of such bindings.
+
+Hyperdimensional computing: an introduction to computing in distributed representation with high-dimensional random vectors, Penti Kanerva.
+Tony Plate, Holographic reduced representations. (Read Ch. 6)
+Smolensky had a solution with outer product. It explodes dimensionality of space.
+\begin{itemize}
+\item
+binding without growing dimensionality
+\item
+fully distributed representation
+\item
+math framework for storing and recovering information: multiplication for binding, addition for combining, operators and inverses.
+\end{itemize}
+%kanerva coding.
+
+Network for binding and combining, Eric Weiss. DRAW is doing this somehow. How is this happening, what is the recurrent neural net doing? Take the location and encode as high-dimensional vector. 
+Bind by elementwise multiplication. Add into short-term memory.
+$$
+m_{t+1} = m_t + r_t\odot v_t
+$$
+%why same dimension?
+We want unified representation space for all info. One motivating idea is to address how to represent a lot of modalities in one workspace. Dimension is high enough.
+When you have high enough dimensionality, 2 random vectors are almost orthogonal. Number of nearly orthogonal vectors grows exponentially.
+
+For example, $m=v_6\odot r_{t=0}+v_5\odot r_{t=1} + v_4 \odot r_{t=2}$.
+(cf. Russ S. is using this. Multiplicative things seem to help. Maybe this gives a theoretical understanding.)
+
+Multiplying representations is useful.
+
+%In DRAW, learns to look around.
+
+We can start querying.
+Ex. where is the ``5''? By (near) orthogonality, recover the position of 5, $r_{t=1}$. 
+
+Use uncertainty to drive where to move next. It looks in places where it has the most uncertainty.
+
+Spatial reasoning: What is below a `2' and to the left of a `1'? Reframe in algebra to get the answer. 
+\end{enumerate}
+
+Main points: Active sensing. %Vision is defined in active sensing. 
+Binding is an important part; build into short-term memory.
+
+Can you explain optical illusions in computational model? All illusions are on your brain; you see with you brain, not your eye. (Center surround fields?) Most are due to high-level filling-in phenomena.
+
+Are there similar structures in other sensory inputs? In the auditory systems, they put sensors where the action is, 10-20kHz, for cats and dogs it's higher. For bats, 60kHz, a kind of ``fovea'' in that region. 
+Electric fish has a ``fovea'' as well. 
+Fingertips (Braille).

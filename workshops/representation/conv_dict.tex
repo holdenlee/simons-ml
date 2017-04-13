@@ -1,0 +1,90 @@
+\section{Spotlight Talk: Convolutional Dictionary Learning through Tensor Factorization (Furong Huang, UC Irvine)}
+
+Tensor methods have emerged as a powerful paradigm for consistent learning of many latent variable models such as topic models, independent component analysis and dictionary learning. Model parameters are estimated via CP decomposition of the observed higher order input moments. We extend tensor decomposition framework to models with invariances, such as convolutional dictionary models. Our tensor decomposition algorithm is based on the popular alternating least squares method, but with additional shift invariance constraints on the factors. We demonstrate that each ALS update can be computed efficiently using simple operations such as fast Fourier transforms and matrix multiplications. Our algorithm converges to models with better reconstruction error and is much faster, compared to the popular alternating minimization heuristic, where the filters and activation maps are alternately updated. 
+
+Joint work with Anima Anandkumar
+
+%spatial dictionarary learning
+
+Feature learning is the cornerstone of ML. Map words into vectors so machines will understand. 
+
+We want to find efficient representations based on sparsity, low dimensional structure, group invariance.
+
+Is there a principled approach guaranteed to learn good representations?
+
+Dictionary learning is  a well-posed problem to find representations.
+
+Posit that the observed signal is a linear combination of dictionary. Find hidden dictionary and feature representation $h^{(i)}$,
+$$
+x^{(i)} = Ah^{(i)}. 
+$$
+
+For image DL thinks fhat two objects in the same location are more similar, rather than the same object in different location. This is missing spatial invariance. %invariant dictionary elements. 
+
+We want spatial dictionary learning that has shift-invariant dictionary and location encoded representation. Convolutional model satisfies both requirements.
+$$
+x^{(i)} = \sum_l f_l * w_l^{(i)}.
+$$
+People use alternating minimization: gradient-based method is nonconvex and has spurious local optimal, There is additional symmetry, and can be prohibitively expensive.
+
+Reformulate as multiplication of circular matrix: columns are filters and shifted version
+$$
+x^{(i)} = \sum_l f_l *w_l^{(i)} = \sum_l Cir(f_l) w_l^{(i)}.
+$$
+How do we do dictionary learning?
+
+Use tensor decomposition for DL. 
+Use inverse method of moments. 
+$$
+\E[x\ot x] = \sum_l \si_l^2 A_l\ot A_l.
+$$
+Do eigenvalue decomposition on this matrix? Matrix decomposition recovers subspace, not actual model. You need to go to 3rd moments. 
+
+Ex. matrix orthogonal decompositions: if there is no eigenvalue gap there is no uniqueness of eigenvector decomposition.
+
+For tensor, if you have orthogonal decomposition, even if you don't have eigenvalue gap, decomposition is unique.
+$$
+T(I,I,u) = \sum_i \an{u,u_i}u_i\ot u_i. 
+$$
+%Find $W$ and project data with $W$. 
+%$W^{-1}$. 
+%not using anything about convolution yet.
+(This is undercomplete.)
+
+Tensor decomposition uniquely identifies $A$ up to permutation.
+
+We want to do spatial dictionary learning. There are some difficulties. If you don't consider this as a convolution, it's overcomplete, number of columns is greater than data dimension. There are additional symmetric solutions.
+
+We have nice properties for this specific application. The circulant matrix is a simultaneously diagonalizable group. Circulant matrix is simultaneously diagonalizable. Diagonal matrix is Fourier transform of filters. 
+
+Circulant projection $\min_f \ve{M-cir(f)}_F^2$ has closed form. 
+Do tensor decomposition with circulant projection.
+
+Naive loss is $\min_F \ve{\text{Cumulant} - \cal F \La (\cal F\odot \cal F)}_F^2$. Do asymmetric relaxation $F\La (H\odot G)^T$. We can solve for $F$ by least squares. 
+
+Problem: pseudoinverse $(\text{Cumulant}(H\odot G)^T)^+$. Naive implementation is $O(n^6)$, $n$ filter length, and unstable. Use simultaneous diagonalizability property.  Use FFT. Get running time $O(\ln n + \ln L)$ per iteration with $O(L^2 n^3)$ threads.
+
+Compared to AM, Tensor methods works  better when number of samples is large; if you exploit maximal degree of parallelism, tensor is better even with stochastic AM. 
+
+Do synthetic experiments. Generate data based on spatial dictionary model.
+%Running times scale with $L$ and with $N$.
+
+AM means: alternate between filter and activation map in each sample.
+
+Summary: method of moments for learning dictionary elements; invariances handled efficiently. 
+
+Future: broader family of invariances (rotation, scaling). Analyzing optimization landscape for invariant models via tensor methods. Understand shallow convolutional net better.
+
+Q/A:
+\begin{itemize}
+\item
+Is convergence local/global, and how does it depend on initialization? We use AM as baseline. Problem is nonconvex.
+We don't have global convergence guarantee.
+
+FT are complex numbers, you have to analyze landscape in complex space. 
+\item
+Initialize using samples, overparametrization? We picked the best random initialization.
+%not trying very hard to make AM work very well. Just compare running time, not tuning tensor methods, AM very hard.
+\end{itemize}
+
+

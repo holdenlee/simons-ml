@@ -1,0 +1,102 @@
+\section{Semi-Random Units for Learning Neural Networks with Guarantees (
+Bo Xie, Georgia Institute of Technology)}
+
+Training neural networks is a difficult non-convex optimization problem with possibly numerous local optimal and saddle points. However, empirical evidence seems to suggest the effectiveness of simple gradient-based algorithms. In this work, we analyze the properties of stationary points for training one-hidden layer neural networks with ReLU activation functions and show that a stationary point implies a global optimum with high probability under some conditions on the neural weights. Moreover, we introduce semi-random units where the activation pattern is determined by a random projection of the input, and show that networks with these units are guaranteed to converge to global optimal with high probability.
+
+Joint work with Yingyu Liang, Kenji Kawaguchi, Le Song.
+
+Neural networks are successful in learning many nonlinear functions. Most are trained with simple SGD. This is a highly nonconvex objective function. Why does SGD work so well?
+
+I'll give a first attempt to answer this question.
+
+We look at 1 hidden layer NN with  ReLU activation function.
+$$
+f(x) = \sumo kn v_k\si(w_k^T x).
+$$
+Least-squares loss
+$$
+L(f) = \rc{2m} \sumo l m(y_l-f(x_l))^2.
+$$
+With some assumption on weights, any local min is global optimum.
+
+Gradient wrt first layer weights is
+$$
+((v_i\si'(w_i^Tx_j)x_j)\cdot \rc m (f(x_i)-y_i),
+$$
+$\pd LW = Dr$. 
+Key inequality is
+$$
+\ve{r} \le \rc{s_m(D)} \ve{\pd LW}.
+$$
+where $r$ is training error, $s_m$ is min singular value.
+Directly analyze singular value of $G_n=\fc{D^TD}{n}$. This is a function of weights so difficult to analyze. Introduce intermediate variable that has uniform weights.
+
+The intermediate variable is no longer a function of actual weights.
+
+Decompose into 2 parts
+$$
+\la_m(G_n) \ge \la_m(G) - \ve{G-G_n}.
+$$
+%distribution of weights unif over sphere.
+\begin{enumerate}
+\item
+Spherical harmonic decomposition:
+$$G_{ij} =\pa{\rc 2-\fc{\cos^{-1}\an{x_i,x_j}}{2\pi}} \an{x_i,x_j}=
+ \sumo u\iy \ga_u \phi_u(x_i)\phi_u(x_j).$$
+ Whp, $\la_m(G)\ge m\ga_m/2$.
+%in practice $\rc m$ to $\rc{\sqrt m}$.
+\item
+$\ve{G-G_n}\le O(\rh(L_2(W)))$ where 
+$$
+L_2(W)^2 = \rc{n^2} \sumo{i,j}n k(w_i,w_j)^2 -\EE_{u,v} [k(u,v)^2].
+$$
+\end{enumerate}•
+where $k(x,y) = \rc 2 - \fc{\cos^{-1}\an{x,y}}{2\pi}$.
+Whp $s_m(D)^2\ge nm\ga_m/2 - cn\rh(L_2(W))$. 
+
+Simplified result: $n,d$ large enough and weight discrepancy is small. Then whp 
+$$s_m(D)^2\ge \Om(m).$$
+($n=\wt\Om(1/\ga_m)$, $d=\wt \Om(1/\ga_m)$, $L_2(W) = \wt O(n^{-\rc 4}d^{-\rc 4})$.)
+
+%whp over data points
+
+``Certificate of global optimality.''
+
+Final error: for $n,d$ large enough, $W$ small weight discrepancy,
+$$
+\rc{2m}\sumo lm (f(x_l)-y_l)^2 \le O\pa{\ve{\pd LW}^2}.
+$$
+($n$ and $d$ are between $O(\sqrt m)$ and $O(m)$. Most $W$ have weight discrepancy small enough.)
+
+Will output of gradient algorithm have small discrepancy?
+
+
+Technical difficulty on ensuring small weight discrepancy. We describe semi-random unit to overcome this.
+Think of ReLU as having nonlinear part and linear part. We decouple and replace nonlinear part by random projection
+$$\si(w^T x) = \one[r^Tx>0] w^Tx$$
+where $r$ is random.
+%Is $r$ shared. 
+For any hidden unit, I have one $r$. It's fixed for the unit at the beginning. Whp this will satisfy low weight discrepancy condition.
+
+Semi-random units
+\begin{itemize}
+\item
+sits between fully-random features and fully-adjustable units.
+\item
+linear in parameters but nonlinear in input.
+\item
+guaranteed to converge to global optimum whp
+\item
+has universal approximation ability.
+\end{itemize}•
+Experiment results: not as expressive as ReLU, but can increase number of units to get ReLU performance. 
+
+Width vs. depth: depth helps more.
+
+Semirandom 4x matches performance of ReLU. 
+%svhn
+
+%1hl neural network under weight diversity: critical points are whp global opt. 
+%depens on spectral decay of kernel assoc with activatino function
+%propose semirandom units, guarantee converge
+%match performacne of RelU with more.

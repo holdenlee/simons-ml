@@ -1,0 +1,241 @@
+\section{3/28/17 Panel}
+
+\begin{enumerate}
+\item
+Good representation: what is it? How do we recognize a good one?
+
+EH: A good representation is one that is succinct. You can measure generalization. I agree there is something more but I don't know how to capture it.
+
+LB: Compression depends on the statistics of the data. Very often, you want different distributions for different tasks and distributions, and compression won't mean the same thing.
+
+What is a good abstraction in math? It's short but also provides you many means to work with. A good representation allows you do manipulations. Ex. parse tree. Do you want it to be compact, or allow you to manipulate the sentence? These are different concepts. In math, abstraction allows you to come up with new statement, things I haven't seen before.
+
+SSS: Represent data without knowing what comes after, what tasks I will do. 
+
+RS: Ex. take mushroom features for medical images.
+
+Remove the word ``representation.'' What you are learning is a hypothesis class. Fix $H$. Learn $\phi$, implicitly defining $H_\phi$, all functions in $H$ applied to $\phi$. The important thing is $H_\phi$, not $H$. 
+
+NS: I have to talk about doing a lot of tasks. If I have a single task, the best representation is just the answer. A good representation is just a hypothesis test that can cover all the tasks. It's hard to differentiate representation and multi-task learning.
+
+BSD: Representation is an algorithm. If my representation is nearest neighbor, my task is similarity. Think of representation learning is something which will be useful for your favorite aglorithm.
+
+MW: Look at learning problem in complexity theoretic sense. We run into hardness results quickly. The fascinating thing is that we actually have representations from neural networks (mushrooms to medical images, going between languages).
+
+NS: If we didn't have computational constraints, up to certain edge cases, you can just learn by ERM.
+% we're fine, we know everything is governed by hypothesis class. 
+
+LB: This is only a small part of learning.
+
+CM: I think we should go out into the scientists. Physicists would say something is a good/bad representation of something. Support natural generalization in problem. 
+
+NS: Whole advantage of learning is that we don't have to make sense of representations. Once you do that you hurt the learning.
+
+EH: It's very much guided by learning by example. All we know how to do in Statistical LT is learning by example. But there are other types of learning. Representational learning might capture that.
+
+LB: Instead of talking, let's project examples on the board.
+
+CM: How to reconcile the two? Any linguist would claim to know what a good representation is. It should allow you to capture, it's a good representation of any linguistic property you can then start looking at, control verb, etc. can be naturally explained in terms of the representation. You have all these natural questions you can ask, if representation allows you to represent it you have a good representations. 
+They exist beforehand.
+
+
+LB: To some extent they're wrong because instead of using their representation they should use a BiLSTM. 
+
+NS: If you just want to do a task, OK. But if you want to understand...
+
+LB: Why is it different?
+
+NS: Understanding gets in the way. Humans want to understand, machines want to do the task.
+
+LB: What about AI?
+
+RS: What about images?
+
+AG: ImageNet is best representation, but it's just a good initialization, fine tuning changes all the layers.
+Invariants for every task is different. Ex. I may or may not want pose invariance. Representations are at odds with each other.
+
+CM: Why are they at odds? Why not support both?
+
+RB: May want to be expert at one. Depends whether you value generalization or performance.
+
+AG: I care about performance.
+
+MW: I didn't know there was something in common between Chinese and English. %frontend CC, CE
+Some smart representation goes across languages.
+
+AG: Language is different from vision. Language is designed by humans. Vision is something we are observing about the world.
+
+NS: Training on mushrooms and doing better on medical images is multi-task learning. Ego-motion learning is multi-task learning. 
+
+KG: The surprise: it's important to start with it. It's a multi-task success without the multi-task present. It's surprising the generality that came out.
+
+AG: We don't understand the fine tuning. There's evidence, if you take a network, not fine tuning, one might be better, but fine tuning, the other network might be better. I try these things and am surprised. How fine-tuning makes things better? I can just tell from practice what I'm seeing.
+
+NS: Algorithm: start with initialization and fine-tuning. You get better results than starting from scratch. This is representation learning.
+
+M: Fine-tuning comes from your brain.
+
+AG: Fine-tuning: take labeled data for task, use loss function on that task to change your weights.
+
+M: So fine-tuning is a specific process.
+
+LB: Fine-tuning erases everything taught before.
+
+NS: Not necessarily.
+\item
+How to incorporate prior knowledge, symbolic reasoning, etc.?
+
+RS: In ImageNet thinking of the right representation didn't get people anywhere. Where is it useful?
+
+RF: Architecture is a huge prior, ex. locality. Can you automatically figure out architecture.
+
+SA: There was this idea in vision before...
+
+RS: Deformal parts models.
+
+RF: Stack idea in multiple stages, so you can look at large-scale features.
+
+SS: There are 2 aspects: expressivity and sample complexity. If you use prior knowledge, and it's correct, it helps sample complexity. It can help in terms of function approximation.
+%If you use and it's incorrect, it helps
+
+End-to-end vs decomposable affects optimization, even if for expressivity you don't need it. It's not a matter of sample complexity, but of geometry. 
+
+RS: It can be hard to figure out what the decomposition is.
+
+CM: Practical answer is, if you know some thing as a prior, the easiest way to take advantage of this is data augmentation (and subtract out anything irrelevant). That's one answer, I don't think it's the right answer. We want to take advantage of the structure of domains, I'm interested in doing that even if it doesn't always work.
+
+RS: Most papers: we go from X to Y, everyone's trying to do end-to-end.
+
+LB: If you try to do something more complicated it won't fit in the paper. 
+
+Two ways to implement prior knowledge: in way overwritten by data, or in a way that's hard (ex. convnet). Prior knowledge is schematic. Data is high-dimensional. We should do it in way that can be overwritten. Instead of having loss forcing to take value you thought it's good, add another output layer connected to middle layer. Don't force the middle layer to be exactly what you say; instead, force the output that be that. This works better.
+\item
+Bayesian methods for neural networks?
+
+DR: It's difficult to put a prior.
+
+RS: Bayesian neural networks try to incorporate prior knowledge, uncertainty in parameters. Do it softly, through other layers. Define multiple losses, have to tweak regularization... it's not kosher, lots of tweaking.
+
+%If you look 
+\item
+SA: Symbolic reasoning? There ought to be more, but it's not clear how to incorporate it.
+
+LB: We would like representations that are subject to the same kind of algebraic operations. A network takes two concepts and puts them together to get one, and can disassociate. If you associate and disassociate, you should get back what you had.
+
+Construct your network to have elementary algebraic properties you want it to have.
+
+NS: Use algebraic structure of transformations...
+
+LB: When you have ego-motion, you can have compositions that bring you to the same place. Train the network to satisfy this. Have the bricks for an algebraic system. It's not the full thing but a beginning.
+
+SA: Is it a good research goal.
+
+NS: Symmetry groups isn't symbolic reasoning.
+
+LB: When you work on words you have symbols.
+
+SA: But then you go immediately to a continuous representation. What's logic on that?
+
+LB: In symbolic reasoning there are 2 words, symbolic, reasoning. Reasoning is already very important. We describe it in algebraic system. To capture this notion, we have to have some algebraic properties, find ways to use them inside these networks. The symboli part, I don't know.
+
+%SA: CM, you think it's important.
+
+SBD: Some kind of hierarchical learning. Logical reasoning is high-level skill, common to many tasks. More principled guiding learned from many tasks together, help in each specific tasks. It's some kind of meta-learning. On lower-level it's symbolic computations.
+
+LB: Describe a task that needs 2 agent to cooperate (ex. encoder, decoder), and make the channel quite noisy. Something that explains the emergence of symbolic communication. 
+
+Semantic hashing. 
+
+RS: That was done to constrain communication channel.
+
+LB: It became more discrete.
+
+CM: It's interesting, human beings want to construct symbols for anything at all no matter how continuous it is, clouds, shapes, waves when you're surfing. Classes of things helps them think about things, remember. 
+
+LB: It helps them remember. It's about reliability. %You look at a cloud, say it looks like a hammer...
+ 
+CM: Categories influence your decisions.
+
+?: How to learn from both data and symbolic knowledge---constraints about what is possible in the world, what is for sure. SS, do you find connections to tasks that correspond to the functions?
+
+SS: They're not very natural. But think about scores in tennis game. You need to learn who won at the end. SBD conjectured it will be difficult  to learn end-to-end.
+
+%LB: Say when it is finished.
+SS: %Experiment of faking images. 
+What if you take another boolean function at end. We were trying many different boolean functions. For some of them the training works end-to-end.
+
+SBD: Sensitivity?
+
+SS: Wrong answer. We think it's a matter of frequency. Lower frequency in Fourier domain are easy to learn, higher frequency is harder to learn.
+There are many other functions (besides parity) that are hard as well.
+
+NS: In language, negation words like ``except''. It's not that that word has a vector, I need to negate some other word. If I'm just doing translation that's fine. If I want to do something deeper, QA... how do these pose challenges to systems that don't use symbolic reasoning?
+
+CM: We can build neural distributed representation with more structure that handles them. They can't possibly be handled right with bag or words, RNN. You need to understand scope, etc. Gee, tree-structured neural networks, I can do it with that. People have looked at higher order tensor networks. You don't have to go the symbolic route.
+
+This gets back to the first question. A paper argued against LSTM's. For a linguist, if you have negation and stuff under scope, that's an obvious fact that any representation should be able to capture and model, any representation that doesn't do that is immediately broken and not of interest no matter what's coming out. The paper (Tau Lindson): look at subject verb agreement, basic fact of many languages. If you split subject and verb with other stuff, human accuracy drops. The students who talk to the reporter has... Human performance is mid-90's. Any of LSTM models performances very quickly drops down to random as distance gets longers. LSTM's aren't capturing those kinds of facts well at all.
+
+EH: You don't need to go to language to find this. Some we have the mechanism wrong, ex. adding numbers. 
+
+RF: Train on up to 10 digit numbers. It does beautifully on training set. As soon as you try on 100 digit it fails.
+
+SA: Dawn's paper takes care of that in recursion.
+
+NS: ``Use more layers.'' Can we train these things effectively. LSTMs with 2--3 layers, you can have the power to capture negations (xors, etc.). Will you succeed in learning this from data?
+
+LB: One thing that plays against you is that in the dataset most sentences don't need that. A small number do, with small gradient signal.
+
+CM: On one hand, it's extremely surprising that multilayer LSTM can learn a lot of structure and manipulate it. They learn enough about phrases to move them around. They are learning a lot. On the other hand, they don't have the obvious generalizations you get from a tree-structured models. What happens when we add a few more levels of linguistic embedding, make phrases longer, performance tanks. No structural generalizations a linguist thinks is fundamental. 
+\item
+?: Bias in training, test set?
+
+LB: This is an important question. We used to curate data and make sure it's nice. Now data is large, people don't look at it. Data can be biased. It's easy to learn just that. Detecting data is biased is hard!
+Suppose you want to learn $X$ to $Y$. %$p(X,Y)$ is full of biased. 
+Being robust to all changes to $X,Y$ is impossible; what changes do you want to be robust to?
+\item
+MW: I am concerned about societal limitations. Translations between arbitrary languages, driverless cars. This has effects on society, political mess, because people have their own groups, listen to YouTube, and not to anyone else.
+
+LSTMs might cause white-collar unemployment. Two coasts are doing machine learning, and the middle is lost.
+
+LB: Social implications are huge. 
+
+MW: We keep on inventing with gusto.
+
+RF: 
+%In order to leverage these things
+I don't think people would argue the laundry machine is horrible.
+
+How to reduce working hours so many people work less rather than some people benefit and other people starve. Solution is hastening society change.
+
+%LB:
+
+?: Bill Gates had solution of taxing robots.
+
+?: Machine help without taking human out of loop.
+
+?: Start with fixed algorithm. Humans craft features and then learn. Learn features. Does the whole thrust of representation learning mean we understand less of what's going on under hood, hand over more to machines we don't understand?
+
+LB: There are two ways to validate gizmos. One is to open it and makes sure you understand everything, prove the code. We can't validate systems like this. 
+The second way is to look at behavior. How do we validate a human driver? We don't open the skull. Observe behavior.
+Our relationship to engineering is changing from being able to opening and understanding how it works. 
+Opening ML is like opening a brain.
+
+EH: Turing test: evaluate something functionally. Bayesian tried to put interpretability. Deep machines work better. We don't understand why they work. We udnerstand Statistical LT. There's a difference between understanding what it does and why it works. 
+
+SA: Social impact: will ML become a dirty word like nuclear energy?
+
+RS: Not there yet.
+
+?: Additional impact. Earlier they weren't good enough to do things we relied on humans to do, ex. whether to give loan to someone. Now we have machines we believe can do these things better than we can.
+
+EH: Already happened, just now it's more.
+
+RF: Many of these methods are performing very poorly in terms of accuracy. It's not clear what it means to be accurate. Ex. credit scores go back 30 years. This is a different problem. In many cases, it's wrong to use any kind of statistical technical. Statistical techniques used are crude, not good in some sense. It's a different societal problems that has to be addressed. In cases where it is societally accepted, it is possible to evaluate externally. 
+
+EH: We're not politicians. Something people have be doing: look at fairness of ML, make sure there's not biased towards certain groups.
+
+MT: When we teach classes, explain these impacts.
+\item
+Changes to fundamental paradigm of ML? (iid data, labels, etc.)
+\end{enumerate}
+

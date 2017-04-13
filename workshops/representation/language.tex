@@ -1,0 +1,242 @@
+\section{Representations for language: from word embeddings to sentence meanings (Christopher Manning)}
+
+%quick to adopt new techniques.
+
+%wonderful expositor
+
+A basic---yet very successful---tool for modeling human language has been a new generation of distributed word representations: neural word embeddings. However, beyond just word meanings, we need to understand the meanings of larger pieces of text and the relationships between pieces of text, like questions and answers. Two requirements for that are good ways to understand the structure of human language utterances and ways to compose their meanings. Deep learning methods can help for both tasks. I will then look at methods for understanding the relationships between pieces of text, for tasks such as natural language inference, question answering, and machine translation. A key, still open, question raised by recent deep learning work for NLP is to what extent do we need explicit language and knowledge representations versus everything being latent in distributed representations. Put most controversially, that is the question of whether a bidirectional LSTM with attention is the answer for all language processing needs.
+
+\subsection{What's special about human language?}
+\begin{enumerate}
+\item
+Distinguishing human characteristic. (Other species have good vision systems, etc.)
+\item
+The only hope for ``explainable'' intelligence.
+Pictures of neurons spiking does not explain what an AI is doing.
+\item
+Communication was central to human development and dominance. 
+This ability allowed teamwork, and allowed humans to be dominant without being particularly strong.
+When people developed writing, they could send ideas across time and space.
+\item
+Language forms come with meanings. One word or phrase has meaning attached to it. How to make sense of it has been debated for many years.
+\item
+Language is a social system. Computer scientists want a platonic view of language, but that isn't how language is; it's a social system that changes over times.
+\item
+Constructed to convey speaker/writer's meaning---not just an environmental signal but a deliberate communication.
+\item
+Uses encoding which little kids learn amazingly quickly.
+\item
+Language is a discrete/symbolic categorical signaling system. There are very minor exceptions for expressive signaling (I looooove it). This is presumably because of greater signaling reliability.
+(cf. EE reasons for having discrete signaling systems.)
+
+Symbols are not just an invention of logic/classical AI!
+\item
+Language symbols are encoded as a continuous communication signal in sound, gesture, and writing. 
+Symbol is invariant across different encoding. You can convey the same symbols and meaning across the different encodings.
+\end{enumerate}
+
+Traditionally, people have extended the symbolic system of language into the brain, ``the language of thought.''
+But a brain encoding appears to be a continuous pattern of activation, just like the signal to transmit language.
+Deep learning is exploring a continuous encoding of thought.
+\subsection{From symbolic to distributed word representations}
+
+Vast majority of rule-based and statistical NLP/IR (info retrieval) work regarded words as atomic symbols---a vector with one 1 and 0's everywhere else, a one-hot representation. These representations don't work very well.
+
+Ex. if user searches for ``Dell notebook battery size'', we want to match ``Dell laptop battery capacity.'' There's no notion of similarity.
+
+There are many things you can do: query expansion with synonum dictionaries, separately learning word similarities...
+
+A word representation that encodes similarity wins: less parameters to learn, more sharing of statistics.
+
+``You shall know a word by the company it keeps.'' J.R. Firth 1957.
+This is one of the most successful ideas of modern NLP.
+
+Define a model that predicts between a center word $w_t$ and context words in terms of word vectors, $\Pj(\text{context}|w_t)$ which has loss function $J=1-\Pj(w_{-t}|w_t)$. 
+Word2vec: Use skipgram model
+$$
+p(o|c) = \fc{\exp(u_o^Tv_c)}{\sumo wv \exp(u_w^T v_c)}.
+$$
+Using this algorithm, a miracle occurs. If you repeat over backprop a million times, you get wonderful word representations that do a good job of capturing fine-grained directions and meaning.
+
+Another approach is latent semantic analysis: singular value decomposition of (log) word-context matrix. $A=U\Si V^T$. 
+Keep the largest orthogonal directions.
+
+The miraculous property of having dimensions of meaning: linear vector differences have meaning. Ex. linear relationship between countries and capitals.
+
+A decade earliers, psycho-linguistics: you can also take LSA model, with just-right scaling of word occurrences, you can also get linear relationships (Rohde, Gonnerman, Plaut, 2005). 
+
+What is the relationship between these 2 approaches? What if you have a word-count based model? 
+Crucial insight: ratios of co-occurrence probabilities  encode meaning components. Ex. look at $\fc{\Pj(x|\text{ice})}{\Pj(x|\text{steam})}$ for gas/solid.
+
+How to capture ratios of co-occurrence probabilities as meaning components in word vector space? 
+$$
+w_x \cdot (w_a-w_b) = \ln \fc{\Pj(x|a)}{\Pj(x|b)}.
+$$ 
+Ex. closeby words to ``frog.'' Gender pairs, company-CEO, etc.
+
+%datasets of similarities
+Using word vectors in other algorithms can make performance go up a few percent: good notion of word similarity generalizes better. But not everything can be represented with a linear representation. 
+
+%scale counts carefully, similarity judgments. LSA can do really well, popular in psycho-linguistics.
+
+SVD hurts, while modern neural representations do better from categorical CRF baseline.
+
+GloVe model is a model that works on counts. It connects Count! and Predict! models.
+
+\subsection{BiLSTM hegemony}
+
+To a first approximation, the consensus in NLP in 2017 is:
+No matter what the task, throw a BiLSTM at it, with attention if you need information flow.
+
+A RNN encoder-decoder network is
+$$
+h_t=\tanh(W[x_t] + Hh_{t-1} + b).
+$$
+This didn't work, but you can this picture, if you change the computation in the box to be a little more complicated (gated recurrent unit, LSTM). You can invent many variants.
+Essentially, 
+\begin{enumerate}
+\item
+there is a piece that calculates candidate next hidden state representation,
+\item Bernoulli variable ``gates'' control how much history is kept and how much input is attended to. 
+%classic old recurrent network.
+\item
+Summing previous and new candidate hidden states gives direct gradient flow and more effective memory.
+\end{enumerate}
+Note: recurrent state mixes control and memory. This could be good (freedom to represent however it wants) or bad (get mush of things that are conceptually different).
+
+We changed the units and make the net deeper. With some care this works well as a machine translation system. It has one big limitation. There is a bottleneck between the source to output sentence: the last state (vector) after reading the input. Also the model takes a long time to train---it needs to know what to remember.
+
+\begin{enumerate}
+\item
+Add attention: vector will be used to look at source time steps, with some weighting use these time steps to influence what's computed at the next time step.
+%weighted average of memory
+\item
+%better rep of context-specific representation of each word
+Have another LSTM running backwards. 
+Get a hidden state vector from both directions; concatenate.
+%QA: num precision of bottleneck?
+%models without attention...
+%inefficient data.
+%add attention makes orders of magnitude better.
+\end{enumerate}
+%human language pairs
+\footnote{
+English-French is easy.
+English-German is harder because German has different word order, finite verb auxiliary, real verb at end. 
+LSTM are good at learning syntactic reordering better than any model we used use use.}
+
+Neural machine translation is now much better than the other translation algorithms. 
+It's not just better at dealing with word similarities; it's better at syntax of things like getting the word order right.
+
+Four big wins of neural MT:
+\begin{enumerate}
+\item
+End-to-end training: all parameters are simultaneously optimized to minimize a loss function on the network's input.
+\item
+Distributed representations shared strength. Better exploitation of word and phrase similarities.
+\item
+Better exploitation of context to translate more accurately.
+\item
+More fluent text generation: deep learning text generation is much higher quality.
+\end{enumerate}•
+BiLSTMs and attention are not just for neural MT: part of speech tagging, named entity recognition, syntactic parsing (constituency and dependency), reading comprehension, question answering, text summarization.
+
+CNN/Daily Mail: figure out missing word in tagline after reading article. Run BiLSTM on story. Use attention function: using question, for each position in passage, figure out how much to attend to it. Get $a_i = \text{softmax}_i (q^TWs\wt p_i)$. 
+
+This works incredibly well. 
+
+Recipe for getting work in NIPS: take a model, add epicycles and curlicues, fiddle until numbers go up, claim that the epicycles and curlicues made the numbers go up.
+If you can build a simpler model that does somewhere between 97\% and 103\% as well as the previous model, that should be good!
+
+It's appalling that this model works so well. Contrast this from history of NLP.
+
+Standard theory of natural language interpretation: 
+\begin{enumerate}
+\item
+from language expressions, 
+\item 
+create syntax trees (deletion goes back to language expression), 
+\item
+do semantic interpretation to get logical formulas, 
+\item
+use semantic denotation to get models. 
+\end{enumerate}•
+
+We'd like to get some of that into our language models, semantic interpretation of language. 
+
+How can we minimally know when larger language units are similar in meaning?
+
+\begin{itemize}
+\item
+Snowboarder is leaping over a mogul.
+\item
+A person on a snowboard jumps into the air.
+\end{itemize}
+It seems you have to go through the old NLP pipeline...
+%People interpret meaning of larger text units
+
+\subsection{Choices for multi-word language representations}
+
+%bag or words in CMU.
+
+From bag of words to complex, esoteric representations...
+
+There are 4 tools in your toolbox.
+\begin{enumerate}
+\item
+neural bag-of-words models: average/sum word vectors.
+
+You can improve effectiveness by putting output through 1+ fully connected layers (deep averaging networks).
+
+Doing this and nothing more does well for many tasks.
+
+For tasks more focused on semantic similarity, this works better than LSTM's, who are devoting too much attention to modeling language. 
+%as someone who has PhD in linguistics, subtleties of language...
+%increase representation size for large doc?
+\item
+recurrent neural networks: use word order but cannot capture phrases without prefix context. Gated LSTM/GRU could separate meaning of constituent units, but it seems unlikely.
+
+They capture too much of last workds.
+\item
+Convolutional neural network: compute vectors for every $h$-word phrase? This is not very linguistic, but you get everything.
+
+Ex. 1-d convolution neural network with max pooling and FC layer (Kim2014 CNN for sentence classification). Can use multile filter weights and multiple window sizes.
+\item
+Data-dependent composition.
+You have to put parts together  to get bigger parts.
+
+Visual scenes have parts too that go together into bigger parts.
+
+Noam Chomsky:
+Distinctive attribute in human languages is that they have recursion.
+
+Build tree-recursive neural networks. Look at particular sentence, build constituents.
+
+TreeRNN can capture constructions like ``X but Y.''
+%biword naive bayes is only 58\% on these.
+\end{enumerate}
+
+\subsection{Conclusion}
+\begin{itemize}
+\item
+Deep learning, distributed representations, end-to-end training, richer modeling of state has brought great gains to NLP.
+\item
+At the moment, it seems like we can't win, or only barely win by having more structure than a vector space mush, and converges to 0 as data goes large.
+\item
+I believe we need more structure and modularity for language, memory, knowledge, and planning; it'll just take some time.
+
+Trees seem like the minimal bit of extra structure. It'll take time for these models to be empirically successful.
+\end{itemize}
+%models with more structure. 
+
+Q: adversarial perturbation to input? A: Various rearrangings. It's a game for the general public. People publish the freaky things that happen with a NN.
+``Women women...'' ``Femme femme'' ``Woman woman man man...'' This wouldn't have gone wrong in a last-century system! Although NN does much better overall, it has some interesting failure cases.
+
+%functions that you cannot represent using plain NN.
+Q: What's something you need a LSTM for? A: There's no function LSTM can compute that you can't also compute by suitable basic RNN. In practice these models learn hugely better. For simple RNN, having the emphasized diagonal is a contingent fact that can easily die out; for these it's built into the architecture.
+
+%inductive bias
+
+Q: written vs. spoken language? A: NN models win everywhere but more when language is more informal and less well-structured. 
+%(Twitter: compression leap. Make it harder to reconstruct.)
+

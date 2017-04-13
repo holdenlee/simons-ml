@@ -1,0 +1,296 @@
+\section{A Semiclassical Approach to the Kramers–Smoluchowski Equation}
+
+(Probability/PDE seminar)
+
+We consider the Kramers–Smoluchowski equation at a low temperature regime and show how semiclassical techniques developed for the study of the Witten Laplacian and Fokker–Planck equation provide quantitative results. I will give complete proofs in the one dimensional case and explain how recent work of Laurent Michel gives results in higher dimensions. One purpose is to provide a simple introduction to semiclassical methods in this subject.
+
+The equation is
+\begin{align}
+\pl_t \rh &= \pl_x (\pl_x \rh - \ep^{-2} \rh \pl_x\ph)\\
+\rh|_{t=0}&= \rh_0.
+\end{align}
+$\ph$ is a Morse function on $\R$: it has an isolated nondegenerate critical point. It goes to $\iy$ at $\iy$.
+(This is a Witten Laplacian.) %The existing work did not provide
+
+Let $S=\ph(s)$ be the height at $s$. Assume the Hessians at the 2 local minima (zeros) are $\ph''(m_1)=\ph''(m_2) = 1 = -\ph''(s)$. 
+
+Based on works: Evans-Tabrezian 16 and Seo-Tabreziam 17.
+
+%Suppose we have perturbed 
+Define $E_1,E_2$ by
+$$
+\set{x}{\ph<S} = E_1\sqcup E_2.
+$$
+\begin{thm}
+Suppose 
+$$
+\rh_0 = \prc{2\pi \ep^2}^{\rc2} (\be_1\one_{E_1} + \be_2\one_{E_2} + v_\ep) e^{-\fc{\ph}{\ep^2}}
+$$
+with $\ve{v_\ep}_\iy\to 0$.
+(``well perturbed'') (Think of Gaussian concentrating in each well.)
+Then in the distribution sense
+$$
+\rh(2\ep^2 e^{S/\ep^2}\tau, x) \xra{\cal D'(\R)} \al_1(\tau) \de_{m_1}(x) + \al_2(\tau) \de_{m_1}(x)
+$$
+%scaled
+uniformly for $t\ge 0$, where
+$$
+\pl_\tau \al = -A_0\al, \quad \al(0)=\be, \quad A=\smatt 1{-1}{-1}1.
+$$
+\end{thm}
+
+Laurent Michel
+%quote from 2nd ed Hardy's pure math.
+
+What if I take arbitrary initial data? The same is true with error term in time; you have to wait a certain time before it get small.
+
+Higher dimensional: 
+Assume we have Morse function $\ph:\R^n\to \R$, 
+\begin{align}
+0&=\inf_{x\in \R^d} = \ph(m_j)&m_j&\in U^{(0)}\\
+S&=\sup_{S\in U^{(1)}} = \ph(s_j)&s_j&\in U^{(1)},
+\end{align}
+$\la_1^2(s)/\ph''(s) = -1$, $\la_1(s) \in \Spec(\ph''(s))$, $\la_1<0$.
+
+Here $U^{(i)}$ is the set of critical points of index $i$. 
+Index 0 means no negative eigenvalues. Index is number of negative eigenvalues.
+
+Suppose 
+$$
+\{\ph<S\} = \bigsqcup_{j=1}^N E(m_j),
+$$
+indexed by the minima the sets contain.
+The fact that this is a Morse function means 
+$$
+m, m'\in U^{(0)}, \quad m\ne m' \implies \ol{E(m)}\cap \ol{E(m')} \subeq U^{(1)}.
+$$
+For all $s\in U^{(1)}$, there exists $m,m'$, $s\in \ol{E(m)}\cap \ol{E(m')}$.
+
+Make the simplifying assumption $m',m\in U^{(0)}$, $m\ne m'$ implies $\ol{E(m)}\cap \ol{E(m')}$. %they intersect
+(We assume same depth of all the wells and same height of the saddle points. The statement becomes more complicated if this is dropped.)
+
+Form the graph
+$$
+\cal G = (V,E) = (U^{(0)}, U^{(1)})
+$$
+where if $s\in U^{(1)}$ is an edge between $m,m'$, then $s\in \ol{E(m)}\cap \ol{E(m')}$.  In dimension 1, we get a single edge. In 2 dimensions, e.g. we can have a triangle.
+
+See Landim et al 15.
+
+In the theorem statement, let
+$$
+\rh_0 = \sum (\be_n \one_{E_n} + v_\ep) e^{-\ph/\ep}
+$$
+%weighted graph laplacian
+where $\al_\tau = -A\tau$, $A$ the graph Laplacian of $\cal G$, defined by 
+$$
+A(m,m') = \begin{cases}
+d(m),&m=m'\\
+-1,&m\ne m' \text{ connected by edge}\\
+0,&\text{otherwise}.
+\end{cases}•
+$$
+where $d(m)$ is the degree of vertex $m$.
+
+For example the Laplacian of the triangle is $\mattn 2{-1}{-1}{-1}2{-1}{-1}{-1}2$.
+
+References: Witten 82 (Laplacian approach), Helffer-Sjo'strand,... Bovier-Gajnard-Klein (probabilistic, spectral approach), Helffe-Nier.
+
+I can have a chain if the height and minima are the same.
+
+The operator is
+\begin{align}
+P &= \pl_x(\pl_x + \ep^{-2} \pl_x\ph\pl_x)\\
+&= \pl_x e^{-\fc{2\ph}{h}}\pl_x e^{2\ph/h}\\
+h&=2\ep^2\\
+e^{\ph/h} P e^{-\ph/h}&=-h^{-2}\De \ph\\
+\De \ph&=-h^2\De + |\pl_x \ph|^2 - h\De \ph
+\end{align}
+Witten Laplacian on $f$'s. 
+You get a lot of mileage from supersymmetric structure of this equation.
+%all this can be done on Riemannian manifold. this is on flat space.
+\begin{align}
+\pl_t\rh &= P \rh\iff u_t = -\De \ph u, &u(t,x) &= e^{\ph/h} \rh(h^2 t,x)\\
+\psi_n(x):&= c_h(h) h^{-\rc 4} \one_{E_h}(x) e^{-\ph(x)/h}, & \ve{\psi_h}_{L^2}&=1\\
+\Psi(\be) &= \sum_h \be_h \Psi_h.
+\end{align}
+\begin{thm}
+There exists $A(h)=A_0+hA_1+$ such that (here $A_0=\smatt 1{-1}{-1}1$)
+$$
+\ve{e^{-t\De\ph} \Psi(\be) - \Psi(e^{-t he^{-s/h} A_0\be})}_2\le Ch |\be|,\quad t\ge 0.
+$$
+%change coeff according to this
+\end{thm}
+
+The Witten Laplacian. 
+%I  this how you guys do Morse theory?
+
+Differentiation takes $k$ forms into $k+1$ forms. In 1-dimension there are only 0 and 1 forms.
+$$
+d:C^\iy (M,\Om^k) \to C^\iy(M, \Om^{k+1}).
+$$
+Let $g$ be the metric on $M$. 
+We can take the adjoint of this operator.
+$$
+d^* : C^\iy(M, \Om^{k+1}) \to C^{\iy} (M,\Om^k).
+$$
+The Hodge Laplacian is
+\begin{align}
+\De: C^\iy(M, \Om^k) \to C^\iy(M,\Om^k).
+\end{align}
+(Write $\De^{(k)}$ to emphasize that it acts on $k$ forms.)
+On functions, $d^*=0$. 
+%don't have the first on 1-D
+
+Consider the deformation
+$$
+d_\ph = e^{-\ph/h} h d e^{\ph/h}.
+$$
+%change to volume form
+
+A quick calculation shows
+$$
+\De_\ph = d_\ph^* d\ph.
+$$
+A basic fact: $\De_\ph^{(k)}$ has $|U^{(k)}|$ eigenvalues in $[0,\ep_0h]$. The number of small eigenvalues is given by the number of critical points of index $k$.
+
+Here is an immediate application, and motivation. 
+
+We have an easy Morse inequality. Let $M$ be a compact manifold. Then
+$$
+\dim H^{(k)}(M, \R)\le |U^{(k)}|.
+$$
+Hodge theory shows that this is equal to $\dim\set{u\in C^\iy(M,\Om^k)}{\De_\ph h=0}$, harmonic functions. 
+%0 
+%witten's proof of Morse: 1-line
+
+\begin{proof}
+For $k=0$, $-h^2\De  + |\pl \ph|^2 - h\De \ph$, 
+\begin{align}
+\an{\De_\ph h, u} &\ge \ep h\ve{u}_{L^2},
+\end{align}•
+$u\in V^{\perp}\cap Dom(\De\ph)$, $\dim V = |U^{(0)}|$. Do this by harmonic approximation %as in quantum mech,
+$$
+\mathfrak S(-h^2\De + x^2) =\set{(2|n|+1)h}{n\in \N_0}
+n\in \N_0
+$$
+where $n=n_1+n_2+\cdots$.
+Near a minimum, approximate by harmonic oscillator.
+$$
+-h^2 \De + |\pl \ph|^2 - h\De \ph \approx -h^2 \De + |\ph''(m)(x-m)|^2 - h\De\ph(m).
+$$
+
+We show there are $|U^{(0)}|$ approximate eigenvalues. 
+%for self-adjoint operator
+%cancel, eig 0.
+
+%basic spectral theory
+%if 2 orthogonal, have 2 eigenvalues
+
+%\subsection{Quasimodes}
+Quasimodes: These are approximate eigenvalues. 
+$$
+f_n^{(0)} = h^{-\rc 4} C_n(h) \chi_h(x) e^{-\ph/h}.
+$$
+(Note 0 eigenvalue: $e^{-\ph}$.)
+We have $\an{f_n^{(0)}, f_m^{(0)}} = \de_{mn}$, $\ve{f_h^{(0)}}=1$.
+\begin{align}
+d_\ph &= \te(h\pl_x + \ph'(x))\\
+\De_\ph f_h^{(0)}&= \te(e^{-(S-\ep)/h}).
+\end{align}•
+%modulo doing for all forms.
+%there's no hard part
+%wait until... compute precisely without using supersymmetric structure. People tried and faild.
+Supersymmetric structure means writing in terms of $\De_\ph$. 
+%insightful part.
+``The hard part is to come up with the easy way of doing it.''
+\end{proof}
+This proves the basic fact.
+
+%lorentz paper, 
+For different heights: 60 pages, combo in higher dimensions. Complicated labeling procedure, which saddle points are associated with which minima. 
+
+%Eigenvalues $he^{-2S/h}$ very different from estimate. This precise eigenvalue appeared.
+
+%construction of good quasimodes
+%5 pages to do. francesco wrote in 5.
+%result more precise. for finite times, here for all times. 
+%here get asympt expansino of everything. 
+%finite many terms, exp decay.
+$$
+d_\ph^* = d_{-\ph}, \quad \De\ph^{(1)} = \De_{-\ph}^{(0)}.
+$$
+%dimension 1
+
+We construct quasimodes.
+\begin{align}
+f_{(x)}^{(1)} &= h^{-\rc 4} d_h(h)\te(x) e^{-(S-\ph(x))/h}\\
+d_h(h)&\sim \pi^{-\rc 2}+\cdots\\
+\ve{f^{(1)}}_{L^2} &=1\\
+d_\ph^* f^{(1)} &= \te(e^{-\al/h})\\
+\De_{-\ph} f^{(1)} &=\te(e^{-\al/h}).
+\end{align}•
+%5 pages
+Now construct 2 projectors $\Pi^{(0)}$, $\Pi^{(1)}$. 
+\begin{align}
+g_h^{(0)}  &= \Pi^{(0)} f_h^{(0)}\\
+g^{(1)} &= \Pi^{(1)} f^{(1)} .
+\end{align}
+Use Gram-Schmidt to orthonormalize, get $\{e_n^{(0)}\}$ and $e^{(1)}$.  
+
+These are close to the original. Change-of-basis is close to identity modulo exponentially small errors. 
+\begin{align}
+e_n^{(0)} - f_n^{(0)} &=O_{L^2} (e^{-(S-\ep)/h})\\
+e^{(1)} - f^{(1)} &= O_{L^2} (e^{-\al/h}).
+\end{align}•
+\begin{align}
+\De_{-\ph} \circ d_\ph &= d_\ph\De_\ph\\
+E^{(j)}&=\Pi^{(j)} L^2\\
+d_\ph^*\De_{-\ph} &= \De_\ph d_\ph^*\\
+\implies
+d_\ph(E^{(0)}) &< E^{(1)}\\
+d_\ph^*(E^{(1)}) &< E^{(0)}.
+\end{align}
+
+We want the matrix of operator $d_\ph$ on this basis.
+\begin{align}
+\cal L &= d_\ph |_{E^{(0)}\to E^{(1)}}\\
+\cal L^* &= d_\ph^*|_{E^{(1)}\to E^{(0)}}\\
+M&=\cal L^*\cal L = \De \ph|_{E^{(0)}}.
+\end{align}
+(When wells are different depths, exponential factors have different sizes. Look at characteristic values of individual $L$'s. Shift exponentially small things.)
+%can be approx by matrix expansion
+%supersymmetric structure, get $he^{2Sh}$
+
+We compute $L$, the matrix of $\cal L$ in $e_h^{(0)}$.
+\begin{align}
+\wh L_j &= \an{f^{(1)}, \pl_\ph f_j^{(0)}} = h^{-\rc 2} d(h) c_j(h) \int_\R \te(x) e^{-(S-\ph)/h} d_\ph(\chi_j e^{-\ph/h})\\
+%1x2
+&=h^{\rc 2} d(h)c_j(h)  e^{-S/h} \int \te(x)\chi_j'(x)\dx = (-1)^j h^{\rc 2} e^{-S/h} (\pi^{-\rc 2}+\cdots)\\
+\wh L &=\pi^{-\rc 2}he^{-S/h}  ([-1,1]+ hA_1+\cdots  + \te(e^{-(S+\al)/h})).
+\end{align}
+%numbers exist in platonic reality. 
+(If I had analytic things, I know when to stop to get exponentially small error.)
+
+Choose $\te$ so there is right overlap. We had $e^{-(S-\ep)/h}$ accuracy. $f$'s had accuracy $e^{-\al/h}$. I need $\al>\ep$ so when take product, I get something smaller than $-S$. 
+%$\chi_j'$ extend.
+%overlap, 0. Error would not be good enough!
+
+$L$ is the matrix of $\cal L$ in $e_h^{(0)}$.
+\begin{align}
+L &= \pi^{-\rc 2} he^{-S/h} (A + \te(e^{-\al/h}))\\
+A&= [-1,1] + hA_1+\cdots\\
+M&= \pi^{-1} h e^{-2S/h} \pa{
+\matt1{-1}{-1}1+hA_1 + \cdots + \te(e^{-\al/h})
+}\\
+\psi(\be) &= \sum \be_n\psi_n\\
+\psi_n &= h^{-\rc 4} c_h(h) \one_{E_h} e^{-\ph/h}\\
+e^{-t\De\ph}\Psi(\be) &= e^{-tM}\Pi^{(0)} \psi(\be) + (I-\Pi^{(0)}) \psi(\be)\\
+&= \psi(e^{-t h e^{-2S/h} A}\be) + \te_{L^2} (e^{-1/Ch}).
+\end{align}
+Higher dimensions are more complicated in the construction of the quasimodes; we have the Hodge Laplacian $d_\ph^*d_\ph + d_\ph d_\ph^*$. 
+
+%Fokker-Planck.
+Ambitious extension: Probabilistic interpretation: suppose you're in higher dimension, analogue but not a gradient flow.Vencil-Friedland theory (?). Create Markov chain where equilibrium points... It's a dynamical system in higher dimensions. 
+
+%for what operators have supersymmetric structure?

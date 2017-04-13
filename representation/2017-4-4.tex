@@ -1,0 +1,151 @@
+\section{On the Inductive Bias of Dropout (Phil Long, Google)}
+
+Abstract:
+Dropout is a technique for training neural networks in which, before
+each update of the weights, a random half of the nodes are temporarily
+removed.  Surprisingly, this significantly improves the accuracy, so
+that dropout is now widely used.
+
+This talk is about the inductive bias of dropout: how does dropout
+affect what kinds of networks tend to be produced?  We build on the
+work of Wager et al., who showed that in some cases of linear
+classifiers, using dropout is akin to adding a penalty term to the
+training loss, somewhat like the Tikhonov regularization used in
+traditional weight decay.
+
+We begin by focusing on logistic regression without any hidden nodes.
+We characterize when the dropout-regularized criterion has a unique
+minimizer, and when the dropout-regularization penalty goes to
+infinity with the weights.  We show that the dropout regularization
+penalty can be non-monotonic as individual weights increase from 0,
+and that the dropout regularization penalty cannot be approximated to
+within any factor by a convex function of the weights.
+
+Next, we consider the case of deep networks with Relu units and
+quadratic loss.  We show that dropout training is insensitive to the
+scale of the inputs in ways that traditional weight decay is not.
+Also, in a variety of cases, dropout leads to the use of negative
+weights, even when trained on data where the output is a simple
+monotone function of the input.  Some experiments with synthetic data
+support this theoretical analysis.
+
+This is joint work with Dave Helmbold.
+
+Dropout is a method for training neural networks. Drop out half of nodes before each update. It is a simple technique that significantly improves accuracy. It's commonly used but mysterious.
+
+How does dropout affect the preference for breaking ties (inductive bias)?
+
+%how breaks ties.
+For example, an algorithm could prefer functions that concentrate in low frequency, functions that change slowly, etc.
+
+\subsection{Logistic regression}
+
+We studied dropout for linear classification via convex optimization, and deep learning with ReLUs and quadratic loss.
+
+Classify $x$ into $\{-1,1\}$ using $\sign(w\cdot x)$. Loss is $\ell(w,x,y) = \psi(y(w\cdot x))$ where $\psi(z) =\ln (1+\exp(-z))$.
+
+We abstract away sampling issues; consider minimizer of loss with respect to the underlying distribution.
+
+What kind of training sets is dropout willing to fit?
+%ex. incompatible with inductive bias
+
+Details:
+\begin{itemize}
+\item
+each feature $x_i$ is replaced with 0 with probability $q$, and $\fc{x_i}{1-q}$ with probability $1-q$.
+\item
+I.e., if components of $r\in \{0,\rc{1-q}\}^n$ are independently 0 with probability $q$, then $x$ is replaced with $x\odot r$.
+\item
+Let $w^*(P,q) = \amin_w \EE_{(x,y)\sim P,r} (\ell(w,x\odot r, y))$ where $P$ is joint probability distribution.
+\end{itemize}
+The starting point for this research is Wager, Wang, Liang 2013.
+$$
+\EE_{(x,y)\sim P,r} [\ell (y(w\cdot (x\odot r)))]= \EE_{(x,y)\sim P} (\ell(y(w\cdot x))) + reg_{D,q}(w)
+$$
+where the 2nd term doesn't involve the class labels.
+Dropout regularizes somewhat like $\fc{\la}2\ve{w}^2$.
+It acts like a regularizer. Properties:
+\begin{itemize}
+\item
+$reg_{D,q}(w)\ge0$
+\item
+$reg_{D,q}(0)=0$
+\item
+if $reg_{D,q}(w) > \ln 2$ then $w\ne w^*$, because 0 would be better.
+%exp family models
+\item
+$reg_{D,q}(w_1,0,\ldots, 0)<\ln 2$ for all $D,q\in (0,1)$ and $w_1$.
+\item
+Except for degenerate cases, $\lim_{c\to \iy}reg_{D,q}(cw_1,cw_2,0,\ldots)=\iy$.
+\item
+$reg_{D,q}$ cannot be approximated to within any factor by a convex function.
+\item
+But dropout criterion is convex function of $w$.
+\item
+If $D$ is concentrated on $(1,1)$, then $reg_{D,q}$ is not monotone.
+%helping another, reduce variance.
+\end{itemize}
+%analyze cases where succeed
+%not analyzes effect on optimization.
+
+Another question: For which data distributions $P$ is $w^*$ close to Bayes optimal?
+
+\begin{pr}
+For any finite domain $X\subeq \R^n$ and any distribution $P$ with support in $X$, for all $q\in (0,1)$ the dropout criterion has a unique minimum iff there is not a feature $i$ such that $\Pj_{(x,y)} (yx_i\ge 0)=1$ or $\Pj_{(x,y)} (yx_i\le 0)=1$.
+\end{pr}
+When no unique minimum exists, we can do better with larger weights.
+%dislike large: swing.
+%huge weight: tiny loss. 
+%better off with bigger weight
+%if always took value 0, no unique min either.
+
+As $q$ gets small, effect of regularization fades away. Compare inductive bias of dropout by comparing with other regularizers, $\fc{\la}2\ve{w}^2$. 
+Let
+$$
+err_P(w) = \Pj_{(x,y)\sim P} [\sign(w\cdot x)\ne y].
+$$
+Characterize $P,Q$ such that $err_P(w^*(P,q))$ is close to optimal, $err_P(v(P,\la))$ is far from optimal, and vice versa.
+
+%landscape schematic: expand level curves.
+%structural risk minimization
+
+%willing to incorrect to 
+Dropout prefers to focus on a single feature.
+
+%if $w$ was randomly picked.
+
+\subsection{Dropout in deep networks}
+
+We consider deep nets that use ReLUs, $\max\{w\cdot x+b,0\}$. Number of inputs is $K$, width is $n$, depth is $d$, parameters is $W$, function is $f_W$, dropout pattern in $R$, dropout-corrupted function is $f_{W,R}$.
+
+Dropout criterion is $J_P(W) = \EE_{(x,y)\sim P}((f_{W,R}(x)-y)^2)$.
+
+Dropout is scale-free in a strong sense. Let $Q$ be obtained from $P$ by rescaling each of $(x_1,\ldots, x_K)$. Then $err_Q(W_Q^*) = err_P(W_P^*)$.
+%huge effect on optimization.
+
+Proof. If we scale down the features, we scale up the weights.
+
+Weight decay is not scale-free.
+
+%scale and then normalize?
+
+%so sure true, not true.
+
+Say $f$ is non-decreasing if it is non-decreasing in any input. A network of non-decreasing units is non-decreasing. Dropout uses negative weights for simple monotone functions. ($\Pj((0,\ldots, 0),0)=\rc2$, $\Pj((1,\ldots, 1),1)=\rc 2$, $n\gg K(d+K)$.) With non-negative weights, fitting data leads to $\rc K$ variance at output. Using negative weights reduces variance.
+
+\subsection{Experiments}
+
+Generate synthetic data $S$. Modify $S$ by rescaling inputs. Train with weight decay and dropout.
+Dropout produced more negative weights than Tikhonov regularization ($\fc\la2\ve{w}^2$).
+%model that uses negative weights, vs. all nonnegative weights.
+%true of any strictly convex loss function?
+
+Q: My intuition is that dropout encourages spreading out weights (different from here). $L^2$ also encourages spreading. Is dropout somehow between $L^2$ and $L^1$? If you have 2 features that do the same thing, dropout prefers you include them both. Dropout prefers features that work together. It doesn't like features that compete. (This arises in practice.) If dropping out can flip... Dropout prefers stability.
+
+Q: Why not used so much? New techniques inspired by dropout replace: batch normalization, residual nets, $\cos(w\cdot x)$. 
+
+Does dropout help in generalization? Being reluctant to fit some kind of data helps in generalization.
+
+Adversarial examples: Does dropout make it better/worse?
+
+

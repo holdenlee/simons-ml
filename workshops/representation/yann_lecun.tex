@@ -1,0 +1,312 @@
+\section{Unsupervised representation learning (Yann LeCun, New York University)}
+
+%text - go to images...
+
+We can train a machine on lots of examples. But will it recognize tables, chairs, dogs, cars, and people it has never seen before?
+
+It's amazing what we can do with supervised learning (convolutional neural nets). 
+%train on reasonable images
+
+Supervised and unsupervised learning will give the same features at the low-level. But the high-level features are task-dependent. Is there a way to learn task-independent high-level features?
+
+People have trained on ImageNet, fine-tuned on X-ray images, etc. It kind-of works. There is something intrinsic to images that is relatively task-independent.
+
+CNN are weakly biologically inspired. 
+
+There are two pathways in the human visual system: Identify objects; localize objects. This has also been done in neural nets.
+%Sharpmask
+Objects are segmented and labeled. (Ex. counting sheep. You can do instance segmentation.)
+
+Mask R-CNN, He, Gkioxari, Dollar, Girshick \arxiv{1703.06870}: Produces object mask for each region of interest.
+%Mask R-CNN: For every pixel produces 
+
+Supervised learning can take you quite far. 
+
+Obstacle to AI: how can machines acquire common sense? This is an old holy grail for AI. 
+
+Machines don't have common sense. They must learn how the world works by observation. Predictive/unsupervised learning is the missing link.
+This is the main obstacle. 
+
+What does the agent need to have internally?
+\begin{itemize}
+\item
+learn/understand how world works
+\item
+learn large amount of background knowledge
+\item
+perceive state of the world
+\item
+update and remember world state estimates
+\item
+reason and plan
+\end{itemize}•
+Intelligence and common sense = perception + predictive model + memory + reasoning and planning.
+
+We don't know how to do predictive modeling.
+
+Winograd schema: 
+\begin{itemize}
+\item
+``The trophy doesn't fit in the suitcase because it's too large/small.''
+\item
+``Tom picked up his bag and left the room.''
+\end{itemize}•
+
+How do we get a machine to learn millions of commonsense facts?
+(Cf. large team typing facts, hoping that commonsense will emerge, Doug Lennett, Cyc.) %Lucid
+Commonsense is the ability to fill in the blanks.
+\begin{itemize}
+\item
+Infer state of world from partial information.
+\item
+Infer future from past and present.
+\item
+Infer past events from present state.
+\item
+Fill in visual field at retinal blind spot.
+\item
+Fill in occluded images.
+\item
+Fill in missing segments in text, words in speech.
+\item
+Predict consequences
+\item
+Predict sequence of actions leading to a result.
+\end{itemize}
+
+Necessity of unsupervised learning/predictive learning.
+
+``The brain has $10^{14}$ synapses and we only live for about $10^9$ seconds. SO we have a lot more parameters than data. This motivates the idea that we must do a lot of unsupervised learning since the perceptual input is the only place we can get $10^5$ bits of data a second.'' (Jeff Hinton)
+
+\begin{enumerate}
+\item
+Pure (model-free) reinforcement learning (cherry): Sample complexity sucks.
+Machine predicts a scalar reward given once in a while.
+
+(I will advocate model-based RL.)
+\item
+Supervised learning (icing): Machine predicts category, 10-10000 bits per sample.
+\item
+Unsupervised/predictive learning model (cake): Predicts any part of input for any observed part. Predict future frames in videos. Millions of bits per sample. 
+\end{enumerate}
+This is a black forest cake, cherry is not optional.
+
+VizDoom Champion: Actor-Critic RL system from FAIR, winner of 2016 competition.
+
+StarCraft: Brood War RL-based system for battle tactics. Define subgoals, strategy... It's hierarchical. No one knows how to do this properly.
+
+Sutton's Dyna architecture: Try things in your head before acting. Integrated architecture for learning, planning, and reacting.
+
+RL sucks, do model-based RL. ``The main idea of Dyna is the old, commonsense idea that
+planning is `trying things in your head,' using an internal
+model of the world (Craik, 1943; Dennett, 1978; Sutton \&
+Barto, 1981). This suggests the existence of a more primitive
+process for trying things not in your head, but through direct
+interaction with the world. Reinforcement learning is the
+name we use for this more primitive, direct kind of trying,
+and Dyna is the extension of reinforcement learning to include
+a learned world model.''
+%neurogammon
+
+Classical model-based optimal control: 
+Simulate the world (the plant) with initial control sequence. Adjust control sequence to optimize objective through gradient descent. Backprop through time was invented by control theorists in late 1950's (adjoint state method). 
+Optimal control people invented backprop, they just didn't realize we could use it for learning.
+
+\subsection{Architecture of an AI system}
+\begin{enumerate}
+\item
+Perception: estimates state of world.
+\item
+Agent
+\item
+Objective: measure agent's happiness from state. 
+\end{enumerate}
+Inside the agent:
+\begin{enumerate}
+\item
+World simulator: predict world state
+\item
+Actor: generate action proposal
+\item
+Critic: predict long-term value
+\end{enumerate}•
+We know how to build the critic, we don't know how to build the world simulator. 
+
+Use classical optimal control:
+\begin{enumerate}
+\item
+Find action sequence through optimization
+\item
+Use sequence as target to train the actor.
+\end{enumerate}•
+%sham kakade
+You don't want to do optimization step every time. Instead of running simulator every time, train an actor to directly predict which action to take. 
+Eventually actor will directly generate the correct sequence of actions.
+
+%all a rollout model.
+\footnote{
+Humans do backward chaining. There's only rollout here?
+
+Optimization is backward chain.
+
+There is a more high-level process with subgoals missing from the picture.
+
+Greg Wayne, Columbia, DeepMind came up with hierarchical system for generating action.
+%neural computation
+
+%There's no node for representing the goal. 
+Dynamic programming with pruning, backtrack and stay in high-value states?}
+
+%I'm a big fan of gradient, don't like discrete stuff. 
+Insurance pricing. Challenge: when the world is not easily explainable, Actor-critic finds stupid edge cases. This system is dangerously convenient but horrifying the real world.
+
+You need lots of diverse example, covering space. In classical control, people build a model by hand. They have accurate dynamical model. %It works because you h
+In anything in the world there is stochasticity, it diverges quickly. 
+
+The biggest challenge is the edge cases. The insurance company doesn't know what happens when you drop prices by half. You need beyond what you've seen before.
+
+Learned model of Billiard and planning. Forward model: entity RNN + interactions (Henaff, Whitney, LeCun 2017). 
+
+Classical optimal control, except model built by entity RNN.
+
+How to learn models of world? PhysNet learns intuitive physics. (Lerer, Gross, Fergus, \arxiv{1603.01312}) Predict what happens to tower of cubes. Train on lots of experiments. We can show real cubes in real video and it does decently.
+
+There are fuzzy predictions. Network predicts average of possible futures. This is a problem we have to deal with.
+
+\subsection{Inferring state of world from text: entity RNN}
+Augment neural nets with memory module. 
+\begin{itemize}
+\item
+Recurrent networks cannot remember things for very long.
+\item
+Need hippocampus (separate memory module).
+\begin{itemize}
+\item
+Memory networks
+\item
+stacked augmented recurrent neural net
+\item
+neural turing machine
+\item
+differentiable neural computer
+\end{itemize}•
+\end{itemize}•
+Differentiable memory is like a soft RAM circuit or soft hash table. It stores key-value pairs $(K_i,V_i)$. 
+
+Get scores for keys, put though softmax to get coefficients of values, linearly combine.
+
+You can use this for question-answering.
+
+bAbI: 20 types of tasks. Entity RNN can solve all 20 types.
+
+Maintain current estimate of state of world. 
+Each module is recurrent net with memory.
+Ex. John went to kitchen. Each cell decides whether it's relevant, if so, update: ``kitchen'' cell updated with John, ``John'' cell updated with kitchen.
+%You have a bank of RNNs. By default they keep previous state. There is sequence of events
+
+%Have machine read sentences. 
+
+\subsection{Unsupervised learning}
+
+Energy-based unsupervised learning: Learn energy function (or contrast function) that takes low values on data manifold and higher values everywhere else.
+
+Ex. negative log desnity.
+
+How to learn a function that takes a vector and says whether it looks like the training set or not?
+We need to train the machine to learn these contrast functions. Tweak parameters so output is small outside. How do we make sure the function takes high values outside the samples? 
+
+Cf. partition function problem: if you give high prob to some, have to give low prob to others.
+
+Push down on energy of desired outputs, up on everything else. How to choose where to push up?
+
+7+ strategies:
+\begin{enumerate}
+\item
+build machine so volume of low stuff is constant
+\item
+push down on energy of data points, up  everywhere else.
+\item
+push down on energy of data points, up on chosen loactions
+\item
+minimize gradient and maximize curvature around data points (score matching)
+\item
+train dynamical system so dynamics goes to manifold
+\item
+use regularizer that limits volume of space that has low energy
+%sparse coding
+\item
+$\E(Y)=\ve{Y-G(Y)}^2$, make $G(Y)$ as constant as possible.
+\item
+adversarial training
+\end{enumerate}
+%feature selection.
+%there is implicit smoothness in world?
+
+\subsection{Adversarial training}
+
+I think this is the answer. Train a generative model. Two ways to view: how to train generator? How to train contrastive function?
+
+Ex. try to predict what happens in the next frame of video, where will the pen fall?  %There is a set of possible features.
+I don't want to punish the machine for making the wrong choice. I need a cost function that is a contrast function between the data manifold and outside.
+%contrast function for things that are good/bad.
+
+Use 2nd neural net, train to produce contrast function. Train discriminator to tell difference between real futures and generated futures. Generator trains to produce predictions that the discriminator can't tell are not real. Adjust parameters to minimize output. Two loss functions: one minimized by discriminator, one by generator.
+
+Eventually generator moves towards low-energy areas. 
+
+Energy-based GAN (Zhao, Mathieu, LeCun, ICLR2017).
+Discriminator is auto-encoder. 
+%\begin{align}
+%f_D(x,z)&= \ve{Dec(Enc(x))-x} + [m-\ve{Dec(Enc(G(z))}]^+
+%f_G(z) = 
+%\end{align}•
+For various pairs of loss functions there is Nash equilibrium. 
+
+EBGAN: Side connections help decoder reconstruct. You can use discriminator, train unsupervised on MNIST, and fine-tune on labels to get $<1\%$ error on MNIST.
+
+%Train on dogs. Global 
+\subsection{Video prediction}
+Look at 4 frames in past and predict 2 frames in future. Training with $L^2$ get blurry prediction. With adversarial training, it's crisper.
+
+It's captured some structure of the data. Is it the case that the internal representation is helpful for recognition?
+
+It's not clear. 
+
+Video goes haywire after 10 frames.
+
+Predict in feature space? Ex. segmentation for car camera. Can you predict segmentation maps in the future? 
+
+You need this because the alternative is to wait for crash to happen, and learn that you shouldn't do this.
+
+%This is why 
+
+Q/A:
+\begin{itemize}
+\item
+Relationship between real inference process (forward), policy knows intuitively without having to execute.
+
+Ex. chess grand master compiles tree-exploration and planning into pattern recognition. This is the secret of AlphaGo. First is convolutional net, predict where you should play. That's the intuitive part. Second part is tree-exploration, MCTS. You want both. The first one helps the second one; if the second one does better it can refine the first one. 
+
+Ex. learning to ski. Every prediction you make results in falling, be careful. Compile into reactive moves.
+
+%Deliberate planning followed by 
+\item
+Best thing is to predict average, but average is not outcome itself. 
+How do you avoid predicting the average?
+
+You can use adversarial training or simpler form of training. Things in street views are more predictable. It's when something unpredictable happens that you have to react. 
+
+One way of building self-driving cars is not only having predictive models, but see when they fail. There are many problems with ML that could be moderated with predictive or generative models.
+\item
+Transfer learning. Tips on building architectures good for transfer learning?
+
+ResNet, Inception don't seem to be as good as VGG.
+
+It used to be a subfield of machine learning. Since deep learning, it's been obvious that you can do transfer learning. Fine-tune, or train on tasks simultaneously.
+
+People do this for translation. It works better for languages with small amount of data.
+
+How do you train a self-driving car system in simulator and transfer into real world?
+
+It's the input that's different. 
+\end{itemize}•

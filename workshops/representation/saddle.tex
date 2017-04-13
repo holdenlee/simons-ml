@@ -1,0 +1,54 @@
+\section{How to escape saddle points efficiently (Praneeth Netrapalli, Microsoft Research India)}
+
+We show that a perturbed form of gradient descent converges to a second-order stationary point in a number iterations which depends only poly-logarithmically on dimension (i.e., it is almost ``dimension-free''). The convergence rate of this procedure matches the well-known convergence rate of gradient descent to first-order stationary points, up to log factors. When all saddle points are non-degenerate, all second-order stationary points are local minima, and our result thus shows that perturbed gradient descent can escape saddle points almost for free.
+
+Gradient descent for $\min_x f(x)$: for $l$-smooth functions, converges to points where gradient is close to 0:
+$\ve{\nb f(x_t)}<\ep$ in $t=O\pf{l(f(x_0)-f^*)}{\ep^2}$. Convertes to $\ep$-first order stationary points. They can be local minima or saddle points. 
+
+They can converge to either but these are very different in practice. Local minima are often good, but saddle points are very poor compared to global minima. 
+
+Local minima are much more desirable to converge to than saddle points. Gradient descent can converge to saddle points. How to escape saddle points efficiently?
+
+Ge2015: by adding noise, gradient descent escapes saddle points. This requires $\poly(d)$ iterations. Gradient descent comes close, after $\poly(d)$ iterations it escapes. 
+
+Can we do this more efficiently?
+
+Hessian Lipschitz: $\ve{\nb^2f(x)-\nb^2f(y)}\le \rh\ve{x-y}$. 
+2nd order stationary point: $\ve{\nb f(x)}\le \ep$ and $\la_{\min}(\nb^2 f(x))\ge -\sqrt{\rh\ep}$. 
+(Nesterov Polyak 2006)
+
+Perturbed gradient descent finds $\ep$-second order stationary point in $t=\wt O\pf{\ell (f(x_0) - f^*)}{\ep^2}$. It converts to second order stationary point in essentially same amount of time as GD to first order stationary point.
+
+Keep doing GD, and once in a while it does perturbation (when perturbation condition holds). It kicks in when gradient at current point is small and we haven't added noise for a while. 
+
+Proof idea: two cases.
+\begin{enumerate}
+\item
+$\ve{\nb f(x_t)}>\ep$. Then descends.
+\item
+$\ve{\nb f(x_l)}\le \ep$. There exists a descent direction.
+
+Let $S$ be set of points around saddle point from where gradient descent does not escape saddle point. Key technical result: $\Vol(S)$ is small. 
+
+Consider adding a negative eigendirection to get $w$. If $u$ does not escape, $w$ escapes. For every point there are many other points that escape. (Divide in lines; it intersects set in small segment.)
+\end{enumerate}•
+Gradient descent converges to first order stationary points, perturbed GD converges to second order stationary points, depends only logarithmically on dimension.
+
+Further results using local structure:
+\begin{itemize}
+\item
+strict saddle property: every saddle point has strictly negative eigenvalue. Then all second-order stationary points are local minima.
+\item
+Local strong convexity. Get local geometric convergence once we are in neighborhood.
+\end{itemize}•
+
+Open:
+\begin{itemize}
+\item
+is randomness in beginning sufficient?
+\item
+Do momentum methods help accelerate for nonconvex problems?
+%Adam, etc. 
+\item
+Extensions to stochastic case.
+\end{itemize}•

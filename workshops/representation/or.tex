@@ -1,0 +1,149 @@
+\section{Provably Learning of Noisy-or Networks (
+Rong Ge, Duke University)}
+
+In this talk we discuss recent works on learning the single-layer noisy or network, which is a textbook example of a Bayes net, and used for example in the classic QMR-DT software for diagnosing which disease(s) a patient may have by observing the symptoms he/she exhibits. These networks are highly non-linear, as a result previous works on matrix/tensor decomposition cannot be applied directly. In this talk we show matrix/tensor decomposition techniques can still be adapted to give strong theoretical guarantees even for these nonlinear models.
+
+Why are we interested? 
+
+One traditional idea in learning representations is to use latent variable models. If I estimate unknown parameters, they tell me about structure in data. I want to learn mean and covariance. For many of these simple latent variable models, we can learn by tensor decomposition, in polynomial in parameters and $\rc{\ep}$ time.
+
+What happens when we try to generalize to slightly more complicated models?
+
+These are more similar to nonlinear versions of the traditional models. It is very similar to RBM's. Hopefully understanding these models will tell us more about why deep representations are useful.
+
+The same techniques don't apply immediately; these problems are harder to learn.
+
+The previous problems we know how to learn are linear; these problems are nonlinear. What ideas can we use to learn these nonlinear latent variable models. 
+
+Disease-symptom networks: diseases are 0-1 variables. We have an edge from disease to symptom if it has some probability of causing the symptoms.
+
+If we observe the sympotoms of many patients we want to learn how many diseases, and which symptoms they cause.
+
+$m$ disaeases $d_i$, independent wp $p$. Edge weight $\Pj(s_i=0|d_j=1) = \exp(-W_{ij})$---if patient has only one disease, probability diseases does not happen. In the 90's people tried to construct these graphs from expert knowledge. One famous dataset is the QMR-DT network, 570 dieases, 4k symptoms, 45k edges.
+
+%What symptoms should we observe?
+
+Suppose patient has 2 diseases. If they both have $50\%=1-\exp(-W_{ij})$ chance of causing a symptom, each tries to cause the symptom independently, we observe if at least one disease causes the symptom. The probability we observe the symptom is $75\%$. ``Noisy'' means each tries to cause with some probabilitity; ``or'' means final value is an ``or''.
+%$$
+%\Pj
+%$$
+\begin{thm}
+We give a polytime algorithm that recovers $W$ with $O(\rh\sqrt m)$ relative error in $\ell_2$ norm in each column (disease). 
+\end{thm} 
+(Think $\rh=C/m$.)
+
+This has fewer requirements on structure of network. The problem is that the polynomial is large. If there are additional nice properties, we get a faster algorithm, poly in $\rc{\ep}$. 
+\begin{thm}
+If the network has nice combinatorial structure (true for QMR-DT), an algorithm to recover $W$ with accuracy $\ep$ using $\poly(n,m,\rc{\ep})$ samples and running time.
+\end{thm}
+
+
+I make a comparison to topic models. A lot of our algorithms are inspired from algorithms for topic models. What are those algorithms and what do we need to do to apply similar algorithms? 
+\begin{itemize}
+\item
+Topic is distribution over words. Multiple topics: words from mixture distribution. 
+\item
+Disease is set of symptoms. Multiple diseases: symptoms from or.
+\end{itemize}
+Topic modeling is linear; noisy or is not. 
+
+Ex. consider document with 2 topics, patient with 2 diseases.
+\begin{itemize}
+\item
+Generate $30\%$, $70\%$ words from topics 1, 2. Final doc is all of the words. $\E\pat{doc}=0.3t_1+0.7t_2$.
+\item
+Generate symptoms from diseases 1, 2. Final symptom is union of 2 sets. $\E$ patient is nonlinear expression. 
+\end{itemize}
+
+Idea: linearize. Use PMI (pointwise mutual information),
+$$
+PMI(s_i,s_j) = \ln \pf{\Pj(s_i,s_j)}{\Pj(s_i)\Pj(s_j)}.
+$$
+$PMI(x,y)>0$ if $x,y$ are positively correlated, and inversely.
+
+If symptoms $i,j$ share disease, then $PMI_{i,j}>0$.
+
+Claim 1.
+$$
+PMI = \rh\sumo km F_k F_k^T + \rh^2(\cdots) \approx \rh \sumo km F_k F_k^T, \quad F_k = 1-\exp(-W_k)
+$$
+by Taylor expansion.
+Log transformation linearizes the product. 
+
+Get similar expression for PMI tensor $PMI3(s_i,s_j,s_k)$ measuring 3-wise correlation. Analogous to inclusion-exclusion formula. $PMI3\approx \rh \sum_k F_k^{\ot 3}$. 
+
+We get systematic error terms because of nonperfect linearization. 
+
+Topic models: if you can compute word-word correlation and 3-word correlation (low rank matrix, tensor), you can apply tensor decomposition to get topic matrix. We try to use the same approach. Hope is that we have PMI matrix, approximately low-rank, PMI tensor, and apply tensor decomposition to get $W$. 
+
+Challenge: we only have access to tensor plus systematic error. We need to handle it carefully.
+
+Claim: $PMI\approx \rh FF^T + \rh^2 GG^T+...$ where $F=1-\exp(-W)$, $G=1-\exp(-2W)$. 
+
+Recover span of $F$ from PMI?
+
+Matrix perturbation theorem (Davis-Kahan, Wedin) are not strong enough, give recovery error $\precsim \rh m$, vacuous since $\rh m\ge 1$. 
+
+Difficulty: $F, G$ are not well-conditioned. 
+
+Key observation: $F, G$ are very similar. 
+
+Intuition: more tolerant on large singular directions. Singular directions of $G$ are aligned with singular directions of $F$!
+
+Traditional theorems don't differentiate these cases.
+
+Lemma: recovery error $\precsim \rh \max\fc{x^TGG^Tx}{x^T(FF^T+\si_m(F)^2I)x}=:\rh\tau$.
+On QMR-DT, $\tau\le 6$. This is provably small constant for random sparse graphs. It suffices to get good approximation for span of $F$. We need to generalize to asymmetric matrices/tensors.
+
+Summary:
+\begin{itemize}
+\item
+PMI approximately linearlizes log-linear model. 
+\item
+Better matrix/tesnor perturbation results handle systematic error.
+\item
+Challenge: PMI tensor requires many samples.
+\item
+Next: use structure of disease/symptom graph to get faster algorithm.
+\end{itemize}•
+Inspired by topic models. Compare topic models and noisy-or. Rows are words/symptoms. Columns are topics/diseases. An anchor symptom is a symptom that appears in only one disease. (An anchor word appears in only 1 topic.)
+
+Only a subset of diseases have anchor symptoms. Idea: learn these diseases first and them remove. Then other symptoms which were not anchor before are anchor.
+
+Actually, use sequential 2-anchor condition: if all diseases have not been recovered, there is a disease with at least 2 anchor symptoms. (In QMR-DT, 7 layers is enough.)
+
+In previous works, sample complexity depends exponentially on $T$. Maybe we can learn diseases in first few layers. 
+
+Reduce noisy OR to symmetric NMF. $PMI\approx \rh FF^T$. 
+This is symmetric nonnegative matrix factorization. We need to be careful with higher-order terms; I ignore this.
+
+High-level algorithm: Repeat until all diseases learned.
+\begin{enumerate}
+\item
+Find all anchor symptoms. 
+
+If 2 anchors correspond to same disease, rows in PMI matrix are duplicates. %up to multiplicative factor.
+If we try to subtract this component, no entry should become negative.  
+%correctly identify for QMR-DT graph. 
+%sym nonneg
+\item
+Learn diseases with at least 2 anchors. 
+
+We only need to learn a scaling. $F_p=\la PMI_j$, $PMI_{i,j} = \rh F_p(i)F_p(j)$.
+\item Remove diseases from graph. subtract $F_pF_p^T$. 
+\end{enumerate}•
+
+We run synthetic experiments. 
+
+Open:
+\begin{itemize}
+\item
+More practical for learning noisy OR (sample complexity)
+\item
+Better generative model for QMR-DT (why layered structure?)
+\item
+Learning more nonlinear models (RBM, deep belief networks, etc.)
+\end{itemize}
+
+
+Dependencies between diseases?

@@ -1,0 +1,165 @@
+\section{Representation learning for reading comprehension (Russ Salakhutdinov, Carnegie Mellon University)}
+
+In this talk I will focus on discussing deep learning models that can find semantically meaningful representations of words, learn to read documents and answer questions about their content. First, I will introduce the Gated-Attention (GA) Reader model, that  integrates a multi-hop architecture with a novel attention mechanism, which is based on multiplicative interactions between the query embedding and the intermediate states of a recurrent neural network document reader. This enables the reader to build query-specific representations of tokens in the document for accurate answer selection. Second, I will next introduce a two-step learning system to question answering from unstructured text, consisting of a retrieval step and a reading comprehension step. Finally, I will discuss a fine-grained gating mechanism to dynamically combine word-level and character-level representations based on properties of the words. I will show that on several tasks, these models significantly improve upon many of the existing techniques.
+
+Joint work with with Bhuwan Dhingra, Zhilin Yang, Yusuke Watanabe, Hanxiao Liu, Ye Yuan, Junjie Hu, and William W. Cohen
+
+I'll show a trick to train LSTM's more efficiently.
+
+\subsection{Multiplicative and fine-grained attention}
+
+We have a who-did-what dataset. Most existing systems are far from human-level performance. 
+
+The cloze-style Q/A task involves tuples $(d,q,a)$ where $d$ is document, $q$ is question over contents, and $a$ is answer. The answer comes from fixed vocab $A$. 
+
+Task: given $(d,q)$, find $a\in A$ answering $q$.
+
+Half of work is from DeepMind. A lot of models rely on recurrent networks, 
+$$h_t=\phi(Uh_{t-1}+W_t+b),$$
+where $h_t$ is hidden state at time $t$, $x_t$ is input at time $t$, and $\phi$ is nonlinearity.
+
+We replace with elementwise multiplication
+$$
+\phi(Uh \odot Wx + b)
+$$
+or 
+$$
+\phi(\al\odot Uh \odot Wx + \be_1\odot Uh + \be_2\odot Wx+b).
+$$
+This is easer to optimize.
+%vs. inductive bias?
+
+If we train regular RNN, we get saturation effect. When you apply $\tanh$, they go to sides, and it becomes hard to optimize. For the multiplicative model, it sits in the middle, in the linear regime. We have much faster convergence.
+
+%Do you have sparsity? Weights don't go to 0, but a lot sit around 0.
+
+If I take a derivative with respect to $W$ in the multiplicative system, $x$ can have direct effect. (Hidden state can affect gradient.) The way gradients are flowing. Gating has big impact on performance.
+
+%This is a diagonal approximation. Could 
+
+%Why use tanh? 
+
+%glove vs. word2vec
+Off-the-shelf GloVe words better than word2vec.
+
+Use bi-directional LSTM/GRUs %incopr a little context around
+to encode both document and query. 
+\begin{itemize}
+\item
+Use attention mechanism, 
+\begin{align}
+\al_i &=\text{softmax}(Q^Td_i)\\
+\wt q_i &= Q\al_i\\
+x_i &= d_i \odot \wt q_i.
+\end{align}
+Use elementwise multiplication operator to model interactions between $d_i$ and $\wt q_i$. 
+\item
+Multi-hop architecture. 
+\item
+Create a softmax. Aggregation happens at output.
+$$ P(c|d,q)\propto \sum_{i\in \mathbb I(c,d)}s_i.$$
+\end{itemize}
+There's so much work done in this space.  Gating mechanisms do reasonably well. The pace is very fast.
+
+When we look at attention models, we sometimes see interesting things. On the $x$-axis is the query, on the $y$-axis is the document. 
+%``alleged corruption 
+
+%alleged corruption -> Rod Blagojevich.
+%Ex. Senate -> Blag
+
+Words vs. characters:
+\begin{itemize}
+\item
+Word-level representations are good at learning the semantics of the tokens.
+\item
+Character-level representations are more suitable for modeling sub-word morphologies (cat, cats). 
+\item
+Hybrid word-character models have been successful. A commonly used method is to concatenate these two representations. 
+\end{itemize}
+
+Fine-grained gating:
+$$
+h = g\odot c + (1-g)\odot (Ew).
+$$
+Gating happens as elementwise multiplication. If we use scalars it doesn't work as well.
+Here
+$$
+g = \si(W_gv + b_g). 
+$$
+%sigmoid in (0,1)
+We use a bunch of prior knowledge to decide whether to use word or character.
+
+High gate values correspond to character-level representations. Low gate values mean word-level representations. Low-frequency words and proper nouns use character-level representations.
+
+
+\subsection{Incorporating knowledge as explicit memory for RNN's}
+
+
+LAMBADA dataset: answer who. 
+Coreference resolution is the standard technique. People in NLP are familiar with this. A lot of existing models don't take this into account. 
+
+%Can we incorporate
+Can we learn from data and incorporate coreference dependency parse, etc. other NLP info that's useful.
+
+Introduce coreference links, hyper/hyponyny links like skip-connections. This is like having  multiple RNN chains with skip-connections. Construct parse matrix. Construct in such a way so it's a RNN model with additional links.
+The directionality matters. Move forward and backwards. We can take the question into account. 
+
+Mathematically, putting a link means that at every hidden state, incorporate info from all links coming in.
+
+%What are parts that
+%What weights are shared? Think of this as skip-connections.
+
+It's an interesting and bad results. For babiQA, go from 75.2\% to 91.3\%. For others, we don't get significant gains.
+%lambada, cnn
+%lambada prediction
+%others: attending
+
+Q: how many objects is Sandra carrying?
+
+GA model defaults to 1. Adding structure helps.
+
+\subsection{Generating text} %ve adversarial nets
+
+Leverage unlabeled text for question answering.
+
+It's easy to find an answer. Use POS/NER/parsing to extract possible answer chunks. Anything can be answer. Assume answer is available. 
+
+Given an answer, can you generate a question for it?
+
+We have labeled data $(p,q,a)$ and unlabeled data $p,a$. Generate with seq2seq with copy mechanism. Maybe we can combin to train QA model. One piece that's difficult is to generate the question.
+
+Some simple baselines work well. 
+\begin{enumerate}
+\item
+Given answer, look at some surrounding context. This works remarkably well (in low data regime). 
+\item
+GAN: One objective function differentiates between true or fake question, the other tries to answer.
+
+One problem is that it's hard to generate good-quality questions, and harder to discriminate between real and fake.
+\end{enumerate}•
+We do something different, generative domain-adaptive nets. 
+
+Have a data tag that says whether data is coming from true distribution. %Train generator to generate whatever sentence. %so that if I pass through discriminator.
+Objective is not to generate coherent sentences, but whethever helps answer the questions. 
+
+We see gains in the low data regime. In high data regime, we still see edge but gap closes. 
+
+We started thinking about: is there a way to generate better looking questions? 
+
+We looked at VAE's. We have $z\sim N(0,I)$ and a code $c\sim \text{Bernoulli}(\mu)$.
+
+We can fix $z$ and change code to change sentiment, tense, etc.
+
+We can fix the code and generate the latent state. Generate a sentence which is negative and past, etc.
+(Some sentences are new.) 
+How do you evaluate quality? There's no good answer.
+
+I can flip code and regenerate sentence: take a negative sentence and make it positive, etc.
+
+%When you have pointwise multiplication and addition, you have something close to a field. (???)
+%powerful computational mechanism
+%work in linear regime
+%boost up dimensionality, may not have to do gradient descent.
+
+%locality: look at things around
+Who-did-what dataset: humans cannot answer the question by  looking at last sentence. Our model does better on these types of questions. 

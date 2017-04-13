@@ -1,0 +1,173 @@
+\section{Adversarial Perceptual Representation Learning Across Diverse Modalities and Domains (
+Trevor Darrell, UC Berkeley)}
+
+Learning of layered or ``deep'' representations has provided significant advances in computer vision in recent years, but has traditionally been limited to fully supervised settings with very large amounts of training data.  New results in adversarial adaptive representation learning show how such methods can also excel when learning in sparse/weakly labeled settings across modalities and domains. I'll review state-of-the-art models for fully convolutional pixel-dense segmentation from weakly labeled input, and will discuss new methods for adapting models to new domains with few or no target labels for categories of interest.  As time permits, I'll present recent long-term recurrent network models that learn cross-modal description and explanation, visuomotor robotic policies that adapt to new domains, and deep autonomous driving policies that can be learned from heterogeneous large-scale dashcam video datasets.
+
+%empirical talk
+
+%confluence of techniques
+
+\subsection{Adversarial domain adaptation}
+
+Joint work with Eric Tzeng, Judy Hoffman.
+
+Limits of deep learning: few-shot learning, having predictive uncertainty, learning from new domains.
+
+Autonomous vehicle trained to detect pedestrians. If you train with enough data and deep architecture, it works well, but if you take to a new environment, mileage may vary.
+
+Domain adaptation is a classic problem statement. We have source domain with labels, do some classification tasks. Now things change, I don't have an analytic model of how they change. We can have poor performace even with best, highest-capacity supervised learning algorithms.
+
+%Build few-shot
+I'm interested in the case where you have no labels in target domain; you can't do few-shot learning. I assume you don't have paired/aligned instance examples (Siamese network).
+
+What can we do without labels in target domain or constraints about pairs mapping together? The methods converge on the method of minimizing discrepancy.
+
+Distance between domains might dominate distance between classes.
+
+What can you do? Assumption underlying minimizing discrepancy: make decisions in domain invariant to transformation.
+
+We take a broad notion of what domains are: differend distributions, labeling functions, modalities, feature dimensions... We want a representation blind to this bias. 
+
+A series of methods. Let's align means of these distributions. At least optimize representation so that mean of two groups of points are the same.
+
+State of art approach: Even if I try to train a high-capacity discriminative classifier it can't tell the difference. Simultaneously trying to learn a supervised classifier in source domain. Have additional domain. Have a representation where you can't tell the difference between the domains. Penalize inversely according to success. 
+%In adversarial 
+%share same philo: do task, fail at something
+
+%notional cartoon, 
+You get representaiton where you can't separate domain but can separate classes.
+
+Start off training a domain classifier to predict the label.
+
+Have 2 more losses.
+\begin{align}
+\cal L_D(x_S,x_T, \te_r, \te_D)&=-\sum_d \one[y_D = d]\ln q_d\\
+\cal L_{conf}(x_S,x_T,\te_D, \te_r)
+&=-\sum_d \rc D q_d
+\end{align}
+``confusion'' loss.
+Iterate between these two like GAN's. 
+This is called adversarial discriminative domain adaptation. 
+
+CoGAN: two GAN's with coupled learning but unshared weights works quite well in some cases.
+
+For classification, you get better results with dicriminative loss/front-end. There is no sharing and GAN adversarial loss.
+%0 labels in new domain.
+
+Enforce: you can't tell the difference between 2 domains. This is reasonable.
+
+Precursor to these ideas: focus on dataset bias. The standard is MSCOCO. But it's just as much an arbitrary dataset as Caltech 101! If you can play ``name the dataset'' game, there's a problem! One set of techniques work on Caltech 101, UIUC,... They had researchers come up and say what comes from what dataset. The good researchers could tell. If you can do this, you've overfit to properties of these datasets.
+
+You should play the dataset game and lose. 
+%You shouldn't classify what 
+
+%You can pretrain 
+
+%You can minimize loss by minimizing discrepancy between domains. Cars and buses don't share the same features.
+
+%Impose prior that domains are related. 
+%Tasks are the same. 
+This is part of bigger family of multitask or transfer learning. Transfer learning is the same/orthogonal? Here we have the same tasks in 2 different places, maybe a different camera or sensing modality.
+
+If I train on Caltech101 and on ImageNet, and it classifier makes a mistake, would you be able to tell if it's a mistake based on Caltech101 or ImageNet? Don't segregate your supervised data. 
+To a first approximation, take all labels, pool together, and train jointly.
+
+I'm not saying to only train on one domain, just asking what to do in new domain?
+
+What if there are lots more buses in one and lots more cars in another? Datasets have to be aligned.
+Class imbalance is one aspect of shift. 
+(? But classifier is also built on top of representation!)
+%predictive model of deep models to first architecture?)
+
+CoGAN works well on small domain shifts, not on large. 
+
+You don't even necessarily have the same dimension or modality. Train on one sensor and test on another. This speaks to robustness on convnets. 
+There's enough similarity that you get better-than-chance performance. %doubled performance.
+
+
+\subsection{Learning end-to-end driving models from crowdsourced dashcams}
+
+Autonomous driving paradigms:
+\begin{enumerate}
+\item
+Learn affordances to predict state; apply rules or learned classic controllers.
+\item
+Abandon engineering principles, learn ``end-to-end'' policy.
+
+I don't believe I should have a manual, arbitrary bottleneck, I'd like to learn the whole thing end-to-end. 
+\end{enumerate}
+
+%I must have intermediate parts
+I believe in both approaches.
+
+How can visual sensing be robust to new environments, how to learn generic driving policies from diverse data?
+
+We have BDD (Berkeley deep-drive) data set. %consultant for Nexar.
+
+AlexNet, etc. gives label for whole image. Let's do this at every pixel, In-domain fully suprevised FCN (fully convolutional network). This is only 2--3 times the computation. 
+%replicate AlexNet at every pixel, make more efficient.
+
+%MPI, Domler
+Cityscapes: label every pixel in scene with category labels: blue pixels are cars, dark red are bicycles, pedestrians, etc. 
+When trained and tested on the same datasets, the algorithms do very well.
+
+Domain shift: train on Cityscapes, test on San Francisco Dashcam does well. Car flying in tree, mess in front of image.
+
+Every image in Cityscape has logo. They were smart enough to exclude from loss, but network is messed up where the logo was!
+
+Also there are no tunnels in CityScapes. It makes bogus predictions; I don't have deep models with predictive uncertainty. %---it should know that it doesn't know.
+
+Blue pill: let's learn end-to-end driving. 
+
+%At Berkeley we have RC cars. 
+
+%train independently, don't hit each other
+
+%learn and test on single vehicle
+
+I'm not excited about end-to-end learning without lifetimes of driving on vehicles. Define self-driving as ego-motion prediction. Predict trajectory of vehicle. Add recurrence to fully convolutional model. Have a loss on future ego-motion and semantic segmentation.
+
+Diversity of dataset.
+
+We can also do SLAM. Off-the-shelf methods failed; we did semantic filtering to make it work.
+
+Take held-out sequences and predict what humans will do.
+%character vs. language model
+Cf. character model, it doesn't have model of human intentions.
+
+\subsection{Vision and language: learning to reason to answer and explain}
+
+Original domain adaptation papers came from language.
+
+I'm interested in the fusion of language and vision. How to get explainable models, models that have and reason about compositionality.
+
+We're interested in explainable AI: ex. going from images to captions. %Class definitions, visual explanations. %image descriptions.
+You can jointly train language and image models.
+
+We're interested on text  not just conditioned on image, but conditioned on image and task. Ex. I'd like the car to tell me why it turned left.
+
+Two approaches.
+\begin{enumerate}
+\item
+Implicit: predict what story a human would have told. (Collect rationale test and train in fully supervised fashion.)
+\item
+Explicit: unpack what specific model is doing.
+\end{enumerate}•
+Use an attentive model to do well.
+What was the model looking at when it gave the answer. ``What is the woman feeding the giraffe?'' ``What color is the shirt?'' ``What is the hairstyle?'' It changes attention based on question.
+
+We have models that not only generate text, but also attention. %It can generate text conditioned on question and miage
+
+Neural modular networks: instead of single homogeneous network, have an explicitly compositional network to process images and answer a question. Create parse tree, routines, etc.
+
+Compiling using parsers, answer specific questions. A neural modular network takes a sentence, compiles into parse tree, create neural models convert to semantic parse. 
+
+CLEVR, new dataset. 
+
+Learning to Reason. Take neural modular networks and learn end-to-end fashion the parsing. We're no longer using a side parser! It learns to reason by learning layout policy, and using it to answer question. 
+
+How many other things are of the same size as the green matte ball? It compiles plan: find something, relocate, count. It grounds that the thing it should find is the green matte ball. Count is grounded on ``thing.'' %Images flow through functional units. 
+
+``Does the blue cylinder have the same material as the big block on the right side of the red metallic thing?''
+
+%train explanation models. For implicit, collect rationales.

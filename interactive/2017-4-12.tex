@@ -1,0 +1,166 @@
+\section{Active classification with comparison queries (Shay Moran)}
+
+We study an extension of active learning in which the learning
+algorithm may ask the annotator to compare the distances of two
+examples from the boundary of their label-class. For example, in a
+recommendation system application (say for restaurants), the annotator
+may be asked whether she liked or disliked a specific restaurant (a
+label query); or which one of two restaurants did she like more (a
+comparison query).
+
+We focus on the class of half spaces, and show that under natural
+assumptions, such as large margin or bounded bit-description of the
+input examples, it is possible to reveal all the labels of a sample of
+size $n$ using approximately $O(\log n)$ queries. This implies an
+exponential improvement over classical active learning, where only
+label queries are allowed. We complement these results by showing that
+if any of these assumptions is removed then, in the worst case,
+$\Omega(n)$ queries are required.
+
+Our results follow from a new general framework of active learning
+with additional queries. We identify a combinatorial dimension, called
+the \emph{inference dimension}, that captures the query complexity
+when each additional query is determined by $O(1)$ examples (such as
+comparison queries, each of which is determined by the two compared
+examples). Our results for half spaces follow by bounding the
+inference dimension in the cases discussed above.
+
+If time allows, we will discuss several directions for future research
+and some open problems.
+
+Joint work with Daniel Kane, Shachar Lovett, and Jiapeng Zhang
+
+\subsection{Active learning}
+
+In active learning, get unlabeled data, ask for labels of a few data points, and predict as well as in supervised learning. When is this possible?
+
+For example, for thresholds in 1D, do binary search.
+
+Half-planes in 2-D: Given unlabeled points $x_1,\ldots, x_n\in \R^2$. Labels are $y_i = \sgn(\an{w,x}-t)$. Any active algorithm requires $\Om(n)$ queries. Ex. Take points in convex position; each can be separated from the rest by a line.
+
+\subsection{Active learning with additional (comparison) queries}
+We allow more interaction. What kind? It doesn't make sense to allow arbitrary additional queries. Asking arbitrary membership queries can be problematic (Lang, Baum).
+
+A relative query is a query that holds relative information. ``A vs. B?'' ``Is A more like B or C?''
+
+Let $H=\set{\sign(f)}{f\in F}$ where $F$ is a set of real functions, e.g. half-spaces and neural-nets. Label-query asks $\sign(f(x_i))$ and comparison query asks $f(x_i)\ge f(x_j)$?
+
+
+
+\subsection{Learning half-spaces with comparison queries}
+%error if close?
+
+Half-planes in 2D: 
+This allows active learning with $O(\log n)$ queries. 
+\begin{enumerate}
+\item
+Sample $S$ of size 20.
+\item
+Label $S$.
+\item
+Find points in $S$ closest to line.
+\item
+Build cones
+\item
+Label inputs in cones (must be correct)
+\item
+Repeat on unlabeled points.
+\end{enumerate}
+With probability $\ge \rc2 $ over samples, each iteration labels half of the remaining unlabeled points. Each iteration makes $O(1)$ queries, and so whp $O(\log n)$ are sufficient.
+
+In $\R^3$ this fails. There are $n$ points in $\R^3$ that require $\Om(n)$ label/comparison queries for revealing all labels.
+
+But we can do better if data has bounded bit complexity, $x_i\in \{0,\ldots, B\}^d$. Then all $n$ labels can be revealed using $\wt O(d\ln B\ln n)$. Note $d\ln B$ is the size in bits of each example.
+
+Theorem: Sample in $\R^d$ with margin $\ga$. All $n$ labels can be revealed using $\wt O(\ln(1/\ga) \ln n)$ label and comparison queries.
+
+Our result is actually with respect to $\fc{\min_i |f(x_i)|}{\max_i |f(x_i)|}$. This scales with $f$. 
+
+%pigeonhole, volume argument
+%cf. ellipsoid and vaidya's cutting-plane
+
+Can we get dimension independent bounds? No. There is a sample of $n$ points in $\R^{n+1}$ with margin $\Om(1)$ that requires $\Om(n)$ label/comparison queries for revealing all labels.
+
+\subsection{Inference dimension}
+
+This is the combinatorial parameter we used to analyze.
+\begin{df}
+The inference dimension of $H$ is the minimal $k$ such that every realizable sample of size $k$ contains a point whose label can be inferred from the comparison and label queries on the remaining points.
+\end{df}
+\begin{clm}
+The inference dimension of thresholds is 3.
+\end{clm}
+If 3 points have the same labels, the midpoint can be inferred. If 3 points have different labels, an endpoint can be inferred.
+
+Inference dimension of half-planes is at most 7 (in fact 5). 
+
+Must contain subsample of size 4 with same labels. The cone pointed at the nearest point is defined by 3 points. Any other point can be inferred.
+
+Consider class of $H=\set{\sign(p)}{\deg(p)\le d}$, where $p:\R\to \R$ is univariate polynomial. Open exercise: what is the inference dimension of $H$?
+
+%
+\begin{thm}
+Let $k$ denote the inference dimension of $H$.
+The labels of any realizable sample of size n can be  revealed using $O(k\ln k\ln n)$ comparison and label queries. 
+\end{thm}
+This can be extended to other types of additional queries.
+
+Lower bound: There exists a realizable sample of size $k$ that requires $\Om(k)$ comparison/label queries.
+
+Proof of upper bound: 
+\begin{enumerate}
+\item
+Sample $4k$ points.
+\item
+Query them. (Label and comparison)
+\item
+Infer queries among unlabeled points.
+\item
+Remove labeled points and repeat.
+\end{enumerate}•
+With probability at least half over sample, each iteration labels half of the remaining unlabeled points. Use boosting.
+
+Inference dimension for bounded bit-complexity: 
+\begin{thm}
+Consider $(X,H)$, $X=\{0,\ldots, B\}^d$ and $H$ the class of $d$-dimensional half-spaces. 
+Inference dimension of $(X,H)$ is $\wt O(d\ln B)$.
+\end{thm}
+\begin{cor}
+There is a $2k$ linear decision tree for $k$-sum of depth $\wt O(n)$. 
+\end{cor}
+%dobkin lipton 78, ailon chazelle 05
+%Matches lower bounds and improves upper bounds.
+
+\begin{thm}
+Let $H$ be class of $d$-dimension half-spaces with margin at least $\ga$ wrt $X$.
+The inference dimension of $(X,H)$ is $\wt O(d\ln (1/\ga))$.
+\end{thm}
+
+Future research:
+\begin{itemize}
+\item
+Relative queries
+\item
+Restricted membership queries.  (Problem with just membership queries: what if data is on manifold, and query outside manifold?)
+\begin{itemize}
+\item
+Use generative model $g:[0,1]^k$ to generate meaningful membership queries. %(Data augmentation generator.)
+\end{itemize}
+\item
+Streaming model
+\item
+Noisy comparisons
+\item 
+Exact learning of threshold function on the boolean cube
+\end{itemize}
+
+Consider $(X,H)$, $X=\{0,1\}^d$, $H$ is class of $d$-dimensional half-spaces. Inference dimension is $\wt O(d)$. Thus $2^d$ labels of every $h$ can be revealed using $\wt O(d^2)$ label and comparison queries. This is info-theoretically tight: there are $2^{\Om(d^2)}$ half-planes.
+
+Question: can this be done efficiently?
+(The default algorithm is polynomial in space of data, $2^d$.)
+
+On boolean cube, we can find vertex with min value of linear function using linear programming. What about median vertex?
+%There exists confident learner that wp $\ge \rc2$ covers at least $\rc2$ of the space.
+%$0\le f(x_1)\le \cdots \le f(x_n)$. If you have $x-x_1=\sum_{i<j} \al_{ij} (x_j-x_i)$, $\al_{ij}\ge0$, then $x$ has a positive label.
+
+

@@ -1,0 +1,189 @@
+\section{Word Representation Learning without $<$unk$>$ (closed-vocabulary) Assumptions (Chris Dyer, Carnegie Mellon University)}
+
+Languages synthesize, borrow, and coin new words. This observation is so uncontroversially robust that it is charaterized by empirical laws (Zipf's and Heap's Laws) about the distributions of words and word frequencies rather than by appeal to any particular linguistic theory.  However, the first assumption made in most work on word representation learning and language modeling is that a language's vocabulary is fixed, with the (interesting!) long tail of forms replaced with an out-of-vocabulary token, $<$unk$>$. In this talk, I discuss the challenges of modeling the statistical facts of language more accurately, rather than the simplifying caracature of linguistic distributions that receives so much attention in the literature. I discuss existing models that relax the closed vocabulary assumption, how these perform, and how they still might be improved.
+
+There is power-law distribution, Zipf's law. Rare types are common in language. 
+
+Lesson: You are throwing away a lot of the distribution when you ``unkify''. 
+
+People are throwing away more aggressively, ex. throwing away if appear $<5$ times.
+
+Heaps' law: you will always see new words.
+
+Lesson: you cannot model language and close the vocabularity.
+
+Without solving AI, can we do something better?
+
+\subsection{Form and function: Building word representations compositionally}
+%phonemes
+
+%linguists have bad reputation
+
+Set of phonemes are closed.
+
+Arbitrariness (car-c+b=bar), de Saussure, 1916. Different languages picked different words for ``car''.
+
+At the other end of the spectrum:
+
+Compositionality: look at meaning of expression as composition of parts. (Frege, 1892; Plato)
+(John dances  - John + Mary = Mary dances)
+
+It looks like: at lexical level, arbitrariness, at prepositional level, compositionality. Memorize in the first setting, generalize in the second setting.
+
+Things aren't that simple. We have challenges:
+\begin{enumerate}
+\item
+Idioms: John saw the football/bucket. John kicked the football/bucket.
+\item
+Morphology: We don't think that we have a lot of word formation processes but we do: cool, coooool, coooooooool. cat+s=cats, bat+s=bats.
+
+This is a productive process: teach a kid a new word; kid can produce the plural.
+\end{enumerate}
+Arbitrariness and compositionality exist at levels, although the tendency is smaller units are more arbitrary and larger units are more compositional. Good learners must be able to cope with both.
+
+Our solution: use LSTMs (nominally a model with good generalization behavior) at lexical level where we usually use ``memorization''. 
+
+If you look at where deep learning models fail, it's when they memorize too much and fail to make the necessary abstractions.
+
+We've never been great at working in languages other than English. Languages have different amounts of morphology. 
+\begin{enumerate}
+\item
+Analytic: Mandarin, English. ``cat''
+\item
+Fusional, templatic: to the cat
+\item
+Agglutinative: they caused it not to meow.
+\item
+Polysynthetic: they would carry the cat on their shoulders.
+\end{enumerate}
+There are pieces that fit together but different from words.
+
+Memorization: take a word and project into 1-hot vector.
+Project into low-dimension space. This projection matrix is going to have a vector for every word in the language. Each is independent. Different words are independently parametrized as words that are similar.
+
+On the other side, word with generalization model. (At first we didn't think this was sensible.) View ``car'' as sequence of characters and read as bidirectional LSTM's. Then combine to give vector. We get an effectively infinite matrix.
+
+(You can read a sequence from left to right or right to left. Reading in both directions and combining makes the learning problem easier. In a lot of languages, syntactically interesting parts are prefixes and suffixes. You have gradients impinging on that part more easily.)
+
+In both cases, train parameters using backprop. 
+
+Example: dependency parsing. ``I saw her duck.'' (Words point to arguments.) %directness makes tree.
+%between semantic and syntactic analysis.
+
+Have 2 parsers. Compare 2 ways of representing input: word lookup and CharLSTM. We are building tree up as systems of actions.
+Alternate between shifting words or combining words on stack to treelets. 
+
+Replace the first level of the network. Have lookups from table, or have single network giving vectors. 
+
+If you make small orthographic changes, does the CharLSTM understand the context? We've done analyses about what these models are learning. 
+
+If you make 1-character change, in some words it makes a lot of difference, in some words it doesn't? The evidence suggests this is happening.
+
+%
+Normally when you're reading a word you don't know, you go to dictionary, definition gives some representation. Just have a dictionary and combine synonyms? Dictionaries are complete? Wait till you work on Twitter! We were sick of having to translate. We found 500 ways of spelling ``would''. 
+
+I will come back to this question. If I say ``Gorp'' and have particular idea in mind, you have no idea what I mean. In general you need models that know what they know or don't know. Sometimes you can infer it's a noun and verb... If you're doing translation you're out of luck. Find a thousand instances where it's used.
+
+%context-dependent spelling checkers.
+
+For transition-based parsing, CharLSTM$>$word lookup! (What proportion of words are labeled with the right head?)
+
+You don't need to know very much about meanings of words to do parsing. 
+%smooth long tail
+
+You can think of creating interesting adversarial examples.
+
+What about languages with richer lexicons, Turkish and Hungarian? In agglutinative languages, we see much bigger improvements. In fusional/templatic language, CharLSTM is somewhat better. In analytic languages, the models are roughly equivalent. (Chinese has little morphology.)
+%how are you doing morphology on chinese?
+
+Also see correlation with how many unks do we see in test set (test set OOV rate).
+
+What is really being learned by transition-based parsing?
+\begin{itemize}
+\item
+Is it fair to say we are learning anything beyond syntactic classes? (well-known to have morphological reflexes)
+\item
+Let's turn to even more basic task, language modeling.  (Density estimation on sentences.)
+\end{itemize}
+
+Just change the way we represent the input. 
+
+We'll see a similar story. With English we get the same results. Fusional, agglutinative have improvement.
+
+The number of parameters is an order of magnitude less in LSTM models. We should be cautious of parameter budgets in our word embedding models, think about more compressed representations.
+
+Word similarites. Take a word and ask what the model thing the most similar words are. Find words with similar semantic and syntactic properties.
+
+Build embedding for query word. For words in fixed vocab, see 5 nearest neighbors. ``John'' gets other names of English kings.
+
+This is left-to-right language task. 
+
+Your query word can be a non-word (Jabberwocky test). Ex. Noahsire gives Nottinghamshire. phding gives mixing.
+
+Word-color regression: How are colors used in advertising? Dataset of 2 million names colors, facebook for colors. Carrot, firw, Artemis dark, divinely pink, emo love. Train a character-level model to predict color based on name. To train, backpropagate. How to represent colors and measure color distances. RGB colorspace is convenient but perceptually nonuniform. Use Lab (CIELUV) instead. We have good models of what people can perceive in colorspace. A unit distance is supposed to be perceptually uniform. 
+
+We can predict color of ``bacon lipstick,'' we can also go the other direction. We evaluated by giving people color Turing test. Model predicts a color. 
+Which is a better color for the name? People like our colors better.
+%Does the true color present 
+%3 dataset
+
+Summary: 
+\begin{itemize}
+\item
+morphological regularities are exploited well. LSTMs are good at composition. 
+\item
+Mapping between form and function is generally arbitrarily. LSTMs are good at memorizing. 
+\item
+Lots of follow-up work. Convnets also work.
+\end{itemize}•
+
+What about generalizing? Model characters, not words.
+
+We don't lose very much. Best xentropy goes from 1.21 to 1.33. Adding latent discovery of word-like units, 1.24.
+
+\subsection{Word reuse: Open vocabulary neural language models}
+
+First we need one other observation (Kawakami, D, Blunsom, 2017). Rare words are repeated more often than they should---if you invent a word in an article you reuse it. Once a word has been used once, it's more likely to be used again.
+``The chance of two noriegas is close to $p/2$ than $p^2$.''
+
+Use caching models: don't just generate words as sequence of letters, also copy something I just generated. This is not new, but no one was using open vocabularies.
+
+Open-vocab caching model has 2 parts. 
+\begin{enumerate}
+\item
+word-level LSTM tracking. 
+\item
+feed in reprsentation of previous word. %Rather than sampling word
+\end{enumerate}
+Cache: 
+\begin{enumerate}
+\item
+Every time we generate word, put in cache in empty slot $s$ or least recently used slot, $k_s=h_t, m_s=w_t$.
+\item
+If already a word there, take an average.
+\end{enumerate}•
+
+What's the probability of copying from cache? Attend over contents. Make a final decision: how to produce the next word---copy or generate? Condition on current state of LSTM.
+
+%don't have to do DP to train
+
+%Not HMM: transitions deterministic.
+%At every timestep, we need to decide whether to retrive
+
+Put pieces together: First decide probability of copying, generating. Probability of generating Pokemon from cache and from scratch; add together to get total probability.
+
+On open-vocab, see significant results.
+
+What's the incentive not to copy? Cache limited. There's a key associated with everything in cache. It might just be easier to spell out words one at a time. Copy things that are sensible to be copied, but otherwise it knows how language goes.
+
+We have new dataset, same story. Names tend to get copied. Numbers don't tend to get repeated. 
+
+%not only game in town.
+
+Statistical facts about language; Heaps' law and Zipf's law, church's law (rare are ``bursty''). We should and now can account for both of these.
+
+Have you tried spellings that are non-adversarial for humans, and fluent readers have no difficulty reading at the same pace. This models doesn't do this. You could train it. Is the goal to get something that works, or something human-like? 
+
+Both ar goals. I wanted to model marginal distribution of sentences (not a cognitive problem, it's an engineering task). We can ask where this comes from (being able to unscramble words). It's about generalizations that V1 makes when it learns to read that give us insight into how reading works. We could make models like that. This was meant to solve engineering task.
+
+If you start to think about adversarial reading, you would be concerned about that psychophysical fact. You can add this to training set or change regularization.

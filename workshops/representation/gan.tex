@@ -1,0 +1,159 @@
+\section{Generalization and Equilibrium in Generative Adversarial Nets (GANs) (Sanjeev Arora, Princeton University)}
+
+This paper makes progress on several open the- oretical issues related to Generative Adversarial Networks. A definition is provided for what it means for the training to generalize, and it is shown that generalization is not guaranteed for the popular distances between distributions such as Jensen-Shannon or Wasserstein. We introduce a new metric called neural net distance for which generalization does occur. We also show that an approximate pure equilibrium in the 2- player game exists for a natural training objective (Wasserstein). Showing such a result has been an open problem (for any training objective).
+
+Finally, the above theoretical ideas lead us to pro- pose a new training protocol, MIX+GAN, which can be combined with any existing method. We present experiments showing that it stabilizes and improves some existing methods.
+
+Joint work with Rong Ge, Yingyu Liang, Tengyu Ma, Yi Zhang. 
+
+There hasn't been much theoretical analysis of GANs.
+
+Take Gaussian noise, input through neural net (denoising autoencoder, variational autoencoder) and transform into image. The hope is that the process teaches us something about the structure of images. 
+There is concrete evidence in MNIST results, etc.
+
+%
+%Do modes correspond to different faces?
+
+
+Prologue: In 2013 I visited Google and talked to Geoff. I asked Geoff, ``I understand anthropomorphic principle that vision is represented by neural net. Why do you think realistic distrbutions are expressible by a small shallow deep net?'' ``Neural nets are like universal basis that can approximate almost anything very efficiently.'' Cf. tarp drapes over any object.
+
+Geoff's ``neural net hypothesis.''
+
+This is inconsistent with curse of dimensionality. In $d$ dimensions there are $\exp(d)$ directions whose pairwise angle is $>60^{\circ}$.
+
+The number of distinct distributions is $>\exp(\exp(d))$ by discretizing. 
+Counting arguments shows we will need neural nets of size $\exp(d)$ to represent some of these distributions.
+
+I thought: Real-life distributions must be special in some way... %Real-life distributions don't come from neural nets
+
+For the last 5 years, I though that you have to make assumptions about distributions; in this work I won't.
+
+We're trying to train a generative model to convert noise into faces. Train by training a discriminator net $D_v$, to train between realistic and synthetic images. This is reminescent of pseudorandomness. %Distinguish between real 
+
+Objective is 
+$$
+\min_{u\in U}\max_{v\in V} \EE_{x\sim D_{real}} [D_v(x)] - \EE_h [D_v(G_u(h))],
+$$
+Wasserstein GAN (Arjovsky et al. 17). 
+
+Repeat until convergence: backprop update on discriminator. %to say 1 on real inputs and 0 on 
+
+%no significance to gaussian noise. 
+Think of GAN as 2-player game. Most theorists like the idea of GAN because it presses the  right buttons: pseudorandomness, game theory.
+Generator plays a net, discriminator plays a net.
+
+When to stop? A necessary stopping condition is equilibrium: payoff unchanged if we flip the order of moves.
+
+In practice this is very unstable and it's believed there's no equilibrium.
+\begin{enumerate}
+\item
+I'll address generalization: suppose generator has won and discriminator has been left with no option but random guessing. Does this mean in some sense that the true distribution has been learnt?
+
+Past analyses: If discriminator capacity and number of samples are very large, then yes because Wasserstein distance is exactly the $\max_{v\in V} \EE_{x\sim D_{\real}} [D_v(x)] - \EE_h[D_v(G_u(h))]$.
+%disc pay optimally
+\item
+Equilibrium: does equilibrium exist in this 2-person game? A priori not guaranteed, ex. rock/paper/scissors.
+You can convert this to a GAN example.
+\end{enumerate}•
+
+Bad news: bounded capacity discriminators (with $n$ parameters) are weak.  
+Suppose I take a uniform distribution on $\fc{n\ln n}{\ep^2}$ random samples from $D_{real}$. 
+
+\begin{thm}
+If generator has capacity $n$ its distinguishing probability between these two distributions is $<\ep$.
+\end{thm}
+Proof: $\ep$-net argument.
+
+\begin{enumerate}
+\item
+Still holds if many more samples available from $D_{real}$, including any number of held-out samples.
+\item
+Suggests current GAN objectives may be unable to enforce sufficient diversity in generator's distribution.
+\end{enumerate}
+%Capacity of discriminator and generator.
+
+Hope internal parameters give insight into images. 
+
+Small discriminator cannot distinguish between low and high entropy.
+
+Take 1000 samples; you see repeated faces, this suggests by birthday paradox diversity is not high.
+
+Partial good news: if number of samples is $>\fc{n\ln n}{\ep^2}$ then performance on samples tracks (within $\ep$) performance on full distribution. Generalization does happen with respect to ``neural net distance'',
+$$
+\max_{D\in U} \ab{\E_{x\in D_{real}}[D(x)] - \EE_{x\in D_{synth}}[D(x)]}.
+$$
+(Similar theorems in pseudorandomness.)
+
+Generalization happens for NN distance. 
+\begin{enumerate}
+\item
+Deep nets are Lipschitz with respect to trainable parameters: changing parameters by $\de$ changes output by $<C\de$ for some small $C$.
+%only appears as log in number of samples
+\item
+If number of paramteres is $n$, there are only $\exp(n/\ep)$ fundamentally distinct deep nets (others are $\ep$-close).
+\item
+For any fixed discriminator, once we draw $>\ln n/\ep^2$ samples, then with probability $\le \exp(-n/\ep)$ distincuishing ability is not within $\ep$ of distinguishing ability for full distribution.
+\end{enumerate}•
+By union bound, empirical NN distance on $n\ln n/\ep^2$ samples tracks overall NN distance.
+
+Suppose generator just won. If number of samples is somewhat more than trainable parameters of discriminator, then generator would win against all discriminators of full distribution.
+
+But why should generator win in the first place?
+
+Just assume backprop gives optimal discriminator.
+
+%works for other measuring functions
+Equilibrium means $D$ gets max paoff from $G$ among all discriminators in class, $G$ ensures min payoff to $D$ among all generators in class. Pure equilibrium may not exist, but we're hoping for it to exist with payoff $=0$.
+
+Thought experiment: instead of single generator net, what if we allow infinite mixture of generator nets? 
+
+Fact: these can represent $D_{real}$ closely (ex. kernel density estimation). %discrete elements tiling space.
+
+Generalization result does not use capacity of generator.
+
+What about finite mixtures of generator nets?
+
+\begin{thm}
+A mixture of $n\ln n/\ep^2$ generator nets can produce $D_{synth}$ that looks like (within $\ep$) $D_{real}$ to every deep net discriminator with $n$ trainable parameters. 
+\end{thm}
+
+von Neumann min-max theorem: There exists equilibrium if replace discriminator/generator by infinite mixture of discriminators/generators. By our recent observations, in such an equilibrium for the GAN game, generator wins (with payoff $=0$). %solution would win the game.
+
+There is a finite mixture which obtains $\ep$-approximate equilibrium, $D$ get $\ge V-\ep$ and $G$ gets $\le V+\ep$, where $V$ is the payoff in von Neumann equilibrium. 
+There exists $\ep$-approximate equilibrium when we allow mixtures of size $n\ln n/\ep^2$. 
+
+Summary: Infinite mixture is powerful, finite mixture is roughly similar, lose only $\ep$.
+
+Existence of approximate pure equilibrium (for Wasserstein objective): Take small mixture (with weights $w_1,\ldots$) approximate equilibrium. Show it can be simulated by a single deep net. Use some bits in white noise to implement selector circuit to choose generator.
+The number of parameters is $\wt O(n^2)$. 
+
+Empirics: The MIX+GAN protocol can be used to enhance GAN game for any existing architecture. Take any GAN code, apply sauce (mixture) on top. Player 1/2 is mixture of $k$ discriminators/generators, ex. $k=3$ to 5.  Maintain separate weights for each component, update via backprop. Use entropy regularizer on weights to discourage collapsing.
+
+%disc could be just 1.
+Even with $k=3$ quality is better. (CeleA Faces Dataset) Adding capacity is not trivial. %discriminator . 
+\footnote{Generator could be nonparametric. Take and add noise to it. It doesn't train, it's pretrained with data, so in a way has infinite capacity, gets close to kernel approximation.}
+
+%More memorizing?
+Memorization is not that easy. It's easier to memorize with a mixture of networks. Are you pushing towards  memorization with more networks. Will backprop find it?
+
+Inception score: epoch by epoch MIX+DCGAN does better (Inception score). It's not trivial to get improvements like this. I'm not convinced Inception score is a good measure. 
+
+Also do MIX+WGAN. We get much better objective.
+
+Epilogue: 
+\begin{itemize}
+\item
+Infinite mix of very simple generators closely represent any $D_{real}$.
+\item
+Reasonable size subsample of generators produce $D_{synth}$ indistinguishable from $D_{real}$ by any small net.
+\item
+$D_{synth}$ should look like $D_{real}$ to us if our visual system is small neural net.
+\end{itemize}•
+
+%Mechanism enforce better generator?
+
+LSH, look at WGAN output with nearest neighbor?
+
+Give generator a bit more capacity, generator can win by sampling uniformly. That happens because it has more capacity. Generator capacity has to limited---how? %What happens
+
+

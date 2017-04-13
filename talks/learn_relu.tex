@@ -153,7 +153,7 @@ Cf. SSS used kernels to learn halfspaces.
 
 We now want 
 $$
-\min_{p\text{ in }n\text{ variables of degree }$O\prc\eo$} \rc m \sum_{1\le i\le m, y^i>0} l(p(\cdot, x^i, y^i))
+\min_{p\text{ in }n\text{ variables of degree }O\prc\ep} \rc m \sum_{1\le i\le m, y^i>0} l(p(\cdot, x^i, y^i))
 $$
 under constraints $p(\cdot, x^j)\le \ep$ for $j$ such that $y^j=0$.
 %kernel trick, don't have to work in expanded feature space
@@ -182,7 +182,7 @@ Hardest is showing the loss function generalizes. Use a Rademacher bound.
 Some other results.
 \begin{itemize}
 \item
-Sum of $k$ ReLUS with $\ve{w}_2=1$ in time $2^{O\pf{\sqrt k}{\ep}\poly(n)$. 
+Sum of $k$ ReLUs with $\ve{w}_2=1$ in time $2^{O\pf{\sqrt k}{\ep}}\poly(n)$. 
 \item
 For the sum of $k$ sigmoids, $\poly(h,k,\rc \ep)$ where $\sum_i w_i\si_i$, $\ve{w}=1$. 
 %can't do DNF's.

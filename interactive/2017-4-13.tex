@@ -1,0 +1,55 @@
+\section{Deep submodular functions (Jeffrey Bilmes)}
+We start by covering how submodularity is useful in machine learning
+and data science (e.g., summarization, diversity modeling, tree-width
+unrestricted probabilistic models). We then show that while certain
+submodular functions (e.g., sums of concave composed with modular
+functions (SCMMs)) are useful due to their practicality, scalability,
+and versatility, they are limited in their ability to model higher
+level interaction.  We thus define a new class of submodular
+functions, deep submodular functions (DSFs), and show that DSFs
+constitute a strictly larger class of submodular functions than SCMMs,
+but that they share all of the SCMM advantages.  DSFs are a parametric
+family of submodular functions that share many of the properties of
+deep neural networks (DNNs), including many-layered hierarchical
+topologies, distributed representations, opportunities and strategies
+for training, and suitability to GPU-based matrix/vector computing.
+We show that for any integer $k>0$, there are $k$-layer DSFs that
+cannot be represented by a $k'$-layer DSF for any $k'<k$. This implies
+that, like DNNs, there is a utility to depth, but unlike DNNs (which
+can be universally approximated by shallow networks), the family of
+DSFs strictly increase with depth.  We show that DSFs, however, even
+with arbitrarily large $k$, do not comprise all submodular functions.
+For this talk, we will assume no prior background in submodularity and
+the talk will be self-contained.  This is joint work with Wenruo Bai.
+
+We define a class of functions useful in machine learning. These form a broader class within submodular functions.
+
+Submodular functions are a vast family of functions. 
+How to find the right function? Learn it. How to restrict the class of functions? 
+We introduce a new class of submodular functions, retaining many aspects of more traditional classes, but which is broader.
+\arxiv{1701.08939}.
+
+Outline:
+\begin{enumerate}
+\item
+Submodular functions, ML, and data science
+\item
+Feature based functions: sums of concave over modular (SCMMs)
+\item
+Deep submodular functions
+\item
+Matroid case
+\item
+DSFs extend SCMMs
+\item
+$DSF_k\supset DSF_{k-1}$
+\item
+DSF's comprise not all submodular functions
+\item
+Conclusion
+\end{enumerate}•
+You can think of DSF's analogous to neural networks. There exist 3-layer deep NN's can only be approximated by 2-layer deep NN with exponential number of units.  Any continuous function can be approximated arbitrarily by 2-layer network.
+We have a strict $DSF_{k-1}\sub DSF_k$, even with arbitrary numbers of units. You lose a certain type of interaction. 
+
+
+

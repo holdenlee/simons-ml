@@ -1,0 +1,138 @@
+\section{Re-Thinking Representational Learning in Robotics and Music (Sham Kakade, University of Washington)}
+
+%Bachelor in physics
+%Ph.D. in neuroscience
+
+Let's look at representational learning in 2 domains, to build broadly applicable methods.
+\begin{enumerate}
+\item
+Control: what are the representations being learned by deep learning?
+\item
+Music: In the low level, there are similarities to vision. In the mid level there are similarities to language. Use MusicNet, a new labeled dataset.
+\end{enumerate}•
+
+\subsection{Control}
+
+MuJoCo is a realistic physics simulator popular in robotics.  Swimmer, hopper, walker, cheetah, ant. You want these thing to move, stay upright, do it fast. Sometimes for planning for robotics they use the simulator to plan internally. %Transfer to real world is an issue?
+There's another question of whether these tasks are good, but they have been studied a lot.
+
+%benchmark in modelbased until 2 years ago.
+
+%A MDP is
+%\begin{itemize}
+%\item
+%states $S\subeq\R^n$\item
+%actions $A\subeq \R^m$
+%\item
+%reward $r_t=R(s_t,a_t)$
+%\item
+%
+%\end{itemize}•
+
+One way to attack MDP's is using gradient methods.
+$$
+g = \E_r \ba{\sumz tr \nb_\te \ln \pi(a_t|s_t;\te) \pa{\sum_{t'=t}^T \ga^{t'-t} r_{t'}-b(s_t)}}
+$$
+Compute unbiased estimates with Monte Carlo sampling. Typically you need variance reduction to get this to work.
+
+People tend to use a certain preconditioner. A natural preconditioner is
+$$
+F_\te = \E\ba{\sumo t T \nb_\te \ln \pi(a_t|s_t;\te)\nb_\te\ln (a_t|s_t;\te)^T},
+$$
+Fisher information. Think about it as poor man's Gaussian method.
+%Map to probability distribution
+Then 
+$$\te_{k+1}=\te_k + \al \wh F_{\te_k}^{-1}\wh g.$$
+
+There are 2 state-of-the-art approaches. 
+\begin{itemize}
+\item
+Trajectory optimization, Todorov 11.
+
+Monte Carlo rollouts and choose best action based on  rollout. At test time you still need model and rollouts; it can be costly.
+\item
+Deep learning (Schulman et al. 15). Model free methods give compact policies.
+
+Optimization: use TRPO (similar to natural policy gradient).
+
+Representation: deep architectures.
+\end{itemize}•
+
+We want to move to harder robotics tasks. Variance is an issue.
+\begin{itemize}
+\item
+Optimization: stick with natural gradient.
+\item
+States: about 10--30 dimensions. Relative joint angles, centers of mass.
+\item
+What policy parametrization should we try? Linear policy does as well as deep net! They aren't as hard as people think!
+\end{itemize}•
+Optimally we'd like to decouple study of optimization and representation, but they're coupled together.
+
+\begin{itemize}
+\item
+Linear policy: $a_t\sim N(Ws_t+b, \Si)$ (need stochasticity to take natural gradients)
+\item
+RBF policy (random Fourier): $\sin \pa{\fc{\sum_j P_{ij}s_t^{(j)}}{v} + \phi^{(i)}}$, $P_{ij}\sim N(0,1)$, $\phi^{(i)} \sim U[-\pi, \pi)$,  $a_t\sim N(\wt W y_t+\wt b, \wt \Si)$. 
+%straw man stupid thing
+%Linear does fine
+\end{itemize}
+RBF is better than linear; they are competitive with NN. Number of parameters is proportional to training time.  This set of benchmarks does not resolve the representational question.
+
+How does stability compare?
+%substantially different?
+
+These performance numbers aren't what we're really interested in. The hard part is getting off the ground; once you have in a stable state around the right answer, you can tweak.
+
+(NN should be as good if everything is convex---but it's not.)
+%linear works well. Bolt on extra makes it work well.)
+
+These all work, but we care about stability; do they work as well under perturbation? Everything breaks in presence of perturbations! For all of these tasks, none of them work after thwacking it.
+Ex.  If we rotate the snake it doesn't know how to move. 
+%
+(After running for a while it forgets how to get up.)
+We need reward for getting up?
+Let's just try to initialize in diverse states.
+
+Why are these brittle to perturbations? By design, agent gets to see data in only some parts of the state space. The learned policy is trajectory-centric/local.
+
+Idea: remove termination and use diverse state distribution. A fraction start on the ground. RBF's are the best here. Linear isn't all that bad. 
+
+We're making a lot of progress; there are issues but the current benchmarks don't resolve these issues.
+We want not to do rollouts at deploy time.
+
+%MC estimates of value function
+%not in parametric manner
+
+\subsection{Music}
+
+Large labeled datasets have been key to success. 
+
+In music labels would be which notes are played at which times.
+
+Annotation is difficult for rich pieces (fast, rich, metric structure, polyphonic, multiple instruments).
+Score is crude labeled data. (Cf. ask people to read essays. What we want is at each time step, what is being played.)
+Do music to score alignment.
+
+MusicNet is a new labelled dataset with $>30$ hours of aligned polyphonic music, $>1$ million temporal labels.
+
+Music2Score alignment problem. Output: tuples of (start, end, instrument, note, measure, beat, note value). 
+% Take a given time point and tell the point.
+%construct and what do with it.
+%dataset of professional recordings, annotated.
+
+%pressure signal, score, duration
+
+%Line score with nuances, real performances
+We estimated error rate $<4\%$ by sampling and noting errors.
+
+If we just do a data-driven method what do we learn? Low-level features are spectrogram features. Now we need something like a language model  to put these together.
+
+Low-level is convnet. We haven't had success with RNN's, optimization is hard. Conditioning is poor, you have low-frequency to high-frequency filters.
+
+%I think the right thing to do here is to use spectrograms, handcraft Gabor features. What to do with mid-level features?
+Open questions: style transfer. Complete the picture/music.
+
+
+
+

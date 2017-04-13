@@ -1,0 +1,413 @@
+\section{Resilient Representation and Provable Generalization (Dawn Song, UC Berkeley)}
+
+See \S 6 in notes here, \url{https://www.dropbox.com/s/d68tepx2x5h13at/representation.pdf?dl=0}.
+
+In this talk, I'll present the challenges in today's deep learning approach for learning representations resilient against attacks. I will also explore the question of providing provable guarantees of generalization of a learned model. As a concrete example, I will present our recent work on using recursion to enable provablely perfect generalization in the domain of neural program architectures. 
+
+%\section{Secure deep learning (Dawn Song, UC Berkeley)}
+%
+%In this talk, I will discuss recent advances and key questions and challenges at the intersection of Security and Deep Learning, including adversarial examples fooling deep learning systems, and how to achieve better generalization and provide provable guarantee of perfect generalization in certain domains such as neural programing architectures. I will also discuss a new project on AI for data science.
+%
+%Deep learning has great successes: image recognition, AlphaGo, etc. DeepMind reduces Google cooling cost by 40\%.
+%
+%Deep learning systems are easily fooled. Adding small adversarial perturbation, a image looks identical to the human eye but are misclassified.
+%
+%Researchers have shown that misclassified examples happen in the real world. Print out adversarial examples, take a photo of the printouts and feeding to the classifier again. The examples remain adversarial.
+%
+%%Without funny glasses, a person is recognizes
+%Compute adversarial perturbation, print out on glasses and  give to person to wear. The person is misrecognized.
+%
+%%being john malkovich.
+%
+%Adversarial examples can have real-world consequences. Ex. take a STOP sign and perturb adversarially so that it is recognized as a YIELD sign.
+%
+%Adversarial examples are a prevalent phenomenon in deep learning systems. We consider a weaker threat model when the taret model is unknown (black-box) and other models (generative, etc.).  
+%:Black-box vs. white-box
+%
+%Ex. completely wrong image captioning.
+%
+%Adversarial examples can work in a black-box system. clafifai is a startup with an API providing image recognition. A few years ago they won the ImageNet classification. The model, training data, and label set are unknown. 
+%Given the completely black-box model, can we generate attacks on this system?
+%
+%We do black-box attacks based on transferability. Take a white-box model, generate adversarial examples. They transfer to the black-box system even though it's a completely different model.
+%
+%Are adversarial examples unique to deep learning? I focus on deep nets because they're the highest-performing model, but adversarial examples are no means unique to deep nets. Linear classifiers have adversarial examples.
+%
+%%overfitted
+%Theory is not so clear-cut; it's not just an overfit issue.
+%
+%Another interesting phenomenon: you can compare with adding noise. Nets are relatively robust against noise. The amount of adversarial perturbation needed for misclassification is much larger than amount of random noise needed.
+%
+%There are 2 types of attacks: non-targeted and targeted attack.
+%\begin{enumerate}
+%\item
+%Non-targeted: make network misclassify.
+%\item
+%Targeted: Have a target in mind, ex. misclassify a cat into an elephant.
+%\end{enumerate}•
+%Non-targeted attack is easy to do. Previous work has done this; we show it can be done also in the black-box model.
+%
+%Ex. try to misclassify a ``rosehip'' as a ``stufa''. The perturbation is larger in the black-box setting. Clarifai misclassifies this as ``temple'', etc. From water buffalo to rugby ball gives ``game'', ``sport'', etc. From broom to jacamar (bird) gives ``bird'', etc.
+%%word embeddings.
+%
+%Generative models: VAE-GAN has encoder and decoder. Generative model can be used as compression scheme. This can do better than traditional image compression. Attacker's goal is for decompressor to reconstruct a different image from the one the compressor sees.
+%This is a white-box model. Ex. a security camera throws away the original recording and only saves the compressed recording. An attack means the decompressed version is very different.
+%%encode decode
+%
+%Adversarial examples for generative models (VAE-GAN), Jernej Kos, Ian Fischer, Dawn Song: Can change all pictures to 0! Here the compressed version is 250-dimensional. Face works as well.
+%
+%%Birthday paradox.
+%%distance in pixel space accurate for MNIST?
+%Comment: Nearest neighbor is not resistant.
+%
+%Adversarial examples on A3C agent on Pong. Jernej Kos and Dawn Song, Delving into adversarial attacks on deep policies. 
+%%add input noise to 
+%
+%Input is raw image every frame. Input is current image with 3 frames before it, goal is to predict the best action. We compare adding random noise to each frame and adding adversarial perturbation at pixel level. In both cases learner does poorly, but adversarial perturbation is more effected; the amount needed is tiny. 
+%%from context version don't see any difference.
+%
+%%dropout?
+%
+%%Did you try adding noise to the adversarial's play? 
+%Can you perturb the opponent's strategy adversarially?
+%The way RL deep nets work is that they don't correctly do alpha-beta or minimax search. 
+%
+%Attacks guided by value function work better. The attacker can just select a subset of frames  (10\%) to inject adversarial perturbation.
+
+%
+%Adversarial examples are prevalent! Questions:
+%\begin{enumerate}
+%\item
+%How to generate?
+%\item
+%Why do they exist?
+%\item
+%How to defend against adversarial examples?
+%\end{enumerate}•
+%
+%We can formulate as optimization problem. Assume $y=f(x;\te)$. We want
+%$$
+%\amax_{x^*, d(x,x^*)\le B} l(f(x^*;\te),y).
+%$$
+%Optimization problem is
+%$$
+%\amin_{x^*} -l(f(x^*;\te), y) + \la d(x,x^*).
+%$$
+%
+%Optimization-based methods are expensive, requiring computing gradient many times. 
+%Fast gradient sign method, 
+%$$
+%x^*\mapsfrom x+ B\sign\pd lx.
+%$$
+%Many times this is good enough.
+%In general it doesn't give you the best example---it finds examples with larger perturbation.
+%Ex. in deep RL, you have generate examples for every frame. There you want to do it fast.
+%%parameters frozen.
+%%dual of optimization-based approach. gradient in parameter space. 
+%Parameter space is frozen; compute gradient in input space. Think of this as the dual setting.
+%
+%When you use $B$, you get a solution for certain norms.
+%
+%Why do adversarial examples exist? 
+%\begin{itemize}
+%\item
+%overfitting?
+%\item
+%underfitting?
+%\item
+%excessive linearity?
+%\item
+%difference in training data vs. testing data distribution?
+%\end{itemize}
+%
+%We don't have much theoretical understanding!
+%
+%
+%Lipschitz constant high? What causes this issue? Nothing in the optimization problem prevents Lipschitz constant? People have not figured out how to make the optimization problem work. Also there are examples where adding a small perturbation, ex. a mustache, should change the classification. Is there some weaker notion of Lipschitz? 
+%We want to find adversarial perturbations that are small in certain distance measures. Another way to look at this: for images that are similar, results should be similar as well. Issue: how to capture this similarity? 
+%If we have a way to capture this, the problem is halfway solved. 
+%
+%%Random perturbations can be tolerated.
+%
+%\footnote{All noise you've added is orthogonal to natural manifold of image. Have people studied noise in the manifolds; can we measure Lipschitz relative to the manifold? But the definition of manifold is this encoder-decoder thing?
+%%optical perturbations
+%%no reason to think it has to do with natural manifold
+%
+%They are not in the right manifold.
+%}
+%%We want the learned neural network to have invariance...
+%
+%Picture: decision regions of different models.
+%Show plot in 2 dimensions: adversarial perturbation direction, and randomly picked orthogonal direction.
+%Color based on class label given by network. Along adversarial direction, you need to move much less to be misclassified.
+%
+%
+%Targeted attacks are generated using ensemble methods. Picture: region where targeted attack succeeds.
+%%We show a different decision boundary: generate targeted attack for different networks. 
+%
+%RL: Action-decision space is extremely fragmented. 
+%Decision boundary is very rugged. 3 actions: move up, down, or don't move.
+%%Suppose there is a notion of good-margin deep networks.
+%
+%With random noise retraining and FGSM retraining, decision boundary got more fragmented! Retraining helped to be more robust (reward improved), but decision space is more fragmented. It's not clear it learned the right thing. Maybe this just means it's harder for the attack to do well.
+%
+%Do you evaluate against the same attack? 
+%%When you evaluate 
+%We tried with different perturbations.
+%\footnote{Human decision making probably is also attackable. %basic illusions.
+%Ex. priming! In an ad, have a frame of something that primes you; this was made illegal.
+%Magicians do this. 
+%Human brains are not resilient.
+%
+%Human vision system is more robust against these types of attacks.
+%
+%Modern camouflage have weird pixel patterns.}
+%%optical illusions intended. Cryptographic attacks to human vision.
+%
+%What kind of defense can we develop? 
+%\begin{enumerate}
+%\item
+%Generate adversarial examples to add to training set.
+%Retrain the model and repeat.
+%
+%For the most part it is very easy to find new adversarial examples.  
+%
+%Sometimes people do see that the learned model, once retrained, is a little more resilient. In general it doesn't work well vs. optimization-based attacks.
+%\item
+%Input perturbation: Add noise, Gaussian blur. Denoising autoencoder. 
+%
+%Input perturbation doesn't help. It can make the attack less effective, but the classifier is also less effective.
+%
+%If your attacker knows the whole system, it can generate attacks against the whole auto-encoder with classifier network.
+%\item
+%Regularization: dropout, weight decay
+%\item
+%architecture changes: other non-linear units
+%\item
+%ensembles%Q?
+%\item
+%stochastic networks (at inference time): swapout network
+%\item
+%detection
+%\end{enumerate}•
+%
+%DataGrad: regularization terms that try to drive gradient around data to 0.
+%
+%Consensus: there is no good defense.
+%
+%Two attack methods: optimization based method is stronger attack. People observed: retraining using fast gradient. Set $\ep$ to be different values. For FG, when you train with one $\ep$, it's more resilient against that $\ep$, but for other $\ep$'s it's not resilient for other $\ep$'s. Attack can be more resilient against this but not against optimization-based methods. It does not get better with optimization-based methods.
+%%get better against FG.
+%In a relative sense the network gets better (now need to generate with bigger $\ep$, but not that much larger). If you pick $\ep$, when you use small $\ep$ it sometimes doesn't get better.
+%
+%%optimizer 
+%%I'm sorry I can't classify. You will always find. 
+%%suspicious.
+%
+%Neural networks are not learning robust/resilient representations.
+%
+%``We don't know why they work, or why they don't work.''
+%
+Current learned representations are not resilient against adversarial attacks. What properties should the learned representation have? 
+\begin{itemize}
+\item
+Smoothness under semantic distance metric? 
+%A core challenge: we want to say 
+It's a challenge to define what this means.
+
+(If we perturb in some  other way, semantically the image could be different.)
+\item
+Detect when test distribution is different from training distribution.
+%hardness result here?
+We want some kind of confidence bounds.
+\end{itemize}
+
+Do adversarial examples matter? Why should be care about resilient representations? Adversarial examples are just the tip of the iceberg, part of adversarial machine learning.
+
+%\subsection{Adversarial machine learning}
+%Bigger picture:
+%Adversarial machine learning.
+%\begin{enumerate}
+%\item
+%Learning in the presence of adversaries.
+%\item
+%Inference time: adversarial example fools learning system
+%\item
+%Training time: poison training dataset.
+%\begin{itemize}
+%\item
+%Ex. Tay Twitter chatbot: People fed it politically incorrect things. 
+%\item
+%Attacker can selectively show learning training data points (even with correct labels) to fool learning system to learn wrong model.
+%\end{itemize}
+
+Attacker always follow footsteps of new tech development or sometimes leads it. Stakes are higher with AI. Security will be one of the biggest challenges.
+%\item
+%Adversarial machine learning particularly important for security critical systems.
+%\end{enumerate}
+%
+%Goal: create input-based filtering for vulnerable program that finds exploits.
+%
+%In security world, this has been widely deployed. How to generate signatures quickly? A signature $f$, given input $x$, decides whether $x$ is an exploit, or benign.
+%
+%%Q?: how much time, few gradient steps.
+%%learning a smoothed version, teaching?
+%%adversarial training starting from fresh vs. fully trained model
+%
+%Question: how to generate signatures for new attacks?
+%
+%We have benign inputs (from normal traffic) and labeled attacks and want to learn a classifier. How well can this approach work?
+%
+%A zero-day attack: you use a web browser with vulnerability. Before this day, no one knew about vulnerability. Attacker was first one to find vulnerability and first one able to create attack. Attacker has full control over what examples the learner sees.
+%Attacker wants to compromise the machines by sending attack inputs. Learner can see all traffic. At the beginning the classifier is not effective. Once machines are compromised, it learns this and gets training inputs. The attacker has control over the examples the learner sees. The attacker can change the inputs. The bitstrings won't look the same. Attacker's goal is to evade the classifier.  There is a build-and-break cycle. 
+%
+%We want the learner to learn fast, without too many iterations. 
+%
+%Limits of learning-based signature generation with adversaries (Venkataraman-Blum-Song).  There are fundamental lower bounds on how quickly any algorithm can converge to best signature. This is equivalent to the mistake0bound model of online learning. 
+%
+%There exists a  sequence of samples such that any deterministic algorithm makes $n\ln r$ mistakes and any randomized algorithm makes $\rc2 n\ln r$ mistakes. Bounds are almost tight, achieved by Winnow.
+%
+%Security will be one of the biggest challenges in deploying AI.  We can look at security at different levels.
+Security of learning systems: software, learning, and distributed levels. The first is well-understood.
+
+Can we define better, new architectures with stronger (provable) generalization and security guarantees?
+%\begin{enumerate}
+%\item
+%Software level: no software vulnerabilities (buffer overgflows). We've studied this in security community: formal verification
+%\item
+%Learning level: Evaluate systems under adversarial events, not normal evens. 
+%
+%Compare vs. how we evaluate traditional software. 
+%
+%In regression testing, run program on normal inputs, prevent normal users from encountering errors. In security testing, run abnormal/adversarial inputs, prevent attackers from finding exploitable errors.
+%
+%In software engineering people tend to just do regression testing, and don't think about security testing, and are surprised when their system is attacked.
+%
+%In learning system: in regression testing, train on noisy training data, estimate resiliency against noisy training inputs, and test on normal inputs to estimate generalization error.
+%In security testing, train on poisoned training data: estimate resiliency against poisoned training inputs, and test on abnormal/inputs to estimate resiliency against adversarial inputs.
+%
+%%To better understand security at learning level, we need better ways to estimate resiliency. 
+%\begin{itemize}
+%\item
+%We need to reason about complex and symbolic programs. There is decades of work. We have entered the era of formally verified systems: seL4, IronClad, CertiKOS, CompCert, etc., 100 person-years... This is due to powerful formal verification tools and dedifcated teams.
+%
+%There are not sufficient tools to reason about non-symbolic programs.
+%
+%For non-symbolic programs there are no precisely specified properties and goals (ex. image classification, self-driving cars). There is no good understanding of how learning system works. Traditional symbolic reasoning techniques do not apply. 
+%
+%Design new architectures and approaches with stronger generalization and security guarantees! 
+%\item
+%Limitation of existing neural architectures. Neural programming architectures. Train neural networks to learn programming tasks (addition, etc.). Neural programming interpreter (Reed-Freitas, ICLR-2016), neural Turing machines, neural GPU, neural RAM, differentiable neural computer. 
+%
+%The problem with all these approaches: they learn programs that do not generalize well. They learn addition for 10-digit numbers but not 13-digit numbers.
+%
+%Besides perception, we need to do symbolic reasoning; we want neural network to have this capability.
+%
+%There is no provable guarantees about generalization of learned programs.
+%
+
+The example domain is neural program synthesis. Learn neural networks that perform certain programming tests, like addition. All previous approaches suffer from
+\begin{enumerate}
+\item
+generalization. Neural programmer interpreter (NPI), ICLR 2016 (best paper award) fails for large inputs.
+\item
+no proof of generalization. Even if empirically you observe perfect generalization, you have no proof.
+\end{enumerate}•
+
+%Our approach: making neural programming architectures generalize via recursion. (Jonathon Cai, Richard Shin, Dawn Song.)
+%
+Using recursion, a problem is reduced to sub-problems, with base cases and reduction rules. Learn recursive neural programs!
+
+In a recursive program, a function learns to call itself, reducing the problem to a smaller problem.
+The recursive neural program learns faster and generalizes better, and recursion enables proof of perfect generalization.
+
+Prove perfect generalization of learned recursive program via verification procedure: Explicitly test on all possible base cases and reduction rules (verification set).
+%
+%This is Turing-complete (not the point). %neural programming interpreter 
+%
+%Learn faster and generalize better. It can give perfect generalization and we can give a proof of perfect generalization.
+%%static analysis?
+%It is a proof in structured induction setting. 
+%
+%The neural network has I/O. %It gets numbers to add and produces a resutls
+%
+%Lessons: 
+%\begin{itemize}
+%\item
+%program architecture impacts provability
+%\item
+%similar in program verification for symbolic programs
+%\item
+%well-designed programs with good architectures are easier to prove properties of
+%\item
+%arbitrary programs (bad code) are difficult to prove properties of
+%\item
+%Caution for end-to-end monolithic neural networks, harder to train, generalize, interpret. I predict less of this in the future.
+%\item
+%Recursive modular neural architectures are easier to reason, prove, generalize.
+%\item
+%Explore new architectures and approaches enabling strong generalizations and security properties for broader tasks.
+%\end{itemize}
+%We want to reason about how to combine components. Building large, complex systems require compositional reasoning. Each component provides abstraction. %Hierarchical compositoin 
+%\end{itemize}
+%\item
+%Distributed level.
+%\end{enumerate}•
+%%Challenges: 
+%%
+%%For learning: evaluate under adversarial events, reason about com
+%
+%A new project: AI for data science.  We don't have enough human analysts  to write scripts to analyze them. The pipeline involves cleansing, feature engineering, model selection and architecture search... Data is growing faster than capacity of data scientists. 
+%
+%Automate data science pipeline while leveraging human feedback. 
+%
+Lessons learned:
+\begin{itemize}
+\item
+Program architecture impacts provability.
+
+This is similar to our experience in the symbolic program domain. Well-designed program with good architectures are easier to prove properties of. Arbitrary programs are difficult to prove properties of.
+\item
+Caution for end-to-end monolithic NN: harder to train, generalize, interpret.
+\item
+Recursive modular neural architectures are easier to reason, prove, and generalize. 
+\item 
+Explore new architectures and approaches to enable strong generalization and security properties for broader tasks.
+
+Can we have provable guarantees for more systems?
+\end{itemize}•
+
+We should evaluate systems under adversarial events, not just normal events.
+%%anomalies, identify correlations.
+
+In regression testing, run program on normal inputs, prevent normal users from encountering errors. In security testing, run abnormal/adversarial inputs, prevent attackers from finding exploitable errors.
+
+%There is decades of work on symbolic systems.
+
+Building large complex systems require compositional reasoning. How to do abstraction, compositional reasoning for non-symbolic programs?  How to ensure good local decisions make good global decisions?
+
+AI and security: AI in the presence of attacker. What are some greater responsibilities? 
+
+So far I've been talking about attackers attacking AI, causing the system to do the wrong things.  We just need security for learning systems. 
+
+On the flip side, an attacker can misuse AI to attack other systems. We need security in other systems, which is a harder task.
+
+Deep learning can empower bug finding and phishing attacks.
+
+Cambridge Analytica contributed to success of Trump. Use AI for large-scale, automated, targeted manipulation.
+
+There is asymmetry between attacks and defense. AI progress is uneven in different areas.
+
+%challenges in defending ag AI misure
+
+Dual problem: stronger AI makes attacks easier.
+
+Compare to nuclear weapons. Treat can help and detection is possible. When attacker is misusing AI, this will be difficult. We have strong responsibilities. At the same time we develop AI techniques, think of techniques to prevent misuse of AI. 
+
+Security will be one of the biggest challenges in deploying AI.
+
+QA:
+
+Human psychophysics. If we had brain Jacobians, could we do the same thing against the brain. We can construct adversarial examples in human space.
+There will always adversarial examples. We call them optical illusions. We want the machine to only have human-type illusions. We want models to act more like humans.
+
+Humans don't have this type of problems, so NNs do not have the desired properties human systems have. You can talk about adversarial examples in other settings.

@@ -1,0 +1,155 @@
+\section{Failures of Gradient-based Deep Learning (Shai Shalev-Shwartz, Hebrew University of Jerusalem)}
+
+The empirical success of Deep Learning is stunning, and everyday we hear new success stories. However, for both theoreticians and practitioners, it is important to understand the limitations. We describe three families of problems for which existing deep learning algorithms fail. We illustrate practical cases in which these failures apply and provide a theoretical insight explaining the source of difficulty.   
+ 
+Joint work with Ohad Shamir and Shaked Shammah.
+
+%The failures do not stem from wanting to destroy the party. 
+%car detection, free space detection
+%RL: learn how to negotiate so red go tto right, white to left.
+%double land merge
+%India: negotiate with others.
+Simple problems where standard deep learning either does not work well (require prior knowledge, more than gradient update, decompose problem and add supervision) or does not work at all.
+
+I will give intuition about when and why deep learning doesn't work.
+
+\subsection{Piecewise linear curves}
+
+Ex. paint edge of free space (where car can go).
+
+Problem: train piecewise linear curve detector, $f=(f(0),\ldots, f(n-1))$ where $f(x) = \sumo rk a_r [x-\te_r]_+$, $\te_r\in \{0,\ldots, n-1\}$.
+
+Output curve paramteres $\{a_r,\te_r\}_{r=1}^k$. 
+
+First try: deep autoencoder. Learn encoding network $E_{w_1}$ and decoding network $D_{w_2}$.  Squared loss is $(D_{w_2}(E_{w_1}(f))-f)^2$. This is doable. It doesn't work so well.
+
+Second try: pose as convex objective. Let $p\in \R^{n,n}$ be $k$-sparse vector whose $k$ max/argmax elements are $\{a_r,\te_r\}_{r=1}^k$. Then $f=Wp$, $W_{i,j}=[i-j+1]_+$.  Train a 1-layer fully connected network, $\min_U \E[(Uf-p)^2] = \E[(Uf - W^{-1} f)^2]$.
+
+If works better than the autoencoder. It is convex and realizable but still doesn't work well. It will converge, but not after 50,000 iterations.
+
+Convergence of SGD is governed by condition number of $W^TW$ which is large, grows with resolution, 
+$$
+\fc{\la_{\max}(W^TW)}{\la_{\min}(W^TW)} = \Om(n^{3.5}).
+$$
+Adagrad/Adam doesn't work because diagonal conditioning doesn't work.
+
+3rd try: pose as convolution. $p=W^{-1}f$ where $W^{-1}$ has 1, -2, 1 on main, -1, -2 diagonal. $W^{-1}f$ is 1D convolution of $f$ with 2nd derivative filter. Train convnet. Condition number is $\Te(n^3)$. Converges after 50,000 iterations but not 10,000. $\Te(n^3)$ is disappointing for problem in $\R^3$.
+
+4th try: convolution and preconditioning. %Convnet is solving $\min_x\E[(Fx-p)^2]$.
+Solve after 500 iterations. 
+
+Convnet allows for efficient preconditioning; we are estimating and manipulating $3\times 3$ rather than $n\times n$ matrices.
+
+Lesson: SGD might be extremely slow. Prior knowledge allows us to choose better architecture (not for expressivity, but for better geometry); choose better algorithm.
+
+
+\subsection{Flat activations}
+
+We have vanishing gradients due to saturating activation s (e.g. RNN's).
+
+Problem: learn $x\mapsto u(\an{w^*,x})$ where $u$ is fixed step function. Optimization problem:
+$$
+\min_w \EE_x[(u(N_w(x))-u(w^{*T}x))^2].
+$$
+Problem: $u'(z)=0$ almost everywhere so we can't apply gradient-based methods.
+
+Smooth approximation: replace $u$ with $\wt u$. %cf. sigmoids as gates in LSTM.
+This is a headache.
+
+Approach: end-to-end $\min_w \EE_x[(N_w(x) - u(w^{*T}x))^2]$. Slow train and test time, and curve is not catured well.
+
+Approach: multiclass, where $N_w(x)$ is the step that $x$ belongs.
+
+Different approach: descent but not with the gradient. ``Forward only'' backpropagation. 
+$$
+\min_w \EE_x\ba{\rc 2 \pa{(u(w^Tx))-u(w^{*T})}^2}.
+$$
+In the backward pass, think the layer is identity.
+%$$
+%\wt \nb = \EE_x \ba{(u(w^Tx)-u(w^{*T}x))x}.
+%$$
+Lesson: local search works, but not with the gradient.
+%Kalai Shamir 09, KKKS11.
+
+Flat activation is desirable: you want a gate.
+Message of deep learning was to avoid flatness? 
+Machine learning: you want flatness...
+
+\subsection{End-to-end training}
+
+We didn't do anything, it's all learned by itself.
+%we found how it worked by itself
+
+2 approaches: end-to-end, backprop everything; think about your problem, decompose into subtasks, and supervise subtasks.
+
+There are some problems where if you tackle end-to-end you fail.
+
+Input is $x$, a $k$-tuple of  images of random lines.
+$f_1(x)$ is whether slope is positive or negative.
+$f_2(x)$ is parity of slope signs. Goal: learn $f_2(f_1(x))$.
+
+Architecture: concatenate LeNet and 2-layer ReLU. 
+
+End-to-end approach: Train on primary objective. First network looks at 3 images, gets one number per image (+/-). Numbers enter into 2nd network.
+
+Decomposition approach: augment objective with loss specific to first net using per-image labels.
+
+For $k=1,2$ both work, but for $k=3$, composable approach works but end-to-end approach does as well as random chance.
+
+%
+In the decomposition, supervise more.
+
+%Not expressiveness, just optimization
+
+Similar experiment by Gulcehre, Bengio 2016. They suggest local minima problems; we show the problem is different.
+
+SNR for random initialization: SNR of end-to-end for $k\ge 3$ is below recision of float32.
+
+LB: zip codes: find zip code, split, read digits. Do these tasks separately. If after doing this you do fine tuning end-to-end it does better.
+
+\subsection{Learning many orthogonal functions}
+
+Let $H$ be hypothesis class of orthonormal functions: for all $h,h'\in H$, $\E[h(x)h'(x)]=0$. 
+
+Improper learning of $H$ using gradient-based deep learning: learn $w$ of architecture $p_w:X\to \R$. For every target $h\in H$, learning task is
+$$
+\min_w F_h(w) :=\EE_x[l(p_w(x),h(x))].
+$$
+Start with random $w$ and update weights based on $\nb F_h(w)$.
+
+How much does $\nb F_h(w)$ tell us about identity of $h$?
+
+Theorem: for every $w$, there are many pairs $h,h'\in H$ such that $\E_x[h(x)h'(x)]=0$ while 
+$$
+\ve{\nb F_h(w) - \nb F_{h'}(w)}^2 = O\prc{|\cal H|}.
+$$
+Number of such functions could be exponential in dimension.
+
+Proof: show that if functions are orthonormal, then for every $w$,
+$$
+\Var(H,F,w):=\EE_{h}\ve{\nb F_h(w) - \EE_{h'} \nb F_{h'}(w)}^2 =  O\prc{|\cal H|}.
+$$
+We have
+\begin{align}
+\nb F_h(w) &= \E_x[p_w(x)\nb p_w(x)] - \E_x [h(x) \nb p_w(x)]
+\end{align}
+where first term is independent of $h$.
+Fix $j$, let $g= \nb_j p_w(x)$. Expand $g=\sumo i{|H|} \an{h_i,g}h_i+$(orthogonal component).
+
+An example of such a class is the parity functions. There are $2^d$ orthonormal functions so there are many pairs $h,h'\in H$ orthogonal but $\ve{\nb F_h(w)-\nb F_{h'}(w)}^2=O(2^{-d})$. (Similar hardness can be shown by combining existing results.)
+
+Illustration: linear-periodic functions, $F_h(w) = \E_x[(\cos(w^Tx) - h(x))^2]$ for $h(x)=\cos([2,2]^T x)$ in 2 dimensions. No local search works.
+
+\begin{itemize}
+\item
+Optimization can be difficult for geometric reasons other than local min/saddle points: condition number, flatness. Using bigger/deeper network doesn't always help.
+\item
+Remedies: prior knowledge can be important. Convolution can improve geometry, use ``other than gradient'' rule, decompose problem and add supervision.
+\item
+Understand limitations.
+\end{itemize}
+\arxiv{1703.07950}
+
+%Columns of Hadamard matrices: linear problem. Pick
+% if you switch algorithm you can learn it. 
+%You have to go to exponentiated gradient. Exponentiated gradient will not work as well.
