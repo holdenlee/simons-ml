@@ -51,5 +51,295 @@ Conclusion
 You can think of DSF's analogous to neural networks. There exist 3-layer deep NN's can only be approximated by 2-layer deep NN with exponential number of units.  Any continuous function can be approximated arbitrarily by 2-layer network.
 We have a strict $DSF_{k-1}\sub DSF_k$, even with arbitrary numbers of units. You lose a certain type of interaction. 
 
+Given a finite ground set of objects $V$, and a set function $f:2^V\to \R$ (cf. pseudo-boolean function). For example $f(A)$ is the number of types of objects in $A$.
 
+Let $V$ be a finite set and $A\subeq B\subeq V$ be subets, and $v\nin B$, $f:2^V\to \R$ be an information function.
+\begin{itemize}
+\item
+Non-negativity $f(A)\ge 0$ for all $A\subeq V$.
+\item
+Monotonicity $f(B)\ge f(A)$: more items can only have more information (nice but not necessary).
+\item
+How much does $A$ tell you about item $v$?
+$$
+\text{KnowledgeOf}(v|A) := 1-\fc{f(A+v)-f(A)}{f(v)}.
+$$
+%relative increase
+More data should tell you no less:
+$$
+\text{KnowledgeOf}(v|A) \le \text{KnowledgeOf}(v|B).
+$$
+This is true iff $f$ is submodular.
+\end{itemize}
+KnowledgeOf isn't negative if monotonicity holds.
 
+%Log-determinant is classic non-submodular function.
+Let $A$ be indices. Take submatrix with those row/column indices, take determinant. This function is submodular and not monotone.
+
+%define on lattices
+%multi-variate positive of order2
+%Three ways extend submodularity: dimension, lattice, order
+
+$f:2^V$ is submodular if for any $A,B\subeq V$, 
+\begin{align}
+f(A)+f(B) &\ge f(A\cup B) + f(A\cap B)\\
+\iff f(A\cup \{v\}) -f(A) & \ge f(B\cup \{v\}) - f(B)
+\end{align}•
+ (submodular concave, diminishing returns formulation, respectively). 
+ 
+Ex. frienship is submodular: if you have 1000 friends, the 1001st friend is not so valuable. If you have 0 friends, the 1st friend is valuable.
+
+Ex. Value in urn is diversity of balls in urn.
+This is set cover.
+
+There are many more, for example, entropy, (McGill, 1954)
+$$
+f(A) := H(X_A) = -\sum_{x_A} p(x_A) \ln p(x_A).
+$$
+Further conditioning reduces entropy, $H(X_A|X_B) \ge H(X_A|X_B,X_C)$, equivalent to submodularity. This is distinct from subadditive $H(X_A)+H(X_B)\le H(A\cup B)$.
+%really about redundancy
+%for human learning
+%choosing lesson plan
+%sometimes add redundancy. 
+%other times want efficient.
+
+(Ex. Submodular functions are useful for choosing a lesson plan for human learning. Sometimes you want more redundancy; sometimes you want diversity. cf. promise of MOOCs.)
+%gen of entropy
+%Was Shannon 
+
+Entropy requires additional inequalities, so area  strict subset of nonnegative normalized submodular functions.
+%each has alphabet size r
+%$r^n$ to $2^n$. Smaller cone.
+Open: characterize what is the stuff outside the entropy functions. People keep finding more complicated entropy functions. Computer simulation found all these inequalities.
+What is the intersection of entropy and deep submodular functions?
+
+Sums of weighted concave composed with additive functions, matroid rank, quantum entropy, log determinant, spectral functions applied to Hermitian matrix, certain Kolmogorov complexities...
+
+We can define a notion of combinatorial independence
+$$
+f(A\cup B) = f(A)+f(B).
+$$
+Conditional independence given $C$,
+$$
+f(A\cup B\cup C) + f(C) = f(A\cup C)+f(B\cup C).
+$$
+Dependence
+$$
+f(A|B) = f(A\cup B) - f(B) < f(A).
+$$
+Conditional mutual info
+$$
+I_f(A;B|C) = f(A\cup C) + f(B\cup C) - f(C)
+$$
+Information amongst collection of sets
+$$
+I(\{S_i\}) = \sum f(S_i) - f(\bigcup S_i) 
+$$
+
+Suppose defined on edges of some graph. Might  constraint to be edge cover, vertex cover, have bounded cardinality (ex. summarization). 
+
+Say $x\in \{0,1\}^n$. You can define $P(x) = \rc Z \exp(-f(x))$. Often underlying complexity is treewidth. But submodular functions can be defined that don't have small treewidth, but you can find MAP (though you can't find marginals). 
+
+Computer vision: Kolmogorov, 90's: look at Markov random field. When can MAP cut find solution? Precisely when function is submodular. 
+
+Any energy function can be written as a difference of submodular functions $\rc Z \exp(g(x) - f(x))$. Sometimes you can get approximation guarantees.
+
+%polytime guarantees.
+%Usually want to max or min
+Many applications to machine learning. %start from 2003, 2004.
+\begin{itemize}
+\item
+Active learning (batch, online, adaptive): 
+%hybrid adaptive batch
+Choose more diverse batches
+\item
+Data summarization (document, image, video, music)
+\item
+Training data set reduction
+\item
+Test data set reduction (ex. one concept is over- and one is underrepresented)
+\item
+Genomic summarization (drug trials, ensure all groups represented)
+\item
+Feature selection (remove redundant features beforehand)
+\item
+Model selection (batch boosting)
+\item
+Data partitioning (allocate training data to different processors for parallel training)
+\end{itemize}
+
+More data is like no more data. This is something that also happens for nonparametric models. This happens even though you optimize complexity of model for amount of data.
+%human nonparametrics.
+%1-\ln (accuracy)
+Each graph seems like concave function. If any way you permute data and it's concave, then it's a submodular function.
+
+%num features
+%graph complexity
+Let $V=[n]$ be finite ground set, $f:2^V\to \R$ be set function. If for all permutations $\si$ of $V$, for all $i\le j$,
+$$
+f(\si_i|S_{i-1}) \ge f(\si_j|S_{j-1})
+$$
+where $S_i\{\si_1,\ldots, \si_i\}$ then $f$ is submodular. 
+
+Data is highly redundant!
+
+You want to order data so accuracy goes up quickly and flattens out, so you can throw out the rest.
+
+%core-sets
+Cf. core-sets. Here we don't know the precise problem; we're trying to find a core-set on particular model of that data.
+\begin{enumerate}
+\item
+Whenever one is dealing with multi-pass ML systems, often the number of passes is large. Summarization methods are just used once. From the summary you can do model selection, etc. 
+\item
+Other algorithms for submodular functions, for exampe in the  streaming setting...
+\end{enumerate}•
+%These haven't be fully  investigated
+
+How to find the right submodular function for your ML application?
+\begin{itemize}
+\item
+hand design the function $f$.
+\item
+learn $f$ unconstrainedly.
+%You can't learn submodular function in $L^2$ sense with guarantee better than $\sqrt{n}\ln n$. 
+\item
+Learn $f$ within c(1) onstrained degree family or (2) flexible constrained parametric family. We consider (2).
+\end{itemize}•
+%Ex. $f(A) = \sum_{(i,j)\in E[f] f_{ij}(A\cap \{i,j\})
+
+\subsection{Feature based functions: sums of concave over modular (SCMMs)}
+
+%exp cost inference model
+%relatively cheap query cost
+
+A modular function is given by a vector,
+$$
+m(A) = \sum_{a\in A} m(a).
+$$
+It's normalized, $m(\phi)=0$. Characterization:
+$$
+m(A) + m(B) = m(A\cup B) + m(A\cap B).
+$$
+Concave over non-negative modular $f(A) = \phi(m(A))$ is submodular.
+
+%any concave func has this property.
+If $f_1,\ldots, f_l$ are a set of submodular functions, then 
+$$
+f(A) = \sumo il \al_i f_i(A) + m_\pm (A)
+$$
+is submodular. When $f_i(A) = \phi_i(m_i(A))$ is concave where $\phi_i,m_i$ are concave, modular, respectively, this is a SCMM.
+
+What can you do with this class?
+
+Feature functions: Use SCMM's readily. %featurization
+
+Only requirement is that features be non-negative.
+
+Ex. $m_u(v)$ counts number of times ``New York City'' appears in document.  Ex. $U$ is set of colors and $m_u(v)$ is number of pixels of color $u$.
+
+%if not confused, plenty of opport to be confused in next minutes
+
+For $X\subeq V$, define $m_u(X) = \sum_{x\in X}m_u(x)$. With $g$ nondecreasing concave, $\phi(m_u(X))$ grows subadditively.
+%Feature-based function:
+$$
+\phi(m_u(A+v)) - \phi(m_u(A)) \ge \phi(m_u(B+v)) - \phi(m_u(B)). 
+$$
+Consider
+$$
+f(X) = \sum_{u\in U}\al_u\phi_u(m_u(X)) + m_\perp(X).
+$$
+Ex. feature counts (9,0,0), (3,3,3), (3,4,2). Adding diversity we get a boost.
+
+When you consider a collection of sets of features, it's better for each set to be diverse in features.
+
+Feature-based functions can be learnt on training set and tested on separate test set. Useful for streaming applications (evaluations do not require entire ground set).
+
+Maybe you squares and triangles are more similar to each other than to circles. $$F(A) = \sum_{u\text{ shape}} \sqrt{m_u(A)} = \sum_u \sqrt{\sum_{a\in A} \text{count}_u(a)}$$
+doesn't allow higher-order interaction between shapes. Contribution of square is measured combinatorially independent of triangle.
+Put square root over!
+$$
+\ol F(A) = \sqrt{\sum_{u\in \{\triangle, \square\}} \sqrt{m_u(A)}} + \sqrt{m_{\bigcirc}(A)}
+$$
+%Theorem: given $f$ and $g:\R\to \R$, $h=f\circ g$ is nondecreasing submodualr
+\subsection{Deep submodular functions}
+
+Add additional layer of nested concave functions
+$$
+f(X) = \phi_{v^K}\pa{\sum_{v^{K-1}\in V^{K-1}} w_{v^K}^{(K)} (v^{K-1}) \phi_{v^{K-1}}(\cdots)}.
+$$
+%where $V=V^{(
+
+More generally we can define deep submodular functions recursively given a DAG.
+$$
+\psi_V(x) = \phi_v\pa{\sum_{u\in \text{parent}(v)\bs V} w_{uv}\phi_u(x) + \an{m_v,x}}.
+$$
+%root note eval on char vector.
+DSF is defined as $\psi_v(1_A)+m_\pm (A)$ where $m_\pm :V\to \R$ is arbitrary modular function.
+
+Any deep neural net with nonnegative weights and concave function in nonnegative region is DSF.
+
+The mother concave function is
+$$
+\phi(x) = \min(x,1).
+$$
+DSF's may leverage work on DNNs (GPU-based training, distributed representations, toolkits, etc.).
+
+Do DSF's constitute larger class? Where do family of DSF's lie in space of submodular functions?
+
+Theorem: 
+\begin{enumerate}
+\item
+family of DSFs is strictly larger than family of SCMMs.
+\item
+family of $k$-layer DSFs strictly extends the family of $k-1$ layer DSFs for all $k\ge 0$. (0-layer is modular.)
+\item
+Family of $k$-layer deep submodular functions over all $k$ do not comprise all submodular functions.
+\end{enumerate}•
+Open: 
+\begin{enumerate}
+\item
+Is there an approximation result? 
+\item
+If one restricts curvature, can $k-1$ layer approximate $k$ layer functions? (cf. Lipschitzness. It's defined differently, seen and used as complexity parameter. Worst-case results come from fully curved functions. For less curved functions you get better approximation bounds.)
+\end{enumerate}•
+%prob coverage, graph cuts
+
+\subsection{Matroid case}
+In matroid case: partition matroid rank. I show laminar is greater than partition matroid rank.
+
+A matroid $M$ is a set system $M=(V,I)$ where $\cal I=\{I_1,I_2,\ldots\}$ where $I_i\subeq V$ are called independent.
+Example: set of subsets of linearly independent vectors in a set of vectors.
+
+$\phi\in \cal I$ and $\cal I$ is subclusive (any subset is in $I$), and all maximally independent sets have the same size. Given $A,B\in \cal I$ with $|A|<|B|$, there exists $b\in B\bs A$ such that $A+b\in \cal I$. 
+Rank of matroid is $r:2^V\to \Z_+$, $r(A)=\max_{I\in \cal I}|I\cap A|$.
+
+%discrete analogues for convex sets: matroid independence. 
+%each has distinct rank function
+%rank function is SCM
+Partition matroids: partition $(V_1,\ldots, V_l)$ of $V$ is formed with capacities $k_1,\ldots, k_l\in \Z_+$. Rank function is 
+$$
+r(X) = \sumo il \min(|X\cap V_i|,k_i)
+$$
+a SCM.
+
+Laminar matroid: For all $i\ne j$, either $F_i\cap F_j= \phi$ or $F_i\subeq F_j$ or $F_j\subeq F_i$. (Sets are nonintersecting or comparable.)
+
+``Deep matroid rank function.''
+
+Each $F\in \cal F$ has associated capacity $k_F\in \Z_+$. Each laminar family corresponds to a tree.
+
+The rank function takes the following form
+$$
+r_F (A) = \min\pa{\sum_{F'\in pa(F)}r_{F'}(A\cap F') + \ab{A\bs \bigcup_{F'\in pa(F)} F}, k_F}.
+$$
+(DAG is a tree.)
+
+Lemma: Laminar matroids strictly generalize partition matroids.
+
+Proof. Consider $\cal F=\{V,B\}$ where $k_V=2$, $B\sub V$, $k_B=1$, $|B|\ge 2$, $|V|\ge |B|+2$, $r(X) = \min(\min(|X\cap B|,1)+|X\bs B|,2)$.
+
+Suppose
+$$
+r_s(X) = \sum_i \min(|X\cap C_i|,k_i).
+$$
+$C$'s are disjoint. Choose $b_1\in C_1, b_2\in C$ for $i\ne j$. Then $r_s(\{b_1,b_2\})=2\ne r(\{b_1,b_2\}) = 1$. Hence there is unique $i$, $B\subeq C_i$. Then $k_i=1$. Moreover $C_i=B$.
