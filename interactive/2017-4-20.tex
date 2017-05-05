@@ -1,0 +1,205 @@
+\section{Diving into the shallows: a computational perspective on Large-Scale Shallow Learning (Misha Belkin)}
+%Time/Place: Thu 4/20, 10am, Room 116
+
+Remarkable recent success of deep neural networks has not been easy to analyze theoretically. It has been  particularly hard to disentangle relative significance of architecture and optimization in achieving accurate classification on large datasets. Rather than attacking this issue directly,  it  may be as useful to understand the limits of what is achievable with shallow learning. It turns out that the smoothness of  kernels typically  used in shallow learning presents an obstacle toward effective scaling to large datasets using  iterative methods. While shallow kernel methods have the theoretical capacity to approximate arbitrary functions, typical scalable algorithms such as GD/SGD drastically restrict the space of functions which can be obtained on a fixed computational budget. The issue is purely computational and persists even if infinite data are given.
+
+In an attempt to address this issue we introduce  EigenPro, a preconditioning technique based on direct (approximate) spectral modification. Despite this direct  approach, EigenPro was able to match or beat a number of state of the art classification results in the kernel literature (which typically used large computational resources) with only a few hours of GPU time. I will continue with some speculation on the architecture/optimization dichotomy in deep and shallow networks. Finally,  I will argue that optimization analysis concentrating on the optimality within a fixed computational budget may be more reflective of  the realities of machine learning than the more traditional approaches based on rates/complexity of obtaining a given error.
+
+Based on joint work with Siyuan Ma.
+
+Classical shallow learning:
+\begin{enumerate}
+\item
+Carefully choose a space of functions $H$, e.g., a kernel
+\item
+Carefully apply appropriate regularization.
+\item
+Solve the (convex) optimization problem.
+\end{enumerate}
+Modern deep learning:
+\begin{enumerate}
+\item
+Choose architecture (not that it matters too much).
+\item
+User regularization (does not matter too much).
+\item
+Run SGD for a while on some GPUs.
+\item
+Obtain better results.
+\end{enumerate}•
+What changed?
+
+For small problems, there is no problem that neural nets solve that cannot be solved with kernels, boosting, etc. 
+We are in the modern big data era. 
+
+Empirical risk minimization:
+$$
+\amin_{f\in H} \rc n\sumo in L(f(x_i),y_i) + S(f)
+$$
+where $S$ is regularization. (I argue we should not use regularization; it's done for free by optimization.)
+
+How does big data help?
+\begin{enumerate}
+\item
+Better averaging.
+\item
+More coverage/better approximation.
+\end{enumerate}
+The second point has a lot to do with the success of big data.
+
+Small data allows richer optimization, big data allows richer function space. Our optimization algorithms are now restricted, however. For example, you can't use 2nd order optimization.
+
+We want a large space $H$ to get small empirical loss, and efficient optimization.
+\begin{enumerate}
+\item
+
+Nearest neighbor: gets $2\times$Bayes error.
+
+MNIST Bayes error needs to be $<0.5\%$.
+
+But 1-NN MNIST Bayes error is $\approx3\%$.
+
+We have a high-dimensional group action.  If the different manifolds are close together, a point on a different manifold may be closer than a shift on the same manifold.
+%If the shifts are close together, the nearest neighbor may be from a shift.
+\end{enumerate}
+
+Consider something simpler: least squares (kernel) shallow networks. We'll explain and address one aspect of why shallow networks underperform on large data.
+
+Computational reach: What kind of functions can be approximated on limited computational budget?
+
+Expanding the reach: Learn a kernel to make computation (gradient descent) efficient. It's a preconditioning technique.
+
+%how much error is desirable.
+Optimization in ML is different from classical optimization:
+\begin{itemize}
+\item
+hard to know how much is desirable (optimization error is not generalization error).
+\item
+Some error is OK, avoid overfitting.
+\item
+Computationally limited.
+\end{itemize}
+Realistic goal: do best within fixed computational budget.
+
+Shallow architecture is feature map $\phi:\R^d\to H$ followed by linear regression/classification
+$$
+w^* = \amin_{w\in H} \rc n \sum_i L(w\cdot \phi(x),y).
+$$
+We may as well replace $x$ by $\phi(x)$ in the data. 
+Exact solution is
+$$
+w^* = (X^TX)^{-1}X^Ty
+$$
+(can replace inverse by pseudoinverse). You can't do this for big data $n\approx d\approx 10^6$. We can't afford $10^{18}$ flops.  But $O(n^2)$, $10^3\cdot 10^{12}$ is probably OK.
+
+We have to do gradient descent (Richardson iteration)
+$$
+w\mapsfrom w - \eta(X^TXw - X^Ty).
+$$
+What happens with this? The standard step size is $\rc{\la_1}$. Write in eigenbasis of $X^TX$,
+$$
+(w^*-w^{(t)}) \cdot e_i =\pa{1-\fc{\la_i}{\la_1}}^t (w^*\cdot e_i).
+$$
+The computational reach after $t$ iterations is
+$$
+CR_t = \set{v}{\sum \pa{\pa{1-\fc{\la_i}{\la_1}}^{2t}v_i^2}<t^2\ep^2}.
+$$
+When $\la_1\gg \la_i$, only a small fraction of the parameter space is reachable after $t<\fc{\la_1}{\la_i}$ iterations. You need a lot of iterations to converge in that direction.
+%When condition number is large, 
+%linear convergence
+When $\fc{\la_i}{\la_1} <\rc t\ll 1$, 
+$$
+\pa{1-\fc{\la_i}{\la_1}}^{2t} \approx 1- \fc{2t\la_i}{\la_1}.
+$$
+We need $t=O\pf{\la_1}{\la_i}$ iterations to converge along each $e_i$, nothing to do with amount of data.
+
+Think of $t$ iterations of GD as spectral thresholding at $\la_i<\fc{\la_1}{t}$.
+
+Consider kernel regression
+$$
+w^* = \amin_w \rc n \sumo in \pa{\sumo jn w_i K(x_j,x_i) - y_i}^2.
+$$
+We can fit any data, e.g., with Gaussian kernel. 
+But Gaussian (smooth) kernels have exponential eigenvalue decay $t\approx \fc{\la_1(K)}{\la_i(K)} \approx e^{i^2/d}$.
+
+This is good because gradient descent performs regularization (cf. early stopping), but it has too much regularization, effectively spectral thresholding at $i\approx \ln t$.
+
+Adding regularization $\tau\ve{f}^2$, condition number is now $\la_1/t$. Do we have better convergence?
+
+Problem: bias. Regularization is useless.
+
+Does all of this matter? Consider the Heaviside function. It's a nice function. With $m$ points I can have $\rc m$ error. 
+
+What can I get using my regularization?
+Write in Fourier basis,
+$$
+\sum a_n \sin nx + b_n \cos nx,
+\quad b_n=0, \quad a_n=\fc{1+(-1)^n}{n}.
+$$
+Basically $a_n \sim \rc{n}$. 
+
+%It's easier to look at heat kernel.
+Take the heat kernel $e^{-t\De}$. ($\De$ is the Laplacian, second derivative.) In terms of eigenfunctions, this is $\sum e^{-t\la_n} (\sin nx + \cos nx)$, where $\la_n= \Te(n^2)$. This is because $(\sin nx)'' = - n^2 \sin nx$. %Eigendecay is $tn^2$. 
+This is basically Gaussian kernel.
+
+After $n$ iterations, I get $\sqrt{\ln n}$ coordinates.
+
+%To get $.01\%$, I need 1
+%tsybakov noise condition. harsh transitions, quick around boundary. slow fourier decay. realistic example.
+
+Even taking something with e.g. 3 derivatives, we only get polynomial decay, does not work with exponential decay. Things are worse with higher dimensions.
+
+On real data, need 4000 iterations to fit 200 eigenvectors.
+When you take more eigenvectors, the more you take, the better result you have.
+On real data, you need a lot of epochs (not exponential, but large). Taking a smaller $\si$ you get better results on training but large test error. Small $\si$ is basically doing 1-NN.
+
+Sharp kernels have small eigendecay; you overfit and don't get good results.
+
+Preconditioning: $Kx=y\implies PKx = Py$.
+
+EigenPro. Idea: split computational budget by 
+\begin{enumerate}
+\item
+compute first $k$ eigenvectors
+\item
+Use GD after shrinking first $k$ eigendirections (partial whitening).
+\end{enumerate}•
+Equivalent to preconditioned Richardson iteration,
+$$
+w\mapsfrom w-\eta P(X^TX w - X^T y),
+$$
+$P=I-\sumo ik \pa{1-\fc{\la_{k+1}}{\la_1}}e_ie_i^T$. Potential acceleration is $\eta^{-1} = \fc{\la_1}{\la_{k+1}}$. 
+
+Note we need to combine first and second order approximation (not just second order methods).
+
+Small eigendirections with small eigenvalues have important information. You have to keep the information, but it's important to use second-order information.
+
+Here's what the new kernel looks like
+\begin{align}
+K(x,z) &= \sumo i\iy \la_ie_i(x)e_i(z)\\
+K_{EiP}(x,z) &= \sumo ik \la_{k+1}e_i(x)e_i(z) + \sumo i{k+1}\iy \la_i e_i(x)e_i(z).
+\end{align}
+Spectral modification.
+
+Why EigenPro?
+\begin{enumerate}
+\item
+Compute first $k$ of $X^TX$ eigenvectors to form $P$ using Randomized SVD.
+\item
+Approximate computation of $P$ is OK as solution does not change.
+\item
+Using preconditioned SGD, $w\mapsfrom w-\eta P(X^T_mX_m w - X_my)$. 
+\end{enumerate}•
+This is cheap to compute; small overhead per iteration as $P$ is low rank (+identity).
+
+But we have to decrease $\eta$: eigenvectors of $X^TX$ and $X_m^TX_m$ do not align perfectly due to approximation. Choose $\eta=\sfc{\la_{k_1}}m$.
+
+This really works. Experiment on Timit, Pegasos.
+
+Conclusion: Deep is hard. Let's try to understand shallow. Computation is a limiting factor. Kernels can match NN at least for some problems. Build kernels for computational efficiency.
+%not something we've seen. Brave new world.
+
+%sliced pie
+%NN in feature space? (autoencoder) 
+%after factor out invariants?
+%vision.

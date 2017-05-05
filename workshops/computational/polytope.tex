@@ -1,0 +1,209 @@
+\section{Sampling Polytopes: From Euclid to Riemann (Yin Tat Lee, Microsoft Research and University of Washington)}
+
+
+We introduce the Geodesic Walk for sampling Riemannian manifolds and apply it to the problem of generating uniform random points from the interior of a convex polytope in n-dimensional Euclidean space. The walk is a simulation of a stochastic differential equation defined using a convex barrier function; each step is the solution of an ordinary differential equation. It improves the time complexity of sampling polytopes and is the first walk to achieve sub-quadratic complexity. Part of the talk will be spent introducing relevant aspects of manifolds, stochastic processes, efficient solution of differential equations, and how this walk overcomes the bottlenecks of random walks in Euclidean space. No background in string theory (or Riemannian geometry) will be assumed. 
+Joint work with Santosh Vempala.
+
+My dream: tell the complexity of a convex problem by looking at the formula. 
+
+This is hard. Ex. given a graph with $m$ edges and $n$ vertices, min $st$ cut, $\min_{f(s)=0,f(t)=1} \sum_{x\sim y} |f(x)-f(y)|$. You can smooth this problem, do Nesterov gradient descent, etc., but our final goal is to solve the original problem; think about how much error you incur. If you true to use AGD, you get $m^{1.5}$. If you write as LP and use Laplacian solver you get $m^{1.5}$. Using packing LP, you get $m^{1.5}$. %In the TCS way of thinking, what we want is not the particular model, but how can we solve as fast as possible.
+In the past few years, I've been trying to understand given the problem, what oracle setting and what algorithm to use? M14 gets $O(m^{\fc{10}7})$; LS14 get $O(m\sqrt n)$. 
+
+Min cost flow problem $\min_{B^Tf=d, 0\le f\le 1} c^Tf$. 
+
+Submodular minimization $\min_{S\in 2^{[n]}} f(S)$ where $f$ satisfies diminishing returns $f(S+u) - f(S)\le f(T+e)-f(T)$, $T\sub S, e\nin S$. $f$ can be extended to convex function on $[0,1]^n$, subgradient can be computed in $n^2$ time, can be solved in $\wt O(n^3)$.
+
+Book reference: Geometric algorithms and combinatorial optimization
+
+Algorithmic convex geo: given convex set $K$, we have operations
+\begin{enumerate}
+\item
+membership: check  $x\in K$ ($l_K(x)$)
+\item
+separation: assert $x\in K$, or find hyperplane separating ($\pl l_K(x)$)
+\item
+width, $\min_{x\in K}c^Tx$. ($l_K^*(c)$)
+\item
+Optimize $\amin_{x\in K} c^Tx$ ($\pl l_K^*(c)$)
+\item
+sample $g(x)\one_K$, $g$ logconcave ($\approx e^{-g}1_K$)
+\item
+integrate $g$: compute $\int_K g(x)\dx$, $g$ logconcave. ($\int_K g(x)\dx$)
+\end{enumerate}•
+They are all equivalent in polytime.
+
+Why those operations? Define dual
+$$
+f^*(c) = \amax_x c^Tx - f(x).
+$$
+Let $l_K = \iy \one_{K^c}$. 
+All the oracles can be written in terms of $l_K, l_K^*, 1_K$; see above. We are getting tight poly equivalence between membership, width, separation, optimization. Convex optimization is relation between separation and optimization. The poly equivalence is classically by ellipsoid method. Traditionally ellipsoid method is viewed as impractical; now we have efficient method.
+We'll focus on membership to sampling.
+
+Sampling: given convex set $K$, sample point from uniform distribution on $K$.
+
+Generalized problem: given logconcave distribution $f$, output point according to $f$. Useful for optimization, integration/counting, learning, rounding. 
+
+This is the best way to minimize convex function with noisy value oracle, and only way to compute volume of convex set. 
+
+I'll focus on the problem of sampling from a convex set $K$.
+
+Application: convex bandit. For each round $t=1:T$, 
+\begin{itemize}
+\item
+adversary selects convex loss function $\ell_t$
+\item
+Choose (possibly randomly) $x_t$ from unit ball in $n$ dimensions based on past obsevations
+\item
+Receives loss/observations $\ell_t(x_t)\in [0,1]$.  Nothing else about $\ell_t$ is revealed.
+\end{itemize}•
+Measure performance by regret
+$$
+R_T = \sumo tT \ell_t(x_t) - \min_{x\in K}\sumo tT \ell_t(x).
+$$
+There is a good fixed action but we only learn one point each iteraction, adversary can give confusing information. Gold standard is $O(\sqrt T)$.
+After a decade of research we have $R_T = n^{10.5}\sqrt T$.
+
+
+Two ways to think about sampling problem.
+\begin{enumerate}
+\item
+Oracle setting: membership oracle answers Yes/No to ``$x\in K$''.
+
+Start with a ball $x+rB\subeq K \subeq x+\poly(n)rB$.
+\item
+Explicit: given description of $K$, ex. polytope.
+\end{enumerate}
+
+%Sampling problem: Input $K$ with membership oracle,
+Oracle setting: hit and run gives $O(n^3)$. Conjuectured lower bound is $\Om(n^2)$. Conjectured optimal is ball work. At $x$, pick random $y$ from $x+\de B_n$. If $y\in K$, go to $y$, else sample again. 
+
+This walk may get trapped on one side if set is not convex. To measure, see if there is bottleneck. Define isoperimetric constant
+$$
+\phi_K = \min_S\fc{Area(\pl S)}{\min(\Vol(S), \Vol(S^c))}.
+$$
+\begin{thm}
+Given a random point in $K$, we can generate another in $O\pa{\fc{n}{\de^2\phi_K^2}\ln \prc{\ep}}$ iterations of Ball Walk.
+\end{thm}
+
+Isoperimetric constant of convex set: not affine invariant and can be arbitrarily small. Ex. $1\times L$ rectangle. Normalize $K$ such that $\Cov(K)=I$. 
+$K$ is isotropic if mean 0 and $\Cov(K)=I$. 
+\begin{thm}
+If $\de<\fc{0.001}{\sqrt n}$ ball walk stays inside set with constant probability.
+\end{thm}
+\begin{thm}
+Given a random point in iso $K$, generate another in $O(\fc{n^2}{\phi_K^2}\ln \prc{\ep})$. ($\ep$ is total variation between resulting distribution and uniform distribution.)
+\end{thm}
+To make body isotropic we can sample the body to compute covariance. ``Chicken and egg''.
+
+\begin{conj}[Kannan-Lov\'asz-Simonovits conjecture]
+For any isotropic convex $K$, $\phi_K=\Om(1)$.
+\end{conj}
+If true, Ball Walk takes $O(n^2)$ iterations for isotropic $K$.
+%If this is true, Ball Walk takes $O(n^2)$ for isotropic $K$. 
+
+Related conjecture
+\begin{conj}[Slicing conjecture]
+Any unit volume convex set $K$ has slice with volume $\Om(1)$.
+\end{conj}
+
+\begin{conj}[Thin-shell conjecture]
+For isotropic convex $K$, $\E[(\ve{x} - \sqrt n)^2] = O(1)$.
+\end{conj}
+If you try to solve min s-t cut, min cut max flow, where does $\sqrt n$ come from: Any symmetric convex set can be approximated by ellipsoid inside, such that scaling by $\sqrt n$ it contains the set. Any convex set is approximated $1+\rc{\sqrt n}$ factor. This is probabilistic statement we don't know how to use.
+\begin{conj}[Generalized Levy concentration]
+For logconcave $p$< 1-Lipschitz $f$,  
+$$
+\Pj(|f(x)-\E f|>t)=\exp(-\Om(t))
+$$
+\end{conj}
+All of these conjectures are easy to prove for ellipsoids; it asks if all convex sets looks like ellipsoids.
+
+Main result: Lovasz-Simonovits93, $\phi=\Om(1)n^{-\rc 2}$. 
+
+What if we cut the body by sphere only? $\si_K := \sfc{n}{\Var(\ve{X}^2)}\ge \phi_K$. This is still difficult. Eldan 2012: $\phi=\wt\Om(1)\si = \wt\Om(1) n^{-0.333}$, LVempala 2016, $\phi=\Om(1) n^{-.25}$. We have $O(n^{2.5})$ mixing for ball walk.
+
+Do you know better way to bound mixing time of ball walk?
+
+Sampling for polytopes. Input: polytope with $m$ constraints and $n$ variables. Sample from uniform on $K$.
+\begin{enumerate}
+\item
+Dikin walk, KN09: $mn$ iterations, $mn^{1.38}$ time/iteration (cost of matrix inversion)
+\item
+LV: ball walk $n^{2.5}$, $mn$ time/iterations
+\item
+LV16: $mn^{0.75}$, $mn^{1.38}$. (To sample from ellipse, solve a linear system.)
+\end{enumerate}•
+%m eq, n vars
+First sub-quadratic algorithm! For previous algorithms, hypercube was hardest. Here, hypercube takes less time, but we can't show it's the worst case.
+
+How does nature mix particles? Brownian motion works for sampling on $\R^n$. However convex set has boundary. Options:
+\begin{enumerate}
+\item
+Reflection
+\item
+Remove boundary by blowing up.  Construct manifold which projects to convex set.
+This requires explicit polytopes. 
+\end{enumerate}•
+Stretch points near boundary to $\iy$. If you do a random walk you will drift to $\iy$. The distortion makes the hard constraint become soft.
+
+Use Riemannian manifolds. $n$-dimensional manifold is $n$-dimensional surface. At every point there is a tangent space consisting of all directions along the manifold. For any point there is an inner product defined locally. Inner product in $T_pM$ depends on $p$.
+Useful for defining length of curve $c:[0,1]\to M$,
+$$
+L(c) = \int_0^1 \ve{\ddd tc(t)}_{c(t)}\,dt.
+$$
+Distance is infimum over all paths.
+
+Generalized ball walk: at $x$, pick random $y$ from $D_x$ where $D_x=\set{y}{d(x,y)\le 1}$. 
+
+Hessian manifold is subset of $\R^n$ with inner product defined by $\an{u,v}_p = u^T \nb^2\phi(p)v$. 
+
+For polytope $\{\forall i, a_i^Tx\ge b_i\}$ use log barrier function $\phi(x)=\sumo im \ln \prc{s_i(x)}$. $s_i(x)==a_i^Tx-b_i$ is distance from $x$ to constraint $i$. $p$ blows up when $x$ is close to boundary, walk is slower when close to boundary. 
+
+This converges to the boundary ($\iy$). 
+
+Make modifications. Note if $p(x\to y)=p(y\to x)$ then stationary distribution is uniform. To make Markov chain symmetric, use
+\begin{align}
+\wt p(x\to y) &=
+\min(p(x\to y),p(y\to x)),\text{ if } x\ne y.
+\end{align}
+Dikin walk: at $x$, pick $y\in D_x$. If $x\in D_y$, accept with probability $\min(1,\fc{\Vol(D_x)}{\Vol(D_y)})$. 
+
+Dikin ellipsoid is contained in $K$. Why not pick next step from blown-up Dikin ellipsoid, blow up by $\sim \sfc{n}{\ln m}$. Problem: success probability exponentially small. Hypercube is worst-case for previous algorithms.
+
+Look at Dikin walk, possible $y$'s you go to is not symmetric around $x$ because you reject close to boundary. This is like drift back to the center. 
+Taking step size to 0, Dikin walk becomes SDE, 
+$$
+dx_t = \mu(x_t) \,dt + \si(x_t)\,dW_t,
+$$
+$\si(x_t)=\phi''(x_t)^{-\rc 2}$, $\mu(x_t)$ is drift towards center.
+Drift is from Fokker-Planck equation. Make stationary distribution constant, 
+%$-\pdd x \mu + \rc 2 \pdt
+New walk: $x_{t+h} = x_t + h\cdot \mu(x_t) + \si(x_t)W$ with $W\sim N(0,hI)$. This doesn't make sense---goes outside manifold.
+Exponential map: find shortest path start with $x$ in direction; traces geodesic on manfold. 
+$$
+x_{t+h} = \exp_{x_t}(h/2\cdot \mu(x_t)+W)
+$$
+%\si(x_t)W.
+This has discretization error, do metropolis filter. Filter is complicated.
+
+Key lemma 1: provable long geodesic. For any geodeisc, if direction is random, length $\wt O(n^{\rc 4})$. Faster algorithm for max-flow.
+
+Key lemma 2: massive cancellation. 
+
+%pretty bad.
+Q's: 
+\begin{itemize}
+\item
+We have no background on ODE/SDE, RG. Improve running time?
+\item
+How to avoid filtering?
+\item
+Is there a way to tell a walk mixed or not? Even if we cannot prove KLS, algorithm can still stop early.
+\item
+Higher order method in SDE useful in MCMC?
+\item
+Other suggestions/heuristics?
+\end{itemize}•
+HMC makes acceptance probability higher.
+

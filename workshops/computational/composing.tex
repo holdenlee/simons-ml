@@ -1,0 +1,177 @@
+\section{Composing Graphical Models with Neural Networks for Structured Representations and Fast Inference (David Duvenaud, University of Toronto)}
+
+How to combine the complementary strengths of probabilistic graphical models and neural networks? We compose latent graphical models with neural network observation likelihoods. For inference, we use recognition networks to produce local evidence potentials, then combine them using efficient message-passing algorithms. All components are trained simultaneously with a single stochastic variational inference objective. We use this framework to automatically segment and categorize mouse behavior from raw depth video.
+
+Practical problem: coding mouse behavior.The inner loop of this experience means that a grad student needs to watch the mouse for hours. There huge variability. Lots of scientific pipelines involve these tasks. There are lots of ``behavior phonemes'', which could be on very short scales. An initial model is to have clustering. 
+
+Simplest thing: run mixture Gaussians on raw video data.
+
+Read data doesn't form nice Gaussian clusters. Real data lies on low-dimensional manifolds in high-dimensional spaces. Fitting a mixture of Gaussians will tile the space with lots of Gaussians. It has good properties as a density estimators, but we're worried about inductive bias and have lost the interpretability of a mixture of Gaussians. 
+
+Imagine putting a NN in there: warp the data by a NN. Get the best of both worlds: flexible density model and interpretable high-level structure. 
+
+20-year explosion at NIPS: here's a interesting model, work out inference for it.
+
+Pros of probabilistic graphical models:
+\begin{itemize}
+\item
+structured representations
+\item
+priors and uncertainty
+\item
+data and computational efficiency
+\end{itemize}•
+Cons:
+\begin{itemize}
+\item
+Rigid assumptions may not fit
+\item
+Feature engineering
+\item
+Top-down inference. (MCMC: top-down explanation, move in latent space of explanations.)
+\end{itemize}•
+Deep learning cons:
+\begin{itemize}
+\item
+Once you fit a model you get uninterpretable goo.
+\item
+It's difficult to parameterize.
+%RNN...
+\item
+Can require lots of data.
+\end{itemize}•
+Pros:
+\begin{itemize}
+\item
+flexible
+\item
+feature learning
+\item recognition networks (learn to do inference, take burden off inference schemes). This is like bottom-up inference
+\end{itemize}
+Neural nets and graphical models have complementary benefits. 
+
+Make PGM's great again!
+
+Modeling idea: graphical models for latent variables, neural nets for observations.
+
+This is already what we do in supervised learning: Layers of NN up to last layer is transformation into space where logistic regression can handle the data. NN is a bridge from non-interpretable version of data, to space where structured assumptions do hold.
+
+How to build a model to model mouse behavior?
+
+There is a discrete latent variable that encodes the behavior. Add continuous variable representing physical state in low-dimensional state. The behavioral state determines the dynamics of this.
+
+%(Do you need both supervised and unsupervised signal?)
+
+We don't need supervised learning! By jointly learning, we can fit the data and find an explanation.
+
+Connect to frames of video by neural net.
+%mdp, pixelrnn
+$$y_t|x_t,\ga \sim N(\mu(x_t;\ga), \Si(x_t;\ga)).$$
+
+%$p(\te)$ Conjugate prior on global variables
+
+Anyone can write down a fancy model; what's cool is doing inference.
+
+How would we do inference if we had nice conjugate observations, ex. Kalman filter. Cast in SVI framework, 
+\begin{align}
+q(\te)q(x) &\approx p(\te,x|y)\\
+\cal L(\eta_\te,\eta_x) &= \E_{q(\te)q(x)} \ba{\ln \fc{p(\te,x,y)}{q(\te)q(x)}}.
+\end{align}
+
+We can get an unbiased estimate of the gradient with a single data point.
+
+Steps:
+\begin{enumerate}
+\item
+Compute evidence potentials
+\item
+Run fast message passing
+\item
+Compute natural gradient
+\end{enumerate}
+
+%Pretend observations are conjugate to model.
+%For each frame, look at data and output.
+
+$p(x|\te)$ linear dynamical system, $p(y|x,\ga)$ NN decoder, $p(\te)$ conjugate prior, $p(\ga)$ generic.
+
+The ELBO has $\ln \fc{p(\te, \ga,x)p(y|x,\ga)}{q(\te)q(\ga)q(x)}$. The term $p(y|x,\ga)$ is a problem. 
+Construct a conjugate variant of it
+$$
+\hat L = \E\ba{
+\ln \fc{p(\te, \ga,x)\exp(\psi(x;y,\phi))}{q(\te)q(\ga)q(x)}}
+$$
+If observations were conjugate this would be the right ELBO.
+
+\begin{enumerate}
+\item
+Apply recognition network.
+\item
+Run fast PGM algorithms. Combine local evidence from every frame to coherent story.
+\item
+Sample, compute flat gradients. %(At training time, update NN.)
+\item
+Compute natural gradient.
+\end{enumerate}•
+
+%Keep evaluating general networ
+Natural gradient SVI: expensive for general observation. Pros: optimal local factor, exploits conjugate graph structure, arbitrary inference queries, natural gradients.
+
+Variational autoencoders (brute force): Fast for general observations. Cons: suboptimal local factor, $\phi$ does all local inference (neural network has to learn Bayes's rule), can only do limited inference queries (those we've trained it to answer), no natural gradients
+
+Structured VAE's have all benefits: fast for general observations, optimal given conjugate evidence, exploits conjugate graph structure, arbitrary inference queries, natural gradients on $\eta_\te$.
+
+This recipe is general, it plugs into many different scenarios. We have deep versions of everything probabilistic done in NIPS, in principle.
+
+Jointly learn gaussian mixture in latent space, and mapping to latent space.
+%Generative model is gaussian mixture in latent space, warped into 
+
+Ex. Learn linear latent variable dynamical system, bouncing ball. Give 4-D latent space.
+Arrange data so that it can be modeled by dynamics! %Map from smooth dynamics to something that matches observations. We have uncertainty about future state.
+
+How to set number of clusters? Marginal likelihood turns off clusters you don't need. Make a huge model; it gets rid of what it doesn't need.
+
+For a NN, if we change what we condition on we would have to retrain the NN. A RNN could address some of the problems, but probably wouldn't train as fast.
+
+%ad for model class and inference strategy.
+
+Transform to egocentric view of mouse. Model has discrete and continuous part, and generative model. 
+
+We can generate and see if it looks like real data.
+Take a 2-D slice: scrunched up vs. long, standing up vs. laying down.
+
+For the interpretable structure part:  look at real data that most actives one of the states. One state is ``rearing up''. This is a sensible behavioral phoneme. Another is ``fall from rear'', ``grooming''.
+
+Limitations and future work:
+\begin{enumerate}
+\item
+Capacity:
+\begin{itemize}
+\item
+How expressive is latent linear structure? (word embeddings, analogical reasoning in image models)
+\item
+SVAE can use nonlinear latent structure.
+\end{itemize}
+\item
+Complexity:
+\begin{itemize}
+\item
+PGMs get complicated.
+\item
+SVAE keeps complexity modular.
+\end{itemize}
+\item
+Future work
+\begin{itemize}
+\item
+model-bsaed RL
+\item
+automatic structured search
+\item
+semi-supervised applications. Ex. Group by having human label 1 hour of video.
+\end{itemize}•
+\end{enumerate}•
+%if use mean-field gaussians everywhere, more fidelity?
+%i think worse
+%In VAE, condition on x, factorized, but not as expressive as full mean-field where acn set seperately. Does VAE give more?
+%

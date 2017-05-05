@@ -1,0 +1,178 @@
+\section{Multi-view Representation Learning with Canonical Correlation Analysis (Weirang Wang)}
+
+
+Canonical correlation analysis (CCA) has been the main workhorse for
+multi-view feature learning, where we have access to multiple
+``views'' of data at training time while only one primary view is
+available at test time. The idea of CCA is to project the views to a
+common space such that the projections of different views are
+maximally correlated.
+
+In the first part of the talk, we compare different nonlinear
+extensions of CCA, and find that the deep neural network extension of
+CCA, termed deep CCA (DCCA), has consistently good performance while
+being computationally efficient for large datasets. We further compare
+DCCA with deep autoencoder-based approaches, as well as new variants.
+We find an advantage for correlation-based representation learning,
+while the best results on most tasks are obtained with a new variant,
+deep canonically correlated autoencoders (DCCAE).
+
+In the second part of the talk, we study the stochastic optimization
+of canonical correlation analysis, whose objective is nonconvex and
+does not decouple over training samples. Although several stochastic
+optimization algorithms have been recently proposed to solve this
+problem, no global convergence guarantee was provided by any of them.
+Based on the alternating least squares formulation of CCA, we propose
+a globally convergent stochastic algorithm, which solves the resulting
+least squares problems approximately to sufficient accuracy with
+state-of-the-art stochastic gradient methods. We provide the overall
+time complexity of our algorithm which improves upon that of previous
+work.
+
+This talk includes joint work with Raman Arora (JHU), Jeff Bilmes
+(UW), Jialei Wang (U Chicago), Nathan Srebro (TTIC), and Karen Livescu
+(TTIC).
+
+Goal: develop efficient learning algorithms for discovering structure of data and apply them to real-world applications.
+
+\subsection{Multiview learning}
+
+Deep learning methods require large amounts of labeled data. This is prohibitively expensive.
+
+Training data consists of samples of $D$-dimensional random vectors that can be split into 2 subvectors $[x\in \R^{D_x};y\in \R^{D_y}]$.  For example,
+\begin{itemize}
+\item
+audio + video
+\item
+audio + articulation
+\item
+image+ text
+\item
+text in different languages
+\item
+word + context words
+\item
+different parts of parse tree.
+\end{itemize}
+Extract useful features/subspaces in presence of multiple views at training time.
+
+Ex. use multi-view learning on acoustics and articulation to get $\wt f:\R^{D_x}\to \R^L$. In ASR training, use the representation $\wt f(X_{train})$ to train a recognizer.
+
+Ex. For example, shape of tongue tells you information not in the audio. These are not hard levels but can provide useful information. (Dataset: Wisconsin X-ray microbeam database. Metal pellets in mouth record movement.)
+%Largest multiview 
+
+Motivations: soft supervision, noise suppression, extract semantic subspace.
+
+CCA: Given $N$ paired vectors $\{(x_i,y_i)\}_{i=1}^N$, find $(u,v)$
+$$
+(u,v) = \amax_{u,v} corr(u^Tx,u^Ty) = \amax_{u,v} \fc{u^T \Si_{xy}v}{\sqrt{(u^T \Si_{xx}u)(v^T \Si_{yy}v)}}.
+$$
+Extract further directions by repeating, subject to being uncorrelated with previous directions.
+
+For extracting $L$-dimensional projections,
+$$
+\max_{U\in \R^{D_x\times L},V^{D_y\times L},U^T\Si_{xx}U = V^T\Si_{yy}V} \Tr(U^T\Si_{xy}V).
+$$
+Closed form solution is $T=\Si_{xx}^{-\rc 2} \Si_{xy} \Si_{yy}^{-\rc2}$.
+
+Alternative formulation: Project 2 views to the same space.
+$$
+\min_{U,V} \rc N\ve{U^TX-V^TY}_F^2
+$$
+
+Interpretations: maximize mutual information, information bottleneck, latent variable model, discriminative properties.
+
+Instead of applying linear function, use $f,g$ to extract features. Apply linear methods on top. 
+\begin{align}
+\wt f(x) &= U^Tf(x)\\
+\wt g(y) &= V^T g(y).
+\end{align}
+%Not efficient.
+Examples
+\begin{enumerate}
+\item
+Kernel CCA: use RKHS feature mappings. Requires solving $N\times N$ eigensystem.
+\item
+Deep CCA: neural nets.
+\item
+Nonparametric CCA.
+\end{enumerate}•
+
+Optimization:
+\begin{itemize}
+\item
+Gradient computation: wrt $f(X),g(Y)$ computed by SVD of $T=\Si_{ff}^{-\rc 2} \Si_{fg}\Si_{gg}^{-\rc 2}$. 
+\item
+Gradients wrt $W_f,W_g$ from standard backprop.
+\item
+Objective is not expectation of loss over examples  due to constraints $U^T\pa{\rc N \sumo iN f(x_i)f(x_i)^T}U=I$.
+\item
+Stochastic optimization with large minibatches works well.
+\end{itemize}
+
+DCCA performs best.
+
+CCA-based features give large improvements in phonetic recognition. 
+DCCA scales better than approximate KCCA.
+
+Possible issues:
+\begin{itemize}
+\item
+Lose private but useful information in primary view.
+\item
+Difficult for SGD due to constraints.
+\item
+Consider alternatives based on autoencoder regularization.
+\end{itemize}
+
+Models:
+\begin{enumerate}
+\item
+DCCAE: add reconstruction objective
+\item
+CorrAE: 
+each dimension has scale 1 but we don't enforce different dimensions to be uncorrelated. $u_i^T f(X)f(X)^Tu_i = N$, same for $v$. This gives a large degradation in performance.
+\item
+SplitAE: 
+Assume common underlying signal can be extracted from one view and used to reconstruct both views.
+\end{enumerate}•
+Noisy MNIST dataset with rotations. The second view has random background noise. %For each image, the second view has random background.
+
+%The rotation degree of freedom is not shared.
+Classification error rate of linear SVM on projections. DCCAE gets $2.2\%$.
+
+Canonical correlation-based objectives typically outperform autoencoder-based and correlation-based objectives especially when inputs are noisy. Whitening constraint is important (projected data has 0 mean, different directions uncorrelated).
+
+Latent variable interpretation of CCA: $z\sim N(0,I)$, $x|z,y|z\sim N(Wz,\Si)$. Max likelihood in CCA space.
+
+Variational CCA: parametrize $p(x|z),p(y|z)$ with DNNs. Parametrize approximate posterior $q(z|x)$ with another DNN, and maximize variational lower bound of log-likelihood. 
+$$-KL(q_\phi(z|x)||p(z)) + \E_{q_\phi(z|x)} [\ln p_\te p(x|z) + \ln p_\te(y|z)].$$
+Sampling: use MCMC.
+
+There can be large variation not captured by shared variables. Solution: 
+Incorporate private variables for better reconstruction and disentanglement of variations.
+
+VCCA-private does best in mAP (mean average percision) on MIR-Flickr.
+
+Optimization: Add $\ga_xI$ to $\Si_{xx}$ and similarly for $y$ for regularization. Closed form solution $T$ but memory/time consuming.
+%, optimum achieved by $(\Si_{xx}^
+%matrix/vector optimization.
+Do alternate least squares. Cf. two-sided power method.
+%$\matt O{T}{T^T}O [\phi_{t-1};\psi_{t-1}]$
+
+Assuming singular value gap $\rh_1>\rh_2$, measure alignments $(\phi_t^T \phi)^2$ and $(\psi_t^T\psi)^2$. In $T=O\pa{\fc{\rh_1^2}{\rh_1^2-\rh_2^2}\ln \prc{\eta}}$, produces $\eta$-suboptimal solutions.
+
+The matrix-vector multiplication is equivalent to solving the least squares problem.
+
+Inexact power iterations with approximate matrix/vector multiplications still converge. 
+
+Derive meta-algorithm: solve least squares to $\ep$-suboptimality instead. 
+
+If error is $\ep(T)=O(\eta^2)$, converge in about the same number of iterations.
+
+LS has finite sum structure so this is a well-studied problem, many stochastic algorithms converge linearly. Use stochastic gradient corrected with the batch gradient.
+
+More efficient: shift-and-invert.  Run power iterations on $(\la I - C)^{-1}$. Gap is larger. Requires smaller number of outer iterations.
+
+%discussion: 100 dim random fourier features.
+%Noisy power iteration is differentially private. Streaming shift-and invert.

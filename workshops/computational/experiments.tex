@@ -1,0 +1,169 @@
+\section{Computationally Tractable and Near Optimal Design of Experiments (Aarti Singh, Carnegie Mellon University)}
+
+Classical experimental design problems in statistics tend to have combinatorial solutions. We consider computationally tractable methods for the experimental design problem, where k out of n design points of dimension p are selected so that certain optimality criteria are approximately satisfied. We prove a constant approximation ratio under a very weak condition that $k > 2p$, and a $(1 + \ep)$ relative approximation ratio under
+slightly stronger conditions in which k is still a linear function of p. Numerical results on both synthetic and real-world design problems verify the practical effectiveness of the proposed algorithm.
+
+The higher-level picture: we have big data but small labels. The bottleneck is there are lots of images but someone has to sit down and label them. Sometimes labels come from expensive experiments. Experimental design is non-feedback-driven (choosing which labels to collect at the beginning); active learning is feedback-driven. %choosing wh
+
+There's a lot of need for statistical grounding for label efficient methods. 
+How can we make experimental design more tractable? 
+
+Big data, small labels:
+\begin{enumerate}
+\item
+profits of buildings, energy usage
+\item
+healthcare records, patient satisfaction
+\item
+natural images as visual stimuli, brain response (which images to show people in a scanner)
+\item
+experimental parameters' settings, material properties
+\end{enumerate}
+
+Given a large pool of data with label budget, how to subsample data points for labeling?
+
+We look at experimental design for linear regression. The stochastic model is $y=X\be + \ep$, $\ep\sim N_n(0,\si^2I_n)$. We are in the large sample setting $n>p$. 
+
+We want to estimate the true regression coefficient vector $\be$, and predict labels $Z\be$ of potentially different data $Z\in \R^{m\times p}$. 
+
+What if we can only collect $k$ labels where $p\le k\le n$. This is a subset selection problem. 
+
+If we have all the labels, we can find the least squares solution, 
+$$
+\wh \be = (X^TX)^{-1} X^Ty.
+$$
+Estimation and prediction error are
+\begin{align}
+\E[\ve{\wh \be - \be}] &= \si^2\Tr((X^TX)^{-1})/m\\
+\E\ba{\fc{\ve{Z\wh \be - Z\be}_2^2}m}&=
+\si^2 \Tr((Z^TZ)(X^TX)^{-1})/m
+\end{align}•
+We care about minimiax optimality
+$$
+\inf_{A\in \cal A(k)}\sup_\be \E[R(\wh \be , \be)].
+$$
+An algorithm is sampling strategy plus estimator. $R=\fc{\ve{Z\be - Z\wh \be }_2^2}{m}$.
+
+Experimental design in classical statistics: 
+For estimation, A-optimality (average) is 
+$$
+\min_{|S|\le k}\tr((X_S^TX_S)^{-1})
+$$
+For estimation, V-optimality (variance) is 
+$$\min_{|S|\le k }\si^2\tr[(Z^TZ)(X_S^TX_S)^{-1}].$$
+Enumerating over subsets takes $n^k$ time. 
+
+Avron-Boutsidis13: polytime deterministic algorithms that select $|S|=k$, 
+$$
+\ub{\ve{X_S^+}_F^2}{\tr(((X_S)^TX_S)^{-1})} \le \fc{n-p+1}{k-p+1} \ub{\ve{X^+}_F^2}{\tr((X^TX)^{-1})}.
+$$
+%how far sub
+%how far are you from top k you can choose
+Greedily remove rows.
+This outputs $|S|=k, k\ge 2p$ such that difference is $O(\fc nk \si^2 \Tr((X^TX)^{-1})$. This compares against the full solution, not the best $k$-subset.
+
+What if we analyze this under a stochastic model? 
+Sample rows according to leverage scores $h_{ii} = x_i^T(X^TX)^{-1}x_i$, reweight, and solve. Leverage score sampling can be worse than uniform sampling for estimating regression coefficients in stochastic model. %They propose mixture, but don
+
+We make a convex relaxation
+%total 1's on diagonal sum to $k$.
+\begin{align}
+f_{opt} & = \min_{\pi, \ve{\pi}_1\le k, 0\le \pi_i\le 1} \tr[(X^T \diag(\pi)X)^{-1}]\\
+g_{opt} &= \min_{\pi, \ve{\pi}_1\le k, 0 \le \pi_i\le 1} \rc m \tr[(Z^TZ)(X^T \diag(\pi) X)^{-1}].
+\end{align}
+Then sample according to the distribution given by $\pi$. 
+Convex relaxation lower bounds the minimax error.
+
+Convex program can be cast as SDPs, but still only scales to 200-300.
+
+Sampling:
+\begin{enumerate}
+\item
+Without replacement:
+
+Soft budget: $|S|=O_p(k)$, select row $i\sim Ber(\pi^*)$ for each row.
+
+Hard budget $|S|\le k$: Pick row using $Ber(\pi_i^*)$ until $|S|=k$.
+\item
+Sample with replacement:
+
+Soft budget: Sample row $\sim \pi^*$. Repeat $\ce{\fc{p}{kx_i^T{\Si}^{*-1}x_i}}$ times, $\Si^* =X^T\diag(\pi^*)X$. 
+
+Hard budge: Stop when $|S|=k$.
+\end{enumerate}
+
+If $\fc{p\ln k}{k} = O(\ep^2)$ and (some condition on covariance condition number requirement), then get $1+\ep$-optimal estimate to the combinatorially optimal solutions for $f_{opt}$, $g_{opt}$. 
+
+Key proof idea: we need to show
+$$
+\Tr((X_S^TX_S)^{-1}) \le (1+\ep) \tr((X^T\diag(\pi^*)X)^{-1}).
+$$
+Look at eigenvalues. Show that subsampled covariance is good spectral approximation of optimal covariance, cf. Spielman-Srivastava 11. 
+We only need one-sided unweighted sparsifier for a weighted graph. %Lower bound smallest eigenvalues.
+
+Can we get relative $1+\ep$-error approximation with hard budget $|S|=k$?
+%need p/\ep^2? not clear. 
+
+Essentially we are doing a $L^1$ relaxation. 
+$\Supp(\pi^*)$ is $k+p^2$ in theory, but $k+p$ in simulations.
+
+Idea: Instead of sampling data points, according to $\pi^*$, start with support of $\pi^*$ and greedily remove some. 
+We get this to work but with $|S|=k=\Om\pf{p^2}{\ep}$ instead of $p\ln k/k = O(1)$.
+
+With Allen-Zhu, get $1+\ep$-approximation, can handle other criteria (A, V, D, E, T, G), $|S|=k=\Om\pf{p}{\ep^2}$.  
+ Pushing down to $|S|=k>2p$, we get $O(1)$ approximation.
+
+Faster implementation via projective gradient descent. While objective hasn't decreased enough, do projective gradient descent step. 
+
+
+Projection of $N$-dimensional vector $\pi$ onto intersection of $\ell_1, \ell_\iy$ balls: 
+$$x^* = \amin_x\ve{x-\pi}_2^2\text{ s.t. }\ve{x}_1\le c_1,\quad \ve{x}_\iy\le c_2.$$
+(The is one of the most rediscovered subproblem solutions...)
+
+Real-data experiment: material synthesis of thin films of $TiO_2$ at low temperatures using microwaves (ex. for solar cells). Optimize input settings to get best coverage. Predict material coverage using few experimental settings. 
+You can get close with few experiments.
+%leverage score does well
+Compare leverage score vs. greedy: greedy chooses more diverse settings.
+
+Wind speed prediction: Greedy and fedorov do the best. Sample improves over leverage score but requires slightly larger budget. 
+
+%These experiments  are expensive, why do you care about running time.
+
+Minimum eigenvalue as regret minimization:
+\begin{align}
+\la_{\min}(X_S^TX_S) &\ge \rc{1+\ep} \la_{\min} (X^T\diag(\pi^*) X)\\
+\text{whiten }
+\wt x_t &= (X^T \diag(\pi^*) X)^{-\rc 2}.
+\end{align}•
+ Minimize regret
+\begin{align}
+R(\{A_t\}_{t=1}^k) &= \sumo tk \an{F_t,A_t} 
+- \inf_{U\succ 0, \tr(U)=1} \sumo tk \an{F_t,U}
+\end{align}•
+where $F_t=\wt x_{i_t}\wt x_{i_t}^T$. 
+Use: follow the regularized leader/mirror descent.
+
+%Every iteration, choose action and subsample row. 
+
+Extension: Generalized linear model $y=g(X\be) +\ep$. For MLE, 
+$$
+\E[ \ve{\wh \be_n - \be _0}^2] = (1+o(1)) \tr(I(X,\be_0)^{-1}). 
+$$
+
+Future directions:
+\begin{itemize}
+\item
+Relative error approximation with budget linear in $p$.  Can we obtain relative $1+\ep$ error with $|S|\sim k>p/\ep$?
+\item
+Fast converging algorithm for convex relaxation.
+\item
+Experimental design for bit budget. 
+\item
+High-dimensional setting: what if $n\ll p$, with sparsity or other prior assumption on regression coefficients, $\ve{\be}_q^q\le R_q$. 
+\end{itemize}•
+
+Ex. MRI sparse in wavelet basis but acquired in Fourier basis. $y=FW\be + \be$. Which frequencies to acquire? 
+
+Proposed approach: used half budget to learn support. Use convex solution on support of $\be$. 
+
+%unknown heteroscedasticity

@@ -1,0 +1,145 @@
+\section{The Polytope Learning Problem (Eric Xing, Carnegie Mellon University)}
+
+I will talk about the polytope learning problem: Given random samples from a polytope in the n-dimensional space with poly(n) vertices, can we efficiently find an approximation to the polytope? (Information theoretically, poly(n) many samples suffice.) I will discuss some approaches and related conjectures for this problem, and also its relation to other problems in learning theory.
+
+More general problem: learning convex bodies. Let $K\in \R^d$ be unknown convex body. Input is uniformly random samples $x_1,x_2,\ldots \in K$. Problem is to reconstruct $K$.
+
+Output is a set $K'$ that is close to $K$, $|U_K - U_{K'}|_1\le \ep$. $K'$ is given by a $\poly(d)$ time oracle (improper learning). 
+
+How many samples/time is needed?
+
+PAC-learning of convex bodies is hard because VC-dimension of convex bodies is unbounded. 
+
+We are only given positive samples.
+
+In constant dimensions it can be done efficiently using tight-fitting polytopes, required time scales as $\prc{\ep}^{\Om(d)}$. High dimensions have too much room. 
+
+Interesting things can happen in high-dimensions with randomized algorithms With membership queries, volume computation in $\poly(d)$ time, Dyer-Frieze-Kannan 1989.
+
+How about learning convex bodies with membership oracle?
+
+%random points.
+%why can't you output oracle as answer?
+%poly many queries
+
+$2^{\Om\pa{\sfc d\ep}}$ samples are needed to learn convex bodies in $\R^d$ from random samples and membership queries. 
+
+Idea: Construct a large family of convex bodies in $\R^d$ such that any two bodies are far from each other. Polynomially many random samples and membership queries from any such body insufficient to determine which one it is. 
+
+Hard family construction of KOS08: take a sphere and take intersections of exponentially many half-spaces tangent to it.
+
+%In our case distribution adapts itself to the body.
+Another lower-bound construction (GR09). Start with cross-polytope in $\R^d$, $\conv(\{\pm e_i\})$.  This has $2^d$ facets and $2d$ vertices. To each  facet attach pyramid of fixed height. 
+TO know whether a pyramid is attached to facet, we must see point in that pyramid. 
+But total volume of pyramid is $O\prc d$ of whole body.
+
+Easy fix: take products of $\sqrt d$ cross-polytopes in $\R^{\sqrt d}$ with randomly attached pyramids. 
+This satisfies the 2 conditions.
+
+Lov\'asz: Can volume be estimated from poly many random samples? 
+
+Eldan09: Exponentially many samples are needed to approximate volume. (Only samples, no oracle.)
+
+Comvex bodies in all lower bounds have complex boundaries: exponentially many facets
+
+Restrict convex bodies: polytopes with $m$ facets (intersection of $m$ halfspaces). VC-dimension is $O(md\ln m)$. PAC learning: $\poly_{\de,\ep}(md)$ samples suffice. Don't know how to efficiently PAC-learn intersetions of 2 half-spaces. There are many computational hardness results. 
+
+For fixed distribution: Gaussian: $d^{\fc{\ln m}{\ep^2}}\wedge d\pf{m}{\ep}^m$ time complexity.
+
+We need extra restriction that intersectino is bounded $m\ge d+1$. 
+
+Restate problem: given $P\sub \R^d$ with at most $m$ facets, $\poly(m,d)$ uniformly random samples from $P$, efficiently reconstruct $P$.
+
+If allow membership oracle, can PAC-learn  in poly time.
+
+
+Approaches
+\begin{enumerate}
+\item
+Polytope learning problem has sample complexity $\poly_{\de, \ep}(md)$. 
+
+Min volume polytope $Q$ with at most $m$ facets and enclosing samples is good reconstruction (folklore).
+
+For $P_1,P_2$ with at most $m$ facets, VC-dimension of $P_1\bs P_2$ is $O(dm\ln m)$. By VC uniform convergence theorem, $\rc 2|U_P-U_Q|_1= \fc{|P\bs Q|}{|P|}$ is small. 
+
+It is NP-hard to find smallest volume enclosing simplex. But we get a structured distribution; we can use various heuristics but haven't succeeded. We don't even know how to learn cubes using this approach, but they can be learned using another.
+\item
+Method of moments.
+
+Subproblem: Given samples from a parallelopiped $X=AS+b$, $S\in_U [-1,1]^d$ uniform, $A\in \R^{d\times d}$ nonsingular, $b\in \R^d$, reconstruct parallelopiped.
+
+This reduces to learning cubes. Assume $A$ is rotation matrix and $b=0$.
+
+The class of cubes can be learned efficiently and properly (Delfosse-Loubaton95, Frieze-Jerrun-Kannan96). The fourth directional moment of the cube is 
+$$F(v) = \E_X (v\cdot X)^4.$$
+If input cube is axis-aligned with unit sides, $F(v) = c_1-c_2(v_1^4+\cdots + c_n^4)$.
+Local min for $\ve{v}_2=1$ are exactly facets.
+%For rotation matrix $
+Use projected gradient descent to find facets. 
+\end{enumerate}
+
+Learning simplices: 
+FJK96 asked about learning polytopes, in particular simplices. Simplices can be learned efficiently (Anderson-Goyal-Rademacher13). Fastest algorithm for learning intersections of $d+1$ half-spaces under Gaussian distribution required $d^{\ln d}$ time. 
+%NN is sum gate.
+
+Two proofs for learning simplices:
+\begin{itemize}
+\item
+Third directional moment: more involved than cubes
+\item
+Reduce to independent component analysis.
+\end{itemize}
+
+$X=AS$ where $X,S\in \R^d$ are random variables, $A$ is fixed unknown nonsingular $A\in \R^{d\times d}$. 
+$(S_1,\ldots, S_d)$ are independent non-Gaussian components with unknown distribution. 
+FJK, DL results apply to ICA.
+
+Standard $d-1$ dimensional simplex is 
+$$
+\De_{n-1} = \set{x\in \R^d}{\sum_i x_i=1, x_i\ge 0}.
+$$
+If $X$ is uniform on $\De_{n-1}$, $r\ge0$ has density $\propto x^{d-1}e^{-x}$, then $X$ has identical independent nonnegative components with density $\propto e^{-x}$.
+
+Tensor decomposition methods are a different but related way to utilize moment info, recently popular for latent variable models. 
+
+Learning simplices is a special case of LDA, learnable by tensor decomposition. 
+
+Can we use method of moments to learn polytopes? We can learn cubes, simplices, cross-polytopes. For general polytopes symmetry is lost. It is hard to extract facet information from moments without symmetry. 
+
+Exact reconstruction for polytopes with $m$ vertices if given first $O(md)$ moments in $d+1$ random directions (Gravin-Lasserre,-Pasechnik-Robins12). Doesn't help with polytope learning: estimating $k$th moment seems to require $2^{\Om(k)}$ samples.
+Can we learn with moments of constant order?
+
+Estimate third directional moment in direction $v\in \R^d$ is $\E[(v,X)^3]=\sum_{i,j,k} v_iv_jv_k \E[X_iX_jX_k]$. 
+
+Q: does 100th moment tensor suffice to determine polytopes with at most $10d$ facets information-theoretically? Does $M_{100}(P) = M_{100}(Q)$ imply $P=Q$? 
+Answer is no. 
+
+$d$-gons can't be determined for large $d$ by counting argument; lift by making prisms.
+
+Degeneracy issue is common in applications of method of moments. For Gaussian mixture models (Kakade-Hsu12) require means be in general position.  If Gaussian are on line, sample requirement can be exponential in number of Gaussians (Moitra-Valiant10). 
+
+%(These lower bounds are parameter estimation.) %evaluator not generator.
+
+%For polytope learning, poly sample sizes always suffices by smallest volume enclosing polytope. 
+
+Question: Moments of order 100 suffice to determine polytopes with at most $10d$ facets if normals are in general position?
+\begin{enumerate}
+\item[3.]
+Radon transform: widely used technique in computerized tomography. 
+Send X-ray in any direction you want, and check how much the signal is attentuated, get length of $L\cap K$. Radon transform of $K$ map lines to distance of intersection with $K$.
+
+Radon inversion formula allows reconstruction of $K$ from $R_K(L)$ for all $L$. This works in higher dimensions too, with $d-1$ dimensional hyperplanes.
+
+In $\R^3$: $R_K(P)$ is the are of intersection of $K$ with plane $P$. $(R^*R_K)(x)$ is the integral of $R_K(P)$ over all planes with $x\in P$. 
+Then
+$$
+1_K(x)=-\rc{8\pi^2}\De (R^*R_K)(x). 
+$$
+(Similar formulas in higher dimensions.)j
+
+$R_K(H)/\vol(H)$ is approximately the fraction of sample points in thin band around $H$ divided by width of band.%mult
+
+Two hurdles: stability of inversion: sensitive to errors. Computation of inversion involves integral over unit sphere in $\R^n$ and multiple differentiation.
+
+%no degeneracy problem
+\end{enumerate}•

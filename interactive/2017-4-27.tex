@@ -1,0 +1,223 @@
+\section{Greed is Good If We Add A Bit of Randomness
+(Amin Karbasi)}
+It is known that greedy methods perform well for maximizing monotone
+submodular functions. At the same time, such methods perform poorly in
+the face of non-monotonicity. In this talk, I show--arguably,
+surprisingly-- that invoking the classical greedy algorithm
+$O(\sqrt{k})$-times leads to the (currently) fastest deterministic
+algorithm for maximizing a general submodular function subject to
+$k$-independent system constraints. This algorithm achieves $(1 +
+O(1/\sqrt{k}))k$ approximation using $O(nr\sqrt{k})$ function evaluations
+(here, $n$ and $r$ denote the size of the ground set and the maximum size
+of a feasible solution, respectively). I then show that by a careful
+random sampling procedure, we can run the greedy algorithm only once
+and obtain the (currently) fastest randomized algorithm for maximizing
+a submodular function subject to $k$-extendible system constraints (a
+subclass of $k$-independent system constrains). This randomized
+algorithm achieves $(k + 3)$-approximation with only $O(nr/k)$ function
+evaluations. Finally, I derive an almost matching lower bound, and
+show that no polynomial time algorithm can have an approximation ratio
+smaller than  $(k + 1/2 - \epsilon)$. No background in submodularity is
+needed. I will define all the important concepts during the talk. This
+is joint work with my student Chris Harshaw (Yale) and Moran Feldman
+(Open University of Israel).
+
+Let $f:2^N\to \R_+$. $N$ is a ground set of size $n$. $f$ is submodular if for all $X,Y\subeq N$,
+$$
+f(X) + f(Y) \ge f(X\cup Y) + f(X\cap Y).
+$$
+Equivalently, $\forall X\subeq Y\subeq N$ and $e\nin Y$,
+$$
+f(X\cup \{e\}) - f(X) \ge f(Y\cup \{e\}) - f(Y).
+$$
+Definition has nothing to do with monotonicity.
+
+Example of nonmonotone submodular function is cut graph, the number of outgoing edges. $f(\phi)=f(V)=0$.
+
+Ex. $f$ measures representativeness. If you incorporate interaction between elements it's no longer monotone.
+
+We want to maximize the submodular function subject to a constraint set $I$
+$$
+\max_{X\subeq I} f(X).
+$$
+
+Say $(N;I)$ is an independent system  if
+$$
+B\in I, A\subeq B\implies A\subeq I.
+$$
+Examples: 
+\begin{enumerate}
+\item
+$\set{X\subeq N}{|X|\le k}$
+is an independent system.
+\item
+A matroid is an independent system. 
+$(N,I)$ is a matroid if  $A,B\in I$ and $|B|>|A|$, then there exists $e\in B$ such that $A\cup \{e\}\in I$.
+
+An example is sets of indices of linearly independent columns of a matrix.
+\item
+Intersection of $k$ matroids (not necessarily a matroid).
+\item
+$k$-extendable system $(N,I)$: for all $A\in I$ and  extension $B\supeq A$, %($B\in I\implies$)
+if there exists $e$ such that $A\cup \{e\}\in I$ then there exists $Y$ of size at most $k$ such that $(B\bs Y) \cup \{e\}\in I$.
+\end{enumerate}•
+Inclusions:
+$$
+\pat{cardinality}\subeq \pat{matroid}\subeq \pat{intersection of matroid} \subeq \pat{extendable}
+$$
+A matroid is a 1-extensible system.
+Can we solve the optimization problem when $I$ is $k$-extendable? 
+
+
+%intersecting 3-matroids. 
+Example of 2-extendable system that's not matroid: $B$-matching on graphs. Let $G$ be graph, $b(v)$ be budget. Consider the set of matchings $M$ such that any edge incident to any vertex $v$ in the matching $M$ is at most $b(v)$.
+
+Results: An $\al$-approximation is $f(S)\ge \rc{\al}f\pat{opt}$. $r$ is the max size of a feasible solution.
+(Runtime is number of query oracle calls made.)
+% Preview source code for paragraph 0
+
+\begin{tabular}{|c|c|c|}
+\hline 
+Result & Approximation & Runtime\tabularnewline
+\hline 
+Gupte 10 & $3k$ & $nrk$\tabularnewline
+\hline 
+Last year & $2k$ & $nrk$\tabularnewline
+\hline 
+2 weeks ago (determinstic) (repeated greedy) & $k+\Omega(\sqrt{k})$ & $nr\sqrt{k}$\tabularnewline
+\hline 
+Randomized (sample greedy) & $k+3$ & $\frac{nr}{k}$\tabularnewline
+\hline 
+Lower bound & $k+\frac{1}{2}$ & \tabularnewline
+\hline 
+\end{tabular}
+
+
+Lower bound: there is no poly algorithm with $F(S) \ge \rc{k+\rc 2} F\pat{opt}$ unless $P=\NP$.
+
+This basically closes the gap. The algorithms are extremely simple and fast.
+
+For cardinality, non-monotone,  $\max_{|X|\le k} f(X)$,
+
+ 
+% Preview source code for paragraph 1
+\begin{tabular}{|c|c|c|}
+\hline 
+Result & Approximation & \tabularnewline
+\hline 
+2 years ago & $\frac{1}{e}$ & \tabularnewline
+\hline 
+1 year ago & $\frac{1}{e}+0.04$ & \tabularnewline
+\hline 
+Lower bound, 2011 & $0.38$ & \tabularnewline
+\hline 
+Lower bound, 2010 & $0.48$ & \tabularnewline
+\hline 
+Our result & $\pa{\frac{1}{e}}^{2}$ & linear (indep. of $r$)\tabularnewline
+\hline 
+\end{tabular}
+
+Write $f(A|B) = f(A\cup B)-f(B)$.
+
+Greedy algorithm for submodular $D$: Start with
+\begin{align}
+N'&\leftarrow N\\
+S&\lar \phi.
+\end{align}
+While there exists $v\in N$ such that  $D(v|S)>0$, $S+\{v\}\in I$, let
+\begin{align}
+U &= \amax_v D(v|S)\\
+S&\lar S\cup \{v\}.
+\end{align}
+This works very well when the function is monotone but otherwise it can get stuck.
+
+Actually, this naive greedy algorithm is the one that achieves all these good running times \emph{if} you run it correctly.
+
+What do I mean?
+
+Repeated greedy: for $i=1$ to $l$, 
+\begin{itemize}
+\item
+Let $S_i$ be the solution of greedy where $N_i$ is the ground set, $I$ is independent set, and $f$ is function.
+\item
+Let $S_i'$ be the solution of unconstrained submodular maximization when $S_i$ is the ground set, 
+$$
+S_i' = \amax_{X\subeq S_i} f(X)
+$$
+Note $f(S_i')\ge f(S_i)$.
+\item
+\begin{align}
+N_{i+1}:&= N\bs S_i\\
+T&= \max\{S_1',\ldots\}
+\end{align}
+\end{itemize}
+%$f(S)\ge \rc 3 f\pat{opt}$
+%$\E f(S) \ge \rc 2 f\pat{opt}$.
+
+\begin{thm}
+If we invoke greedy $\sqrt k$ times ($l=\sqrt k$), then greedy produces a solution $T$  with approximation ratio
+$$
+k+(1+\fc\al 2)\sqrt k + 3.
+$$
+where $\al$ is the approximation guarantee of unconstrained problem.
+\end{thm}
+We can get $\al=3$. %for deterministic, $\al=2$ for randomized.
+
+%query oracles.
+The randomized algorithm is as follows.
+Let $N'$ be a random set where each element of $N$ is sampled indpendently with probability $\rc{k+1}$. 
+Run classical greedy once on $N'$. Then
+$$
+\E[f(S)]\ge \rc{k+3} f\pat{opt}.
+$$
+
+All these algorithms also work in the  monotone case and give the best guarantees there.
+
+Proof sketch:
+
+\begin{lem}[Gupta 10]
+Let $S$ be the solution of classical greedy. Then $f(S)>\rc{k+1} f(S\cup C)$ for any $C\in I$. 
+\end{lem}
+%for $k$-systems, for greedy you at least get this
+
+\begin{lem}
+For $1\le i\le l$, $f(S_i) \ge \rc{k+1} f(S_i \cup (\text{OPT}\cap N_i))$.
+\end{lem}
+
+\begin{lem}
+\begin{align}
+f(S_i') & \ge\fc{f(\text{opt}_i)}{\al} \ge \fc{f(S_i\cap \text{opt})}{\al}
+\end{align}
+\end{lem}
+
+\begin{lem}
+Let $g:e^N\to \R_+$ and $S\subeq N$ be a random set such that each element appears with probability at most $p$ (not necessarily independently). Then
+$$
+\E[f(S)]\ge (1-p)f(\phi).
+$$
+\end{lem}
+Let $S$ to be randomly one of the $S_i$'s.
+\begin{lem}
+$$
+\sumo il f(S_i\cup \text{opt}) \ge (l-1)f\pat{opt}.
+$$
+\end{lem}
+Let $S$ be chosen one of $\seqo id{S_i}$ randomly.  Let $g(X) = f(X\cup \text{opt})$.
+%This is how people use the lemma: augment.
+$$
+\rc e\sumo id f(S_i\cup \text{opt}) = \E[f(S\cup \text{opt})] = \E[g(S)] = (1-\rc d)g(\phi) = (1-\rc e)f\pat{opt}
+$$
+Submodularity can also be defined with 3 sets: for all $A,B,C$,
+$$
+f(A\cup (B\cap C)) + f(B \bs C) \ge f(A\cup B).
+$$
+(Proof: Consider $A\cap B\cap (C\cup C^c)$. Write $f$ of this and use subadditivity.)
+
+\begin{align}
+OPT\bs N_i &= N\cap OPT\cap N_i^c\\
+&=OPT\cap (N\cap N_i^c)\\
+&=OPT\cap (N\bs N_i)\\
+&=OPT\cap \pa{\cupo j{l-1} S_i}\\
+&=\cupo j{l-1} (OPT\cap S_j).
+\end{align}•
+

@@ -1,0 +1,251 @@
+\section{Variational Inference: Foundations and Innovations (David Blei, Columbia University)}
+
+%prob and inference
+%optimization
+%applications
+%hidim
+
+One of the core problems of modern statistics and machine learning is to approximate difficult-to-compute probability distributions. This problem is especially important in probabilistic modeling, which frames all inference about unknown quantities as a calculation about a conditional distribution. In this tutorial I review and discuss variational inference (VI), a method a that approximates probability distributions through optimization. VI has been used in myriad applications in machine learning and tends to be faster than more traditional methods, such as Markov chain Monte Carlo sampling.
+ 
+This tutorial aims to provide both an introduction to VI, a modern view of the field, and an overview of the role that probabilistic inference plays in many of the central areas of machine learning. First, I will provide a review of variational inference. Second, I describe some of the pivotal tools for VI that have been developed in the last few years, tools like Monte Carlo gradient estimation, black box variational inference, stochastic variational inference, and variational autoencoders. Finally, I discuss some of the unsolved problems in VI and point to promising research directions.
+
+%scaling and generalizing approx bayesian inference.
+
+Examples: overlapping community structure in US patents, topics in New York Times 1.8 million articles, population genetics, neuroscience analysis of 220 million fMRI measurements, 1.7 million taxi trajectories.
+
+The probabilistic pipeline:
+\begin{itemize}
+\item
+Take knowledge and question; make assumption
+\item
+Take data and discover patterns
+\item
+Predict and explore
+\end{itemize}
+Notes:
+\begin{itemize}
+\item
+Customized data analysis is important to many fields.
+\item
+Pipeline separates assumptions, computation, application
+\item
+Eases collaborative solutions to statistics problems.
+\end{itemize}
+Probabilistic models:
+\begin{itemize}
+\item
+Probabilistic model is joint distribution $p(z,x)$ of hidden variables $z$ and observed variables $x$.
+\item
+Inference about unknowns is through posterior, $p(z|x) = \fc{p(z,x)}{p(x)}$.
+\item
+$p(x)$ is often intractable to compute, so do approximate inference.
+\end{itemize}•
+VI turns inference into optimization.  Posit a variational family of distributions over latent variables
+$q(z;v)$. Fit variational parameters $v$ to be close in KL.
+
+Example: find means of mixture of gaussians.
+% approximate posterior means of
+KL getting smaller is the same as evidence lower bound getting larger.
+
+VI and stochastic optimization. Stochastic optimization makes VI better:
+\begin{itemize}
+\item
+stochastic VI scales to massive data.
+\item
+black box VI generalizes to wide class of models.
+\item
+reparametrization enables expressive families and amortized inference.
+\end{itemize}
+
+\subsection{Mean-field VI}
+
+Mean-field inference casts Bayesian computation as optimization, SVI scales to massive data.
+
+Motivation: topic models discover hidden thematic structure in large collection of documents.
+Each topic is distribution over words, each document is distribution over corpus-wide topics. Each word is drawn from one of those topics.
+
+%mixed membership moel
+
+LDA as graphical model:
+$$
+\al \to \te_d \to z_{d,n} \to \ub{w_{d,n}}{\text{observation}} \lar \be_k \lar \eta
+$$
+Plate $N$ contains $z_{d,n},w_{d,n}$; $D$ contains $\te_d$ and $D$, $K$ contains $\be_k$. Plate means repeated. 
+\begin{itemize}
+\item
+$\al$ proportions parameter
+\item
+$\te_d$ per-document proportions.
+\item
+$z_{d,n}$ per word topic assignment
+\item
+$w_{d,n}$ observed word
+\item
+$\be_k$ topics.
+\end{itemize}•
+%talk were over 
+Posterior of latent variables is $p(\be,\te,z|w)$. We can't calculate the denominator, $\int_\be\int_\te\sum_zp(\be, \te, z, w)$.
+
+Roadmap:
+\begin{itemize}
+\item
+Define generic class of conditionally conjugate models.
+\item
+Derive classical mean-field VI (from statistical physics).
+\item
+Derive stochastic VI, which scales to massive data.
+\end{itemize}•
+Consider model
+$$p(\be, z, x) = p(\be) \prodo in p(z_i,x_i|\be).$$
+Complete conditional is conditional of latent variable given observations and other latent variables. Assume each complete conditional is in the exponential family
+\begin{align}
+p(z_i|\be,x_i)&=h(z_i) \exp(\eta_l (b,x_i)^T z_i - a(\eta_l(\be,x_i)))\\
+p(\be|z,x)&=h(\be) \exp(\eta_g (z,x)^T \be - a(\eta_g(z,x)))
+\end{align}•
+Global parameter comes from conjugacy
+$$
+\eta_g(z,x) = \al + \sumo in t(z_i,x_i).
+$$
+
+Open: recognize all the bad properties KL divergence has, and finding alternative divergences or alternative optimization algorithms to alleviate those bad properties.
+
+You will hardly see the KL divergence, you see the evidence lower bound (ELBO),
+$$
+\cal L(v) = \E_q [\ln p(\be,z,x)] - \E_q[\ln q(\be, z;v)].
+$$
+KL is intractable, VI optimizes the evidence lower bound instead. 
+\begin{itemize}
+\item
+It is a lower bound on $\ln p(x)$.
+\item
+First term prefers $q$ to place mass on MAP estimate.
+\item
+Second term encourages $q$ to be diffuse.
+\item
+Caveat: ELBO is not convex.
+\end{itemize}
+
+We need to specify form of $q(\be,z)$. The mean0field family is fully factorized,
+$$
+q(\be, z;\la, \phi) = q(\be;\la) \prodo in q(z_i;\phi_i).
+$$
+%no correlations but complicate
+Tweak each marginal separately.
+%\begin{align}
+%p(\be|z,x) &= h(\be) \exp(\eta_g(z,x)^T\be - a(
+%\end{align}•
+$$
+\cal L(\la,\phi) = \E_q[\ln p(\be, z, x)] - \E_q[\ln q(\be , z)].
+$$
+Traditional VI uses coordinate ascent.  Iteratively update each parameter, holding others fixed. Cf. Gibbs sampling.
+
+%17000 articles and ask for 100 topics.
+%Do variatonal posterior inference to get posterior on documents.
+%meaningful hidden structure through posterior.
+Repeat: for each data point $i$,
+$$
+\phi_i \lar \E_\la [\eta_l(\be, x_i)].
+$$
+Set global parameter
+$$
+\la \lar \al + \sumo in \E_{\phi_i}[t(Z_i,x_i)].
+$$
+Repeat until ELBO converged.  Classical VI does some local computation for each data point.
+
+\subsection{Stochastic VI}
+
+Given massive dataset, subsample data, infer local structure, and update global structure. This gives us faster estimates.
+
+Stochastic optimization: Replace gradient  with noisy estimates.
+$$
+v_{t+1} = v_t + \rh_t \wh\nb_v\cal L(v_t)
+$$
+$\rh_t$ follow Robbins-Munro condition.
+
+The natural gradient of the ELBO is
+$$
+\nb_\la^{\text{nat}}\cal L(\la) = (\al + \sumo in \E_{\phi_i^*} [t(Z_i,x_i)]) - \la
+$$
+Construct noisy natural gradient and use it. This is faster and better.
+%\begin{align}
+%j\sim U[1,n]\\
+%\wh \nb_\la^{\text{nat}}\cal L(\la) &= \al + n \EE_{\phi_i}[
+%\end{align}•
+%Set intermediate local 
+%sum of squares <\iy, sum diverge
+%get anywhere but conservative enough.
+%$\la = (1-\rh_t)\la + \rh_t \wh \la$.
+%learning rates
+%classical 1999 var inference
+
+Time series model are not technically in this class.
+
+%better unbiased estimator?
+
+\subsection{Black box variational inference}
+
+Approximate inference can be difficult to derive, especially for models that are not conditionally conjugate, like discrete choice models, Bayesian generalized linear models...
+
+Easily use VI with any model, no exponential family requirements. Cf. Metropolis Hastings  (MCMC) of VI.
+
+Sample from $q$ or related distribution; form noisy gradients without model-specific comptuation.
+
+If you dream of model on the beach without any constraints, you probably get a nonconjugate model. (Nonlinear time series, deep latent Gaussian, models with attention, deep exponential families...)
+
+Simplest example is Bayesian logistic regression. Data are pairs $(x_i,y_i)$, $x_i$ is covariate, $y_i\in \{0,1\}$ is binary label, $z$ are regression coefficients. $p(y|x)= \rc{1+e^{-xz}}$.
+
+Goal: approximate posterior coefficient $p(z|x,y)$. Variational family $q(z;v)$ is normal, $v=(\mu, \si^2)$. 
+
+ELBO: we can't analytically take the expectation.
+
+Options: derive model-specific bound, use other approximations that require model-specific analysis. Neither is good.
+
+Key idea: write gradient as expectation, giving score gradient
+$$
+\nb_v \cal L = \EE_{q(z;v)} [\nb_v \ln q(z;v) (\ln p(x,z) - \ln q(z;v))].
+$$
+a.k.a. likelihood ratio or REINFORCE gradient.
+
+Construct noisy unbiased gradients with MC,
+$$
+\wh \nb_v = \rc S \sumo sS \nb_v \ln q(z_s;v)(\ln p(x,z_s)-\ln q(z_s;v)), \quad z_s\sim q(z;v)
+$$
+%things store in library reuse across models.
+
+This doesn't work out-of-the-box. We must control variance of gradient. Rao-Blackwellization, control variates, importance sampling... Use adaptive learning rates (ex. RMSProp). We can subsample data, do SVI.
+
+We used this to fit deep exponential families. Adaptation of deep representation to probabilistic models. Before, have to use sigmoid belief networks. Now we can do this more broadly.
+
+We used this for topographic factor analysis with fMRI.
+
+We can take VI and use it in probabilistic programming.
+%In regular program you . 
+
+Write model down as program that generates data. Instead of compiling, compile as something that takes observations and generates inference. It requires methods of deriving inference algorithms. Prob programming compilers. Black-box methods enable this!
+
+There are 2 ideas left on the table:
+\begin{itemize}
+\item
+reparametrization gradient: write latent variable as transformed variable. 
+Express gradient of ELBO as expectation 
+$$
+\nb \cal L = \EE_{s(\ep)}[\nb_z[\ln p(x,z) - \ln q(z;v)]\nb_vt(\ep,v)]
+$$
+%dn depend on var param, using MC is efficient.
+\item
+Amortization: Variational parameters are a function of input $v(x)$.
+\end{itemize}•
+Ex. variational autoencoder. Model: neural network plus Gaussian noise, $x=f(z)+\ep$. Variational parameters are deep neural net.
+
+See Edward, probabilistic programming library.
+
+Open problems:
+\begin{itemize}
+\item
+Theory: MCMC widely analyzed, VI less explored.
+\item
+Optimization
+\item Alternative divergences
+\item
+Better approximations
+\end{itemize}•

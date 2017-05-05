@@ -1,0 +1,80 @@
+\section{Machine Learning Combinatorial Optimization Algorithms  (Dorit Hochbaum, UC Berkeley)}
+
+
+We present a model for clustering which combines two criteria: Given a collection of objects with pairwise similarity measure, the problem is to find a cluster that is as dissimilar as possible from the complement, while having as much similarity as possible within the cluster. The two objectives are combined either as a ratio or with linear weights. The ratio problem, and its linear weighted version, are solved by a combinatorial algorithm within the complexity of a single minimum s,t-cut algorithm. This problem (HNC) is closely related to the NP-hard problem of normalized cut that is often used in image segmentation and for which heuristic solutions are generated with the eigenvector technique (spectral method).
+
+HNC has been used, as a supervised or unsupervised machine learning technique. In an extensive comparative study HNC was compared to leading machine learning techniques on benchmark datasets.  The study indicated that HNC and other similarity-based algorithms provide robust performance and improved accuracy as compared to other techniques.  Furthermore, the technique of "sparse-computation" enables the scalability  of HNC and similarity-based algorithms to large scale data sets.
+
+%Theoretical foundations and empirical studies
+Let $G = (V,E,(w_{ij})_{\{i,j\}\in E})$ be a weighted undirected graph.
+The capacity of $(A,B)$ subsets of vertices in a graph is $$C(A,B)=\sum_{\{i,j\}\in E, i\in A, j\in B} w_{ij}.$$
+The degree volume is $$d(A)=\sum_{i\in A} d_i.$$ %= 2C(A,
+
+Here's an intuitive clustering criterion that combines 2 objectives: interesting similarity within the clusters, dissimilar from complement.
+%\begin{enumerate}
+%\item
+
+HNC1: 
+NP-hardness based on reduction from partition that says it's weakly NP-hard, (cf. Cheeger) $\min_{S\subeq V}\fc{C(S,\ol S)}{d(S)}+\fc{C(S,\ol S)}{d(\ol S)}$. 
+Sharon 2007: 
+$$\min_{S\subeq V} \fc{C(S,\ol S)}{C(S,S)}.$$
+Eigenvector algorithms are intractable for large images. 
+Algorithm is hierarchical coalescing of pixels. Is the 2nd problem the same as the first? 
+
+HNC is polytime solvable by rewriting as monotone integer programming. Each inequality: can contain 2 variables with opposite sign coefficients, $z_{ij}$ appears in 1 inequality only with coefficient 1. 
+In this case, the variables are all binary. It is the complexity of a cut on a certain associated graph.  Have 1 node for each possible value. 
+%This is NP-hard for ranges. 
+%Pseudo-polynomial because it depends on the range logaritmically. 
+%\end{enumerate}
+
+(? Min ratio problem, nonmonotone submodular divided by supermodular function)
+
+Minimize $\fc{\sum w_{ij}z_{ij}}{\sum w_{ij}' z_{ij}}$, $x_i - x_j\le z_{ij}$, $x_j-x_i\le z_{ji}$, $y_{ij}\le x_i$, $y_{ij}\le x_j$, $x_j,z_{ij},y_{ij}$ binary.
+
+Minimizing $\fc{C(S,\ol S)}{C(S,S)}$ is equivalent to minimizing $\fc{C(S,\ol S)}{d(S)}$.
+
+%How does the HNC
+%\begin{enumerate}
+%\item
+%Expander $\min_{|S|\le \fc{|V|}2} \fc{C(S,\ol S)}{|S|}$, 
+%\end{enumerate}•
+Lemma:
+$$
+\min_{S\subeq V} \fc{C(S, \ol S)}{q(S)} + \fc{C(S,\ol S)}{q(\ol S)} = \min_{y^TQ1=0, y_i\in \{-b,1\}} \fc{y^T (D-W)y}{y^TQy} = \min_{y^TQ1=0, y_i\in \{-b,1\}} \fc{y^T Ly}{y^TQy}.
+$$
+%number of nodes in $S$ divided by nodes in $\ol S$ is big.
+The spectral continuous relaxation removes $y_i\in \{-b,1\}$; the combinatorial relaxation removes $y^TQ1=0$.
+
+We solve the problem for any $b$.  You can describe the solution compactly. %complexity of single minimum cut.
+$$
+\al(b) = \min_{y\in \{-b,1\}} \fc{y^T(D-W)y}{y^TQy} 
+%= \min_{\phi\sub S\sub V}\fc{(1+b)^2C(S,\ol S)}{ q(S)+b^2q(S)}
+$$
+
+General technique problems: find whether $\min_{x\in F}\fc{f(x)}{g(x)}<\la$. 
+There is a general procedure for constructing a graph associated to a monotone integer program. 
+Capacity of cut $S\cup \{s\}, T\cup \{t\}$ in the graph is constant plus Rayleigh ratio. Now there is a process of simplifying the graph. The cut problem can be solved for all problems. To do this I need to simplify the graph. 
+Scale arc weights.
+
+If you have graph with capacities depending on single  parameter, source-adjacent/sink-adjacent monotone, then you can find all break points (?). Cut problem is parametric: capacities are linear in parameter on one side and independent on the other. There are at most $n$ breakpoints.
+%+n\ln range
+%Given values of $\be$ at breakpoints, generate for each value of $b$ all the breakpoints. %By solving once the parametric problem for $b$
+
+%machine learning wiht neffert bolfes, paramtere
+
+HNC1 does better than eigenvector. (Ex. eigenvector result splits sky in half, $NC'$ does better.)
+Better: Use entropy for node weights instead. 
+
+HNC used in data mining: can be used in supervised or unsupervised way. Examples: denoising spectra of nuclear detectors, ranking drug effectiveness. Neurofinder, SHA2017
+
+We test 2 variants of SNC.
+%some results good/bad occasionally.
+Neural nets don't do well. SNC achieves best, most robust performance across data sets. Pairwise similarities are good to use. Unlike in image segmentation, anything can be neighbor of anything else. Number of pairwise similarities grows quadratically. cf. Sparsification, but we don't have the matrix. The idea is to detect where the relevant similarities are. 
+
+Approximate PCA, based on ConstantTimeSVD (Drineas, Kannan, Mahoney 2006).
+Subdivide dimension into $k$ pieces.
+
+%supervised or unsupervised
+
+%Accuracy of $89.72\%$ with 
+

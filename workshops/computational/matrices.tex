@@ -1,0 +1,103 @@
+\section{Unbiased Estimation of the Spectral Properties of Large Implicit Matrices (Ryan Adams, Harvard University)}
+
+Many empirical questions about machine learning systems are best answered through the eigenvalues of associated matrices.  For example, the Hessian of the loss function for a large deep network gives us insight into the difficulty of optimization and sensitivity to parameters.  The spectra of adjacency and Laplacian matrices of large graphs helps us understand the global structure between vertices.  Unfortunately, in the most interesting situations, these matrices are too large to be explicitly instantiated, to say nothing of diagonalizingthem directly; rather they are implicit matrices, which can only be interrogatedvia matrix-vector products.  In this work I will discuss how several differentrandomized estimation tricks can be assembled to construct unbiased estimatorsof the spectra of large implicit matrices via generalized traces.
+
+It's important to think of ourselves as doing science. How do we do better empirical science in deep learning? One perspective I got from David is the idea of building microscopes. In fields such as biology, you are motivated to build a system to analyze the system better. It's helpful to frame the problems we ask in the terms of building microscopes. 
+
+We care about spectra of large matrices (ex. Hessians) for a variety of purposes. For neural nets, we want to reason about how hard optimization problem is. We can study things small scales. How do we examine large systems we see in practice? This is harder, we can't just diagonalize a 10 billion by 10 billion matrix. We want to tackle these problems: sensitivity to parameter, whether we are at local minima, etc. We care about spectra of graphs, conductance, number of triangle,s communities.
+
+This arises too in many-body systems. Computational chemistry: density functionals, involve reasoning about large systems where eigenvalues have physical interpretations
+
+I'll talk about two tricks from the 1980s. Get unbiased estimates for things you want to know about big matrices, where you have implicit access to the matrix. In deep learning you can't even get a matrix-vector product, you get an estimate of it (minibatch estimate).
+
+We have a vector $A$, all we can do is  pick $x$ and get an unbiased estimate of $Ax$. 
+
+Trace estimate: if we can generalize traces, we can do a lot of estimates. We look at 
+$$
+\ln f(A),
+$$
+for example, log determinant. We think our functions as functions of the eigenvalues. Apply function to eigenvalues and sum them.
+
+%in general ML don't care about complex..
+
+\subsection{Trick 1}
+
+For $x\sim N(0,I)$,
+$$
+\EE_x [x^TAx] = \Tr(A).
+$$
+Proof:
+\begin{align}
+\E[(x^TAx)] &= \E[\Tr(x^TAx)]\\
+&= \E[\Tr(xx^TA)]\\
+&=\Tr(\E[xx^T A])\\
+&=\Tr(\E[xx^T] A)\\
+&=\Tr (A).
+\end{align}•
+This works for any random variable such that $\E[xx^T]=I$.
+This is generally atrributed to Hutchinson in 1989. It has a blessing of dimensionality. The bigger the $A$, the faster it converges due to Central Limit Theorem. 
+
+For Gaussians, you can also prove this by diagonalizing with an orthogonal matrix; the rotation of a Gaussian is Gaussian.
+
+An easy example is to estimate the logdet.
+
+%counting
+\subsection{Trick 2: Poisson estimator}
+It solves a problem that when you learn undergrad statistics, seems impossible.
+
+We have a quantity $y$ and a random estimator $\wh y$  that is unbiased,
+$$
+\E[\wh Y ] = Y.
+$$
+But we're interested not in $Y$ but $Z=\exp(Y)$. In general, $\exp(\wh Y)$ is not the right estimator for $Z$. For analytic functions you can fix it up and make it an unbiased estimator.
+
+Draw an integer $K\sim \text{Poisson}(\la)$. Make a random product of a bunch of $Y$'s, and let 
+$$\wh Z = \exp(\la)\prodo kK \wh Y_k.$$ 
+This is unbiased because 
+\begin{align}
+\wh E\wh Z &= \sumz j\iy \fc{\la^j}{j!} e^{-\la} \prodo kj \fc{\wh Y_k}{\la}\\
+&=\sum_j \fc{\la^j}{j!} \fc{Y^j}{\la^j} = \sumz j\iy  \fc{Y^j}{j!}
+\end{align}
+An expectation of a product of independent random variables is the product of expectations.
+%randomized alg, subsample
+Ex. we get easy estimates of log-likelihoods; use this to get a Markov chain.
+
+This is just randomized function approximation by importance sampling. Let's generalize. It can be obnoxious for the reasom importance sampling is obnoxious.
+
+Suppose we have $f(x) = \sumz j\iy a_jx^j$. Put our Monte Carlo had on and importance sample this. Form
+$$
+\wh f(x) = \fc{a_j x^j}{\pi_j}.
+$$
+Variance can be a disaster if we choose $\pi_j$ poorly with respect to $a_j$. Log is obnoxious because of slow decay, we can choose zeta distribution with comparable tails.
+
+When I first saw this, this seemed like magic.
+
+(Is there a simple condition? 
+We want the ratio to have an upper bound. 
+If you have lighter tails than target, could get giant weights and giant varianaces.) %You can interrogate the $a$'s in an easier fashion than the general case.
+
+Holomorphic operator calculus: do this except for matrices. Generalize analytic function to matrices. Write out power matrices in the same way, do matrix powers.
+
+Diagonalizing $A=U\La U^T$, $A^k = U\La^k U^T$. Write $f(X) =\sumz j\iy a_j X^j$. 
+
+Combine the two tricks. Get estimates of $Y$'s from minibatches, we can still push this through.
+
+Gluing and generalizing these tricks, we can estimate in embarrassingly parallel way computing things in giant neural networks. 
+
+Actual algorithm: given $f$ and power series (note $f(X)$ only converges if operator norm $\ve{X}_2$ is within radius of convergence), draw $x$ from proposal distribution, hit it $j$ times, compute inner product with original $x$, weight with $a_j$ and weight with proposal probability.
+
+Write down a Chebyshev approximation for indicator function, then we can count the number of eigenvalues in an interval.
+
+We need to hit random $x$ with matrix a bunch of times. Actually we're doing all the work of computing intermediate terms up to some point. We can do something better. We're doing a random truncation, correct with the probability we would choose that truncation. This is familiar to the numerics community.
+%This is a random truncation.
+
+$\wh f(x) = \sumz jk \fc{a_j}{1-\sum_{l=0}^j \pi_l}.$
+(Count all the number of times you hit $j$ on the way to the truncation point.)
+This is not always better. I don't know when exactly it is better.
+
+I hope this will help us to the science of asking questions about 10 billion parameter models. %and lead to better theoretical re . 
+Graphs, big quantum systems. 
+
+We can compute the trace by 10 billion orthogonal vectors. The hope is this gets smaller error faster. Ex. there's a spike what we won't see.
+
+Ex. how bad is your saddle point. There's a lot of folk wisdom about local minima, saddle points, etc. We want to check this. Ex. number of negative eigenvalues. Approximate indicator function. Penalty is Gibbs phenomenon, wiggles at the edges.

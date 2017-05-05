@@ -1,0 +1,70 @@
+\section{Your Neural Network Can't Learn Mine (
+John Wilmes, Georgia Institute of Technology)}
+
+We study the question of what functions can be learned by neural network training algorithms, and prove surprisingly general lower bounds in the realizable case, where the function to be learned can be represented exactly as a neural network. Previous lower bounds apply only for special activation functions or unnatural input distributions, or for highly restricted classes of algorithms. We prove lower bounds for learning a family of functions realizable as small neural networks with a single hidden layer, with any activation function from a broad family (including sigmoid and ReLU) over any ``nice'' input distribution (e.g., Gaussian or uniform). Our results apply to any statistical query algorithm, including all known neural network training algorithms, regardless of the model architecture, loss function, or optimization routine.
+ 
+Joint work with Le Song, Santosh Vempala, and Bo Xie.
+
+``I know it works well in practice, but what about in theory?''
+
+We give lower bounds for realizable case. (Everything is close to realizable.) There are classical lower bounds:
+\begin{itemize}
+\item
+NP-hard to train neural net with 3 threshold neurons (Blum-Rivest 1993)
+\item
+Complexity/crypto assumptions: can't efficiently learn small depth-2 networks even improperly (Klivas-Sherstov 2006; Daniely-Linial-Shalev-Schwarts, 2014)
+\end{itemize}
+Distributions that show these are difficult are unnatural. 
+
+Positive results: learn LDS, single layer ReLU with special structure (Brutzkus-Globerson 2017), can learn some NNs via non-NN algorithms (JSA16, ZLJ15, ABGM12).
+
+Can we get any formal guarantees for a family with 1 hidden layer? Choose your favorite network architecture, activation units, loss function, gradient descent variant, regularization scheme. 
+
+\begin{thm}
+If using only black box functions of input, need batch size $\Om(n)$ or $2^{\Om(n)}$ time.
+\end{thm}
+
+Shamir (2016) gives exponential lower bounds against vanilla SGD with mean-square loss, regardless of batch size. The functions are nonrealizable but construction is similar in spirit.
+
+Specific parameters are not particularly important.
+
+Lower bound applies to algorithms of following form: estimate $v=\E_{(x,y)\sim D} (h(W,x,y))$ where $W$ are current weights of NN. $(x,y)$  is labeled example of input distribution $D$ and $H$ arbitrary $[0,1]$-valued function. Use $v$ to update $W$.
+
+Statistical query algorithms  (Kearns 1993) interacts with input distribution via one of the oracles
+\begin{enumerate}
+\item
+STAT$(\tau)$: query $f:X\to [0,1]$, response is $|\E_D f-v|\le \tau$.
+\item
+VSTAT: $|\E_D f-v|\le \max\bc{\rc t \sfc{(\E_D f)(1-\E_Df)}{t}}$. (Seldman-Grigorescu-RVX12)
+\item
+1-BIT: Query is $f:X\to \{0,1\}$. 
+Response is $f(x)$ for $x\sim D$. (Ke Yang, 2001)
+\end{enumerate}
+%number of degrees of freedom.
+
+(Is the lower bound of $\Om(n)$ batch size damning?)
+
+Sigmoid function of sharpness $s$ is $\fc{e^{sx}}{1+e^{sx}}$. 
+\begin{thm}
+There exist functions $f:\R^n\to \R$ ,realized as NNs with single %$s$ sharp 
+sigmoid layer such that any statistical algorithm learning $f$ over log-concave product distribution needs $d$ queries to STAT$(\tau)$ or VSTAT$(1/\tau^2)$ or $\rc{\tau^2}$ queries to 1-BIT where $\tau = O\prc{s\sqrt n}$ and $d=2^{\Om(n)}$. 
+\end{thm}
+(SGD could be more powerful though---give unbiased estimator. Lower bound is against adversarial oracle)
+
+Hard family of functions: $F_\si: \R\to \R$ affine combination of $\si$-units, almost periodic on $[-\wt O(n), \wt O(n)]$, period $\rc s$.
+
+For all $S\subeq [n]$ with $|S|=\fc n2$, take $f_S(x) = F_\si\pa{\sum_{i\in S}x_i}$. 
+
+Classical tool is statistical dimension: $SDA(C,D,\ol \ga)=d$ if $d$ is max such that for all $C'\subeq C$, if $|C'|\ge |C|/d$, then average correlation is $\rh_D(C')\le \ol \ga$.
+
+$\ch:\R\to \R_{\ge0}$ is $\ep$-mollifier if $\Supp(\chi)\subeq [-\ep,\ep]$ and $\ve{\chi}_1=1$. Write $\chi_y(x) = \chi(x-y)$. 
+
+%Let $C$ be identically distributed functions over $D$, functions in $C$ are $\ol\ga$ probably $\ep$-separated, $\ep-SDE(C,D, \ol \ga)\ge d$. Then algorithm requires $\Om(d)$ queries to STAT$()$.
+
+It's enough that on average my functions have small correlation even if I just look at functions on some neighborhood. 
+
+Claim: over logconcave product distribution $D$, for all $y\in \R$, covariance is $\Cov_D(\chi_y\circ f_S, \chi_y\circ f_T) = O(\E_D(\chi_yf_S)^2/(s^2n))$. 
+
+...
+
+Open: what can neural nets learn? What if weight matrix is generic? Experiments suggest difficulties. Smaller sensitivity bounds for concepts realized with greater depth?

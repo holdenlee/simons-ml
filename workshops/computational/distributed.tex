@@ -1,0 +1,145 @@
+\section{System and Algorithm Co-Design, Theory and Practice, for Distributed Machine Learning (Eric Xing, Carnegie Mellon University)}
+
+I'll focus on presenting open problems we face in designing efficient depolyable ML algorithms. 
+
+Outside people see machine learning as a black box where you throw in data and get results out. We are viewing computers the same way. 
+In many theorems you don't see coefficients relating to the machine's behavior. 
+
+Our startup aims to give ML solutions to big data users. The kind of solutions we have now is hand-crafted, one-time solution. It's a big barrier making ML not so popular in industry.
+
+I developed a good algorithm for social network embedding, supports 1 million users in 6 minutes. But then we wanted to bring it to facebook. We want to run code on 100 million users. 
+If using 1000 Hadoop machines, should support 100 million users in 0.6 minutes. But it doesn't finish in more than a week!
+
+The system is not ideal. How to ground solutions on real computational infrastructure?
+
+Setup
+$$
+\amax_{\te} \cal L (\{x_i,y_i\}_{i=1}^N ; \te) + \Om(\te). 
+$$
+This is solved by an iterative step. This is under severe challenge: number of parameters is huge, dataset is large. Doing this for an indefinite number of iterations is challenging. You need to solve on many machines. How to get them to behave as a single machine is hard. 
+
+How do we parallelize a program? One way to make it equivalent to a sequential program is synchronization. This assumes zero-cost sync, fault recovery, but this is in practice an expensive step.  
+
+Either do synchronization and pay huge cost in latency and communication overhead, or break equivalence. 
+
+This brings us to a renewed effort to analyze efficiency in a practical algorithm in the field. %A typical algorithmic behavioral analysis  gives a bound $\fc{\ve{w^0-w}^2}{2\eta t}$. 
+Moder deep learning algorithm forces you to move to multi-core machines. Throughput grows linearly with number of machines. But number of iterations it take to converge increases: if you do a lousy job in synchronization, quality of each iteration degrades. 
+
+To achieve this it is not enough to design a smarter algorithm or reengineer the system. By knowing details in systems, the algorithms can be redesigned to be optimized. This contrasts with traditional algorithmic and systems approach, which is transaction-centric, guaranteed by atomic correctness at each step.
+
+Now people create a specialized tool for one algorithm; we want generic solutions.
+
+\begin{enumerate}
+\item
+How to distribute?
+
+When you divide data and model to different machines, tools to make sure things are not going wrong are different.
+
+First: do load-balancing. Ex. do large regression problem in 1 billion dimensions. (There are regularizations so this is practical.) How to solve using a cluster? 
+
+Divide big vector into chunks to put on different machines. This is not trainable, between different dimensions there is possible correlation. %Without sync, updates can diverge. 
+We need to check $x_1x_2^T$ first.
+
+Hope that a random partition helps. But this is a weak guarantee: in practice you are likely to run into strong coupling problems in high dimensions.
+
+System co-design: dynamically schedule task by examining dependencies among dimensions. 
+
+Correlations between dimensions is itself a big problem. How to heuristically or systematically solve that? 
+
+In high-dimensional regression, people observe that not all dimensions are equally important; a small fraction of coefficients are changing significantly. Focus on scheduling those first. %Divide those into different clusters.
+
+There have been heuristic and formal ideas to do priority scheduling and block scheduling, detect coupling and bring them on the same machine. 
+
+This is structure-aware parallelization. The system part is to make this automatic. 
+
+Scheduling makes convergence faster. 
+This type of speedup enjoys a convergence guarantee with rate proportional to number of machines. This requires dividing data nicely. 
+%$\E[f(X^{(t)})-f(X^*)]
+\item
+How to bridge computation and communication?
+
+You still need to communicate, even if not so often. 
+
+In data-parallel problem, run proximal gradient algorithm. %Once can easily amplify 
+Should I wait for every machine to give info or allow some asynchrony?
+
+People use bulk synchronous parallel bridging model: computation and communcation occur during disjoint times.
+Bridging is difficult and expensively especially when iterating. 
+
+How to avoid it?
+
+Hogwild! Idea: folklore is right: ignore communication: let all machines do their job, let them come back asynchronously. Most high-dimensional problems are sparse; same dimensions not touched on different cores, don't conflict. But it doesn't work so well.
+
+Parallelism vs. distribution: latency is larger in distributed setting.
+
+Quality of solution depend on mean and variance of latency.
+
+Amount of asynchrony each machine can allow: stale synchronous p. %arallel 
+bridging model. 
+
+Empirically the algorithm doesn't converge. 
+\item
+What to communicate?
+
+Trade off computing and communication.
+
+This is a strange question. We communicate the intermediate results, right? 
+
+Many models are matrix models. %of numbers.
+Matrices are often big, ex. have many billions of parameters. It will choke your ethernet network.
+
+The full update is often not used in a distributed environment. Is this the only thing we can do?
+
+The form of the update often has low-rank structure, especially when you are squeezing down the number of samples. Outer product of data-dependent and parameter dependent vector. 
+
+What if we communicate pre-updates instead of updates? This is the idea of ``sufficient vectors.''
+
+There is difficulty in establishing equivalence. Full update follows master-slave architecture, easily distributed and aggregated.
+
+But here, aggregating loses the low-rank structure. You have to transmit updates one at a time.
+
+But often every update is using small amount of data.
+Stochastic gradient algorithm can benefit from this.
+
+Storage is elastic. 
+
+Across different models SFB (sufficient factor broadcast) is faster. %multitask, 
+\item 
+How to communicate?
+
+ML people are used to the server-worker (master-slave) architecture: Hadoop, Spark. A centralized place aggregates messages. Unbounded slaves do partial work. Communicate work to be done. Workers need latest possible version of parameters.
+
+Instead, only send updates, but they are as big as full updates if you don't do reduction. 
+Switch away from master-slave to P2P architecture. Pre-updates cannot be aggregated before they are communicated.
+
+%Every machine has to 
+Tricks reduce from quadratic to linear complexity in terms of size of network, constant factor of neighborhood of broadcast. Partial broadcast: not to pass a message only one time. Iteratively keep sending to neighbors.  There is effect of information relay even if you just broadcast information partially. %$O(PQ)$ not $O(P^2)$
+
+There is strong improvement over popular frameworks. We scale well to the size of the cluster; there is a close-to-linear power.
+
+%Assumption of sufficient factor broadcase
+We can establish consistency results. You converge to the solution that is no different from if you sent out the full matrix to each node. 
+\end{enumerate}
+
+Interesting behavior: if you look at deep neural net, size of parameters is not uniform. % In the early part you have . In the higher level work with high-level features. 
+Treat them differently: hybrid communication. 
+
+We provide a new low-level communication layer for models built in Caffe and Tensorflow. We do much better than their communication protocol.
+
+Measure curves over convergence time, not throughput.
+
+%unideal hardware infrastructure: how to analyze and mitigate negative effects?
+
+The goal of the CMU lab and my startup Petuum is to take complicated ML stack and make it more standardized. 
+
+What is the bottleneck at the end? It's everything. First is the computation. Storing in disk IO is inefficient. Once you are in distributed environment, communication and load balancing is bottleneck. Fault tolerance and security is another bottleneck. 
+%CPU twice 
+Some people resort to hardware innovation. Multicore GPU are hot in research communities or rich companies with deep pockets.
+%Buy standard cars if you have more passengers.
+
+We don't rewrite tensorflow code. They have 2-tier structure. You see operators, program-state graphs. Another tier you don't see is how they implement their operators. That's highly dependent. We rewrote some of that part, replace with better distributed protocol.
+
+Is this portable to different clusters? Typically as long as your cluster has NPI, standard distribution environment, our solution will work. 
+Modularize solution stack. There is a layer you can take out and focus on.
+%hybrid gpu,cpu; embedded , hard
+

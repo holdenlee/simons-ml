@@ -1,0 +1,170 @@
+\section{Embedding as a tool for algorithm design (Le Song, Georgia Institute of Technology)}
+Many big data analytics problems are intrinsically complex and hard, making the design of effective and scalable algorithms very challenging. Domain experts need to perform extensive research, and experiment with many trial-and-errors, in order to craft approximation or heuristic schemes that meet the dual goals of effectiveness and scalability. Very often, restricted assumptions about the data, which are likely to be violated in real world, are made in order for the algorithms to work and obtain performance guarantees. Furthermore, previous algorithm design paradigms seldom systematically exploit a common trait of real-world problems: instances of the same type of problem are solved repeatedly on a regular basis, differing only in their data. Is there a better way to design effective and scalable algorithms for big data analytics?
+
+I will introduce a framework for addressing this challenge based on the idea of embedding algorithm steps into nonlinear spaces, and learn these embedded algorithms from problem instances via either direct supervision or reinforcement learning. In contrast to traditional algorithm design where every steps in an algorithm is prescribed by experts, the embedding design will delegate some difficult algorithm choices to nonlinear learning models so as to avoid either large memory requirement, restricted assumptions on the data, or limited design space exploration. I will illustrate the benefit of this new design framework using large scale real world data, including a materials discovery problem, a recommendation problem over dynamic information networks, and a problem of learning combinatorial algorithms over graphs. The learned algorithms can reduce memory usage and runtime by orders of magnitude, and sometimes result in drastic improvement in predictive performance.
+
+I think of algorithm design as more than just algorithms, model plus algorithms. Sometimes when you appropriately design the model, the algorithm is better. 
+
+Categorize ML algorithms in 2 classes: 
+\begin{enumerate}
+\item
+function approximations (neural nets, kernel methods; use optimization to estimate parameters,
+\item
+ graphical model (model more detailed information between variables, parameterize with potential, learn with graphical model inference procedures). 
+\end{enumerate}•
+
+Function approximation is more scalable. Graphical models are less scalable. 
+
+We want to use lots of prior knowledge (reduce amount of data we need) and still be scalable. We want to combine the two approaches.
+
+Try to learn the inference algorithm directly. 
+
+Steps: 
+Identify structure, define graphical model, embed inference algorithm, link embedding to target.
+
+Examples:
+\begin{enumerate}
+\item
+Prediction for structured data: is drug/materials effective or ineffective? Is information cascade (in social media) viral/non-viral? Is natural language sentence positive/negative?
+Are code graphs benign or malicious?
+
+Design kernels for structures and work from that point. Use bag of structures. Have a dictionary of small structures like trees of depth 1, 2. 
+
+%predict particular molecule. 
+You need 1 billion parameters to get state-of-the-art performance, you need to get to level 3, 4, 5, 6.
+
+You can do something smarter to extract feature. One is based on graph isomorphism trick. 
+
+Compress your representation as you go. First hash the type into fixed dimension vector. (Weisfeiler-Lehman). Has for each node, combine with hashes of neighbors. After each node has a fixed vector; aggregate. You can fix a dimension for the entire structure. Hash is manually designed. You still need 100 million parameters. 
+
+Embedding reduces model size by 1000 times. 
+\item
+Dynamic processes over networks. People buying items is not static. You have the ratings and timestamp information. Typically when you model this, you use matrix  factorization and discard temporal information. %(or tensor)
+Each row of $U$ is one user, each column of $V$ is one item, $UV$ makes the prediction.
+
+A simple algorithm is alternating least squares. Solve optimization for $u_i$ by aggregating information from interacting items $v_j$ the user has interacted with, and vice versa. 
+
+With embedding, reduce prediction error for return time by threefold.
+\item
+Combinatorial optimization over graphs.
+
+%This problem is solved again and again in social networks.
+ Social networks are nonstatic. 
+ Look at minimum vertex cover which has 2-approximation algorithm. Pick a small number of nodes such that for each edge at least one node has been selected. Look at degree information. Look at edges and sum degrees at 2 ends. Select edges with highest total degree.
+This is a manually designed rule.
+With embedding we can learn something way better, with approximation ratio close to 1. 
+
+Train using a network generator. Update according to performance. %Ex. parametrize greedy algorithm
+This learns algorithm parameters for particular distribution of graphs.
+\end{enumerate}•
+Key observation and fundamental question: 
+Algorithm is structured composition of manually designed operations. How to embed this in a space?
+
+Thinking in graphical model terms is good idea.
+
+Ex. for a chemical molecule, nodes are atoms, edges are bonds. Introduce a latent variable model with latent variable for each node.
+
+Describe using pairwise Markov random field.  Joint likelihood 
+$$\Pj(H|X) \propto\prod_{i\in V} \psi_v(H_i, X_i|\te_v)\prod_{ij\in E}\psi_e(H_i,H_j|\te_e).$$
+
+How to aggregate info across graph?
+Getting posterior is aggregating information across graph structure.
+%$$
+%\Pj(H_i|X) = \sum_{-i} \Pj(H|X).
+%$$
+%Describe using sufficient statistics. %and just use it. 
+%One simple algorithm
+%If you compute a posterior, 
+If graph is not a tree, it's a difficult problem.  Compute $q_i$ in iterative fashion. Initialize each node with posterior distribution, at each step aggregate information. Take node potential and edge potential to neighbors, and aggregate.  Dependency structure:
+$$
+\cal T (X_i, \{q_j(H_j)\}_{j\in N(i)}).
+$$
+You propagate information according to the graph structure. 
+
+%Graph feature extraction, graph combinatorial optimization
+
+%Instead of doing traditional graphical model learning... 
+Chicken-and-egg problem: To learn parameter we have to run the algorithm. 
+
+Reparametrize updates. We vector space embedding for representing distributions. Map density to vector space by $\E_q[\phi(H)]$. If you are able to pick flexible, rich, nonlinear mapping, this is good. This is a nonparametric way of describing density. If you have operations which apply to the original, you can find another operation which does the same on the embedding.
+$$
+\cal T (q(H)) = \wt{\cal T}(\mu_H). 
+$$
+Ex. $\phi(H) = (H, H^2,H^3,\ldots)^T$. 
+
+
+Combine embedding ideas with graphical models. Key operation is sum-product rule (with Bayes rule). We have spectral HMM, kernel belief propagaion, etc. 
+
+Let's embed mean-field and other inference algorithms. The algorithm is: initialize $\mu_i$ for all $i$, and iterate $T$ times
+$$
+\mu_i \lar\wt{ \cal T} (X_i, \{\mu_j\}_{j\in N(i)})
+$$
+ Aggregate according to nonlinear mapping $\wt{\cal T}$---parametrize it and learn it.
+
+Directly parametrize nonlinear mapping:
+$$
+\mu_i \lar \si\pa{
+W_1 X_i + W_2\sum_{j\in N(i)} \al_i (\mu_j)\mu_j
+}.
+$$
+$W_1,W_2$ will be learned. 
+
+Paradigm shift: An embedded algorithm is structured composition of nonlinear operations/functions.
+
+A graphical model inference algorithm is an instance of an embedded inference algorithm, which is a subset of generic function approximator (which doesn't consider structure).
+
+Benefit of thinking in graphical model sense is that there's many different ways of aggregating information. Parametrize messages. Have 2 densities associated with each edge. Initialize messages and update it. 
+
+Ex. embed belief propagation: Initialize $\mu_{ij}$, and iterate $T$ times: $\mu_{ij}\lar \wt{\cal T}(X_i, \{\mu_{li}\}_{l\in N(i)\bs j})$ for all $i,j$. Aggregate $\mu_i = \wt{\cal F}(\{\mu_{li}\}_{l\in N(i)})$ for all $i$.
+Learn using supervised learning, generative models, RL, etc.
+%learn using RL, etc.
+
+New tools for algorithm design: graphical models (incorporate prior info, reason about structure inference algorithm), function approxiamtion (representation ability, statistcal complexity, generalization ability). 
+
+Scenarios:
+\begin{enumerate}
+\item
+Prediction for structured data: Learn efficiency (PCE) for molecular structure. 
+
+Embed mean field and belief propagation. Run regression, $$V^T \pa{\sum_{j\in V_i} \al_j(\mu_j)\mu_j} = f\pat{molecule}.$$ 
+%low dimension of posterior.
+%Learn low-dimensional 
+
+Weisfeiler-Lehman level 6 needs 1000 million parameters, this needs 0.1 million parameters to get same performance.
+\item
+Dynamic process over networks. LVM evolving over time. Create a new node each interaction. Graph structure grows. Map to latent variable model. %Connectivity is the same
+
+Every interaction, make updates using previous features.  This corresponds to filtering algorithm (predict in future).
+Have unrolled interaction graph, embed filtering. %Embed filtering. Take pair of 
+Ex. predict time of interaction.
+
+What is learned by these embedding algorithms (when they do better than matrix factorization)? Consider the temporal knowledge graph completion problem. New events add to the graph.
+
+Example: ``Enemy's friend is an enemy.'' Cairo threatens Manchester, Manchester provides aid to Croatia. Predict that Cairo predicts Croatia. 
+
+``Friends' friend is a friend, common enemy strengthens the tie.'' 
+Columbia reduces relation with Belgium, Belgium fights Ottawa, Columbias has trade coop with New Delhi, New Delhi has diplomatic coop with Ottawa. Predict Colombia has  material coop with Ottawa. 
+\item
+Combinatorial optimization over graph.
+
+Reward is $-1$ for each node picked.
+State is current selected nodes.
+Use RL (Q-learning) to pick nodes.
+%At each point in time, 
+
+Run CPLEX, use as proxy for global optimum. It produces results one by one. Produce something almost as good, but that runs much faster.
+
+Learned algorithm balances between degree of picked node and fragmentation of the graph. 
+In the end the algorithm has potential to pick a node that is adjacent to many remaining nodes. 
+\item
+Program learning: See digits, recognize and perform addition, carry, repeat. There's only weak supervision.
+%This can also be addressed b
+\end{enumerate}
+
+
+%because you don't have the right model?
+
+%markov random field with grid structure.
+
+%different parameter for each step
+

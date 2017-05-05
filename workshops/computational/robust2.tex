@@ -1,0 +1,114 @@
+\section{Computational Efficiency and Robust Statistics ( Ilias Diakonikolas, University of Southern California)}
+
+We consider the following basic problem: Given corrupted samples from a high-dimensional Gaussian, can we efficiently learn its parameters? This is the prototypical question in robust statistics, a field that took shape in the 1960's with the pioneering works of Tukey and Huber. Unfortunately, all known robust estimators are hard to compute in high dimensions. This prompts the following question: Can we reconcile robustness and computational efficiency in high-dimensional learning?
+ 
+In this talk, I will describe the first efficient algorithms for robustly learning a high-dimensional Gaussian that are able to tolerate a constant fraction of corruptions. More broadly, I will present a set of algorithmic techniques that yield efficient robust estimators for high-dimensional models under fairly general conditions.
+
+(Joint work with Kamath, Kane, Li, Moitra, Stewart)
+
+Can we design algorithms that are provably robust and computationally efficient?
+
+%MLE is asymptotically efficient.
+MLE is the wrong thing to do here.
+
+Robust statistics has developed independent of other areas.
+
+Robust 1-D Gaussian learning: Find a 1-D estimate with TV distance between true and estimated $\le\ep$.
+
+What happens in higher dimensions? 
+
+Suppose  we have some family of high-dimensional distribution. Get $n$ samples from $F\in \cal F$, adversary inspects samples and changes arbitrarily $\ep$-fraction of them. 
+Difference from Huber's model: 
+Adversary can both add and subtract samples. 
+
+%I'm not trying to estimate mean and covariance of observed, but the mean and co
+
+Two special cases are unknown mean and covariance.
+
+Computationally efficient estimators can only handle $\ep\le \rc{\sqrt d}$. 
+
+There is algorithm: given $\ep>0$ and $\ep$-corrupted set of $N$ samples from $d$-dimensional Gaussian $N(\mu, \Si)$, the algorithm runs in $\poly(N, d, \rc \ep)$ time and finds $\wh \mu, \Si$, 
+$$
+d_{TV}(N(\mu, \Si), N(\wh \mu, \wh \Si)) = O(\ep \ln \prc{\ep}) + \wt O\pf{d}{\sqrt N}. 
+$$
+
+Corollary: for $N=\wt O\pf{d^2}{\ep^2}$, get $\poly\pf d\ep$ time with TV distance $O(\ep \ln \prc{\ep})$. 
+
+General recipe:
+\begin{enumerate}
+\item
+Find appropriate parameter distance.
+
+Basic fact: $d_TV(N(0,\mu), N(0,\wh \mu)) \le \fc{\ve{\mu-\wh \mu}_2}{2}$.
+
+Corollary: suffices to output $\wh \mu$, $\ve{\mu - \wh \mu}_2=\wt O(\ep)$. 
+\item
+Detect when naive estimator has been compromised.
+
+In high-dimensions, being an outlier is a global, not local property. 
+
+We need a certificate for why the true mean is far from the empirical mean. 
+
+Lemma: given $N$ $\ep$-corrupted samples from $N(\mu, I)$ and $N\ge 10(d+\ln \prc{\de})/\ep^2$ then for $\wh \mu, \wh \Si$, with probability $\ge 1-\de$, 
+$$
+\ve{\mu - \wh \mu}_2 \ge C\ep \sqrt{\ln \prc{\ep}},
+$$
+$\ve{\wh \Si - E}_2 \ge C'\ep\ln \prc{\ep}$. 
+
+Adversary needs to mess up the 2nd moments to mess up the 1st moments.
+
+Use contrapositive: calculate empirical mean, find approximately largest eigenvalue.  Outliers have special behavior in direction of largest eigenvector. 
+
+If you project empirical data in this direction (1-D projection), you get outliers.  We will find a threshold and remove all points above it.
+\item
+Find good paramters, or make progress. Filtering: efficient outlier detection and removal.
+
+Filtering: Suppose $\ve{\wh \Si - I}_2 \ge C'\ep\ln \prc{\ep}$. Project in direction of $v$, find $T$ s.t. $\Pj_{x\sim_uS} [|v\cdot x - \text{median}(v\cdot x)|>T] \ge 3e^{-T^2/2}$. Throw away all points such that $|v\cdot x - \text{median}(v\cdot x)|>T$. Iterate on new dataset.
+%Find a threshold and remove all points 
+
+A significant fraction of bad points cannot satisfy inequality with $\le$. Then by definition, the variance in that direction is small. 
+
+Fraction of bad points above threshold is more than 2 times the fractions of good points. Every iteration remove at least $\ep/d$ bad points. We will need at most $d$ iterations.
+\end{enumerate}•
+I have removed a fraction $\ep$ fraction of good points. If I remove $\ep$, I cannot change the empirical mean by too much. 
+
+Running time is $\wt O(Nd^2)$.
+
+Generality of robust mean estimation. Focus of initial version was on specific distribution families (Gaussian, discrete product distributions).  Algorithm works under weaker concentration assumptions with appropriate guarantees. We have concentration implied by moment assumptions. Under 2nd moment assumptions, get $O(\sqrt \ep)$. Under 4th moment assumption, get $O(\ep^{\fc 34})$. Under subgaussian, $O(\ep \sqrt{\ln \prc{\ep}})$. Sample complexity is near-optimal for all these cases. 
+
+Covariance is significantly more technical.
+Recall highest eigenvalue tells us something about empirical first moments.
+Here, look at empirical fourth moments. 
+
+Using the general recipe:
+\begin{enumerate}
+\item
+Mahalanobis distance. %, $d_{TV}(N(0,\Si), N(0,\wh \Si))
+\item
+Let $X_i\sim N(0,\Si)$. Fourth moment tensor of $X_i$ id determined by $\Si$, $M=\E[(X_i\ot X_i)(X_i\ot X_i)^T]$, $M=2\Si^{\ot 2} + (\Si^\phi)(\Si^\phi)^T$.
+
+Transform data and look for large eigenvalues. $Y_i:= (\wh \Si )^{-\rc 2} X_i$. If $\wh \Si$ were true covariance, $Y_i\sim N(0,I)$ for inliers, in which case $\rc N\sumo iN (Y_i\ot Y_i)(Y_i\ot Y_i)^T - 2I - (I')(I')^T$ would have small eigenvalues. 
+
+(Instead of using linear form, use an appropriate degree 2 polynomial.) 
+
+An adversary needs to mess up 4th moments to tamper with 2nd moments.
+\end{enumerate}
+
+Assemble algorithm: Use doubling trick $X_i-X_i'\sim N(0,2\Si)$.
+
+Use restricted problems to detect outliers. 
+
+All previous estimators have performance that deteriorates as dimension. 
+New algorithms have dimension-independent errors.
+
+Subsequent work/future directions:
+\begin{itemize}
+\item
+Optimal guarantees for Gaussian? 
+Can we remove the logs? Yes for additive model (Huber's model), no (allowing adding and subtracting) in general; there is a statistical query barrier. 
+\item
+More general prob models/settings?
+\end{itemize}•
+
+%Suppose you don't want to parameter learn, you just want to denoise. 
+%adaptive upper bound?

@@ -1,0 +1,294 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Exchangeable graphs}
+\chead{} 
+\rhead{} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+
+The Class of Random Graphs Arising from Exchangeable Random Measures 
+Victor Veitch and Daniel M. Roy 
+
+\url{https://arxiv.org/abs/1512.03099}
+
+Sampling and Estimation for (Sparse) Exchangeable Graphs 
+Victor Veitch and Daniel M. Roy
+
+\url{https://arxiv.org/abs/1611.00843}
+
+And maybe also this survey:
+
+Bayesian Models of Graphs, Arrays and Other Exchangeable Random Structures 
+(with Peter Orbanz) 
+IEEE Trans. Pattern Anal. Mach. Intelligence (PAMI), 2014. 
+
+\url{https://arxiv.org/abs/1312.7857}
+
+The talk will be informal but based on slides I've produced for previous talks. Here's a recent abstract:
+
+Statistical models of sparse networks from symmetries
+
+The statistical analysis of network data rests on a foundation of random graph models, yet existing models are inadequate because they cannot model sparse graphs or fail to meet basic statistical criteria. We introduce a new class of random graphs, defined by the exchangeability of their vertices, and indexed by the expected number of edges, rather than the number of vertices. A straightforward adaptation of a result by Kallenberg yields a representation theorem: every such random graph is characterized by three (potentially random) components: a nonnegative real I in $\R_+$, a measurable function $S: \R_+ \to \R_+$, and a symmetric measurable function $W: \R_+^2 $ to $[0,1]$, where both $S$ and $W$ satisfy weak integrability conditions. We call the triple $(I,S,W)$ a graphex, in analogy to graphons, which characterize the (dense) exchangeable graphs indexed by the cardinality of their vertex sets. I will present some results about the structure and consistent estimation of these random graphs, and what role they can play in the analysis of real-world networks.
+
+I'm coming from a statistical modeling perspective. What is an observation? What is the model?
+
+We need a framework for the statistical analysis of networks:
+\begin{itemize}
+\item
+family of distribution on large graphs (populations)
+\item
+distribution over observed (sub)graphs (samples)
+\end{itemize}•
+These are often conflated.
+
+Real world networks are sparsely connected. 
+\begin{itemize}
+\item
+Random graph models should be sparse, $o(n^2)$ deges among $n$ vertices.
+\end{itemize}•
+Problem: 
+There is no suitable general framework. 
+\begin{itemize}
+\item
+Graphons cannot get you this. The problem is exchangeability.
+\item
+Do we need to abandon exchangeability to get sparsity? No. (Caron and Fox 2014, Kallenberg 1990)
+\end{itemize}•
+We introduce a general class of random graphs suitable for modelling sparsely connected network structures. The math structures we exploit are exchangeable random measures. 
+
+Special cases:
+\begin{itemize}
+\item
+dense exchangeable graphs (graphon model)
+\item
+Caron and Fox's nonparametric Bayesian models of sparse graphs
+\item
+Sparse graphs with mall world, power law behaviors.
+\end{itemize}•
+Preferential attachment yields these.
+
+\begin{itemize}
+\item
+Exchangeability can be related to a sampling process.
+\item
+Sampling process is perverse for large (sparse) graphs.
+\end{itemize}
+
+Example: 
+\begin{itemize}
+\item
+Initialize: sum 1, total 2.
+\item
+Next draw: Bernoulli sum/total. Add y to sum, 1 to total.
+\end{itemize}
+The probability of  a path depends only on where it ends; all that matters is the total counts of 0's and 1's.
+
+There's another description of this process, identical at the level of what numbers pop out.
+\begin{itemize}
+\item
+Let theta be uniform from $[0,1]$.
+\item
+Return bernoulli(theta).
+\end{itemize}
+Note this doesn't include mutation.
+%slope arctan
+
+A sequence of random variables $Y$ is exchangeable when
+$$
+(Y_1,\ldots, Y_n) \stackrel d= (Y_{\pi(1)},\ldots, Y_{\pi(n)})
+$$
+for all $n\in \N$, permutation $\pi$ of $[n]$.
+
+\begin{thm}[De Finetti]
+TFAE:
+\begin{itemize}
+\item
+$Y$ is exchangeable.
+\item
+$Y$ is conditionally iid given some $\te$
+\item
+Exists $f$ such that
+$$
+Y \stackrel d (f(\te,U_1),f(\te,U_2),\ldots)
+$$
+for iid uniform $\te, U_1,U_2,\ldots$.
+\end{itemize}•
+\end{thm}
+Let's say $n$ is large; look at a prefix $k\ll n$. That sequence is exchangeable. Insofar as $n$ grows much larger than $k$, it looks like it is the draw from a structure like this.
+
+Given a sample, I need to think it's a prefix of an infinite exchangeable sequence.
+
+Represent a graph as an adjacency matrix, or as a function on $[0,1]^2$, ``graphical graphon''.
+
+Joint exchangeability on an array $X$ on $\N^2$ means
+$$(X_{ij})\stackrel d=(X_{\si(i)\si(j)}).$$
+
+
+Fix $n\in \N$, graphon $W:[0,1]^2\to [0,1]$ symmetric, measurable. Generative model for $G(n,W)$:
+\begin{enumerate}
+\item
+Let $\xi_1,\xi_2,\ldots$ be iid uniform $[0,1]$.
+\item
+Connect vertices $i$ and $j$ for $i<j\le n$, independently with probability $W(\xi_i,\xi_j)$.  
+\end{enumerate}•
+Write $G(W)=G(\iy,W)$.
+
+\begin{thm}[Aldous-Hoover]
+Let $X$ be infinite symmetric adjacency matrix. TFAE:
+\begin{enumerate}
+\item
+$X$ is jointly exchangeable.
+\item
+$X$ is $W$-random graph for some (potentially random) graphon $W$.
+\end{enumerate}
+\end{thm}
+
+Making the graph larger and larger, viewed from the sampling processes perspective, it's possible that the law of the sampling process will converge. The sequence of graph converges to a measurable function.
+
+
+What can you learn about facebook by sampling neighborhoods? That's an open problem.
+
+We address sampling with a uniform sampling. It gives relative frequency of subgraphs. Statistically it's a little perverse because we don't sample this way.
+
+Ex. movie ratings: force people to watch movies. Expect underlying ratings to satisfy exchangeability.
+
+%To get a statistical model, 
+
+Let $W,W_1,W_2,\ldots$ be a sequence of graphons. Write $W_n\to_{\square} W$ if $G(W_n)\to G(W)$ in distribution. Through random sampling they produce similar subgraphs.
+
+%squint
+%cut metric
+\begin{thm}[Kallenberg 99]
+Let $\wh W_n$ be empirical graphon of $G(n,W)$. Then $W_n\to_\square W$ a.s.
+\end{thm}
+Multivariate sampling and the estimation problem for exchangeable arrays.
+
+%other metrics not equivalent
+
+\begin{cor}
+Exchangeable graphs are dense or empty a.s.
+\end{cor}
+Use linearity of expectation and exchangeability, 
+$$
+\E\pat{edges} = \binom n2 \E[X_{1,2}].
+$$
+
+Caron and Fox 2014: go beyond dense structures. 
+Each vertex gets a real-valued label. An edge between $1$ and $2$ means a point at $(\te_1,\te_2)$. We can think of the points as a set in $\R_+^2$. We've lost the disconnected vertices. A random sample from a sparse graph has many disconnected vertices.
+
+Call this an adjacency measure: each point $(\te_i,\te_j)\in \R_+^2$ is an edge $ij$.
+
+Kallenberg exchangeable graph (Veitch-Roy 15)
+
+Fix a size $s\in \R_+$. Fix a graphex $W:\R_+^2\to [0,1]$ symmetric, measurable. 
+
+Generative model for $K(s,W)$, 
+\begin{itemize}
+\item
+Let $\Pi=\sum_i \de_{(\te_i,\xi_i)}$ be a unit-rate Poisson process on $[0,s]\times \R_+$. 
+\item
+For every edge $i<j$, $i,j\in \N$, add edge $(\te_i,\te_j)$ with probability $W(\xi_i,\xi_j)$. 
+\end{itemize}
+Also star structures and isolated edges...
+
+Sample from an infinite strip $[0,s]\times \R$. Decide whether to put an edge $(\te_i,\xi_i), (\te_j,\xi_j)$ by flipping $W(\xi_i,\xi_j)$. I forget about the isolated vertices.
+
+It is like the limit of a graphon as it gets more sparse.
+
+How to adjust to do preferential attachment? If you run preferential attachment for a long time and choose a vertex at random it looks locally treelike. You won't see that here; you see isolated edges.
+
+%prob edge depend on what seen so far.
+%make $W$ random and integrate it out. Look at previous edges to see how to add new. Preferential attachment can't get exactly satisfy . Rich get richer.
+
+If $W$ is integrable, in expectation you get finitely many edges. 
+
+%huge subgraph conntected.
+
+Let $X$ be infinite adjacency measure. TFAE:
+\begin{enumerate}
+\item
+$X$ is jointly exchangeable.
+\item
+$X$ is Kallenberg exchangeable graph for some (potentially random) graphex $W$. 
+\end{enumerate}
+%don't dial in number of indiv, expected number of individuals.
+
+At particular times, structure shows up.
+
+Graphons can be represented as graphexes. Define on square of size $c\times c$. 
+Let
+$$
+W(x,y) = \begin{cases}
+\wt W(x/c,y/c),&x,y\le c\\
+0,&\text{else}.
+\end{cases}
+$$
+Call $W$ a $c$-dilation of $\wt W$. 
+
+Generative model:
+\begin{align}
+N_s &\sim Poi(c\cdot s)\\
+\{\te_i\}&\sim Uni[0,s]\\
+\{\xi_i\}&\sim Uni[0,1]\\
+G_s\{(\te_i,\te_j)\}|\xi_i,\xi_j &\sim Bernoulli (\wt W(\xi_i,\xi_j)).
+\end{align}•
+
+How many edges, vertices do we expect to see?
+\begin{align}
+\E[e_s] &= \rc 2 s^2 \ve{W}_1.
+\E[v_s]& = s\int_{\R_+} (1-e^{-s\mu_W(\la)})\,d\la.
+\end{align}
+$\E [v_s]$ depends on tail.
+
+Ex. polynomial tail power law. Exponential tail in middle. Compactly supported dense.
+
+For example, $W(x,y) = (x\ne y) (x+1)^{-2}(y+1)^{-2}$ gives 
+\begin{align}
+\E[e_s] &= s^2\\
+\E[v_s]&= \sfc{\pi}3 s^{\fc 32}\\
+P(D_s=k|G_s)&\stackrel p{\to}\fc{\Ga(-\rc 2+k)}{2\sqrt \pi k!} k^{-\fc 32}
+\end{align}
+
+How to estimate a graphex from observed network? Have same notion of convergence.
+
+Define empirical graphex to be $\fc{v_s}s$-dilation of $\wt W_s$. 
+
+\begin{thm}
+Let $\wh W_s$ be empirical graphex of $K(s,W)$. Then $\wt W_s\to_\square W$ in probability.
+\end{thm}
+%convergence of comb sequence
+
+%What does exchangeability mean intuitively? 
+If people's probabilities of connecting are only determined by latent variables, you get a dense graph.
+Will I ever cross paths for you (history dependence)---this is sparse. Subject to possibility there's a dense exchangeable thing going on. 
+
+We've punted on the question of how to model large graphs. The latent variables have to be baked into the $W$'s.
+
+Ex. $W(x,y) = f(x)f(y)(x\ne y)$ models popularity. 
+%cities
+
+%Applied to a large grid you lose the grid structure.
+
+Reason about change (dynamics) of graphs. There are many details in sequence model.
+
+Clustering coefficient? (If two people have a common friend they are more likely to be friends.) You can create the property or make it impossible through $W$.
+
+
+
+%homophily)
+\printbibliography
+\end{document}

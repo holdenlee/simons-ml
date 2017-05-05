@@ -1,0 +1,110 @@
+\section{A Cost Function for Similarity-Based Hierarchical Clustering (Sanjoy Dasgupta, UC San Diego)}
+
+The development of algorithms for hierarchical clustering has been hampered by a shortage of precise objective functions. To help address this situation, we introduce a simple cost function on hierarchies over a set of points, given pairwise similarities between those points. We show that this criterion behaves sensibly in canonical instances and that it admits a top-down construction procedure with a provably good approximation ratio.
+
+We show, moreover, that this procedure lends itself naturally to an interactive setting in which the user is repeatedly shown snapshots of the hierarchy and makes corrections to these.
+
+Hierarchical clustering is a useful tool for exploratory data analysis. It captures structure at all scales, and we have well-established algorithms like average linkage.
+
+It's not completely clear what these algorithms are doing. Individual steps seem innocuous (merging things together) and produce a tree, but there's no objective function that it's optimizing. There's no way to compare performance, impose constraints, etc. 
+
+These algrotihms are defined procedurally, rather than in terms of optimization problems. 
+
+Input: similarity function on $X=\{x_1,\ldots, x_n\}$. Represent as undirected graph with weights $w_{ij}$.
+Idea for cost function: charge for edges that are cut.
+
+But in hierarchical clustering, you eventually cut all the edges. Charge more the higher up an edge is cut. 
+Multiply by number of data points remaining.
+$$
+C(T) = \sum_{i,j} w_{ij} \#\pat{descendants of lowerest common ancestor of $i,j$}.
+$$
+There's nothing related to depth here, but the algorithm will produce trees with depth $O(\ln n)$. 
+
+Sanity check: 
+\begin{itemize}
+\item
+There is always an optimal tree that is binary. 
+\item
+If the similarity graph is disconnected, the top split must cut no edges.
+\item
+Three canonical examples:
+\begin{enumerate}
+\item
+Caterpillar (line) graph: separating off one by one incurs cost $n+(n-1)+\cdots + 1 = \Om(n^2)$; the balanced tree gets cost $O(n\ln n)$.
+%The greedy algorithm will not work
+\item
+Complete graph: all trees have the same cost. 
+
+Charge the number of nodes that was left when the edge is broken. Upper bound is $n\binom n2$. 
+
+Bound the cost of the tree by revealing it one node at a time. Let $\phi_j$ be upper bound on what's left after $j$ splits uncovered. Initial upper bound is $\phi_0=n^3$. 
+Say $j$th split divides set of size $m$ into sizes $k,m-k$. 
+Then upper bound changes by 
+$$
+\phi_j - \phi_{j-1} = m^3 - (k^3 + (m-k)^3) = 3mk(m-k).
+$$
+Cost of split is $c_j = mk(m-k) = \fc{\phi_j-\phi_{j-1}}3$. Total cost of tree is $c_1+\cdots +c_{n-1} = \fc{\phi_0-\phi_{n-1}}3 = \fc{n^3-n}3$.
+\item
+Planted partition model: Correcting clustering in expectation.
+\end{enumerate}•
+\end{itemize}
+It is NP-hard to minimize the cost function. We have to look at heuristics. Here's a natural heuristic. Do spectral bipartitioning, make that the top split, and recurse. 
+
+Sparsest cut is NP-hard but we have lots of $\al$- approximation algorithms: spectral, LP, SDP relaxation. Then overall you get $\al\ln n$ approximation. 
+Recursive spectral (or other types of) partitioning has been propsed in other contexts. 
+
+%Enumerate threshold
+Would this be extendable to case when nodes have costs? Absolutely.
+
+Approximation guarantee. 
+\begin{lem}
+For any binary tree $T$ on $V$ there is $(\rc 3, \fc 23)$-balanced partition $A,B$ of $V$ with $\fc{w(A,B)}{|A||B|}< \fc{27}{4|V|^3}C(T)$. 
+\end{lem}
+%Optimal tree: keep going until we accumulate $\rc 3$ of nodes 
+Let $B_i$ be the smaller set broken off at step $i$, $A_i$ the larger. 
+Pick smallest $k$ with $|B_1|+\cdots |B_k|\ge \fc n3$.
+Let $A=A_k$, $B=\cupo ik B_i$. Then $C(T) \ge \fc{2n}3 w(A,B)$. 
+
+A more general cost function is 
+$$
+\sum_{i,j} f(w_{ij} \#\pat{descendants of lowerest common ancestor of $i,j$}).
+$$
+
+Further developments:
+\begin{itemize}
+\item
+
+Charikar-Chatziafratis: If an $\al$-approximation to sparsest cut is used, overall approximation ratio is still just $O(\al)$.
+\item
+Cohen-Addad-Kanade-Mathieu: 
+Sometimes we want recovery guarantee. Suppose similarity graph came from ultrametric (ex. phylogenetic tree): 
+Similarities are non-increasing function of ultrametric distances. Then we can recover the ultrametric tree.
+\end{itemize}•
+
+Ex. clustering with attributes. Average linkage also did well. What's the point then? We put all this effort into finding a cost function... There was a point.
+
+\begin{enumerate}
+\item
+Average linkage is quadratic, not efficient on big data.
+
+This is top-down, so you can look for quick-and-dirty ways of doing sparse cut in linear time. 
+\item
+Then you can do constrained hierarchical clustering.
+\end{enumerate}•
+Suppose you want to be interpretable: each split should be on a single feature.
+
+Interactive hierarchical clustering. There are a lot of ways to cluster animals. (For similarity for animal dataset, we just used dot products.) There's no way an unsupervised algorithm can figure out what you want, without interaction.
+
+Start an interactive procedure. On each round, pick 10 animals. Show hierarchy restricted to those 10 animals. Ask expert: does this hierarch look good? Ex. ($\{$tiger, collie$\}$, gorilla). Tiger and collie should be in group not containing gorilla. Minimize the same loss function with this constraint. Algorithmically this is quite easy to do.
+
+Cost function remains the same, but now there are hard constraints. 
+How to incorporate constraints? It's hard to incorporate into a bottom-up scheme, easier in a top-down schemes. %Classification constraints. 
+(Another way is to learn similarity function?) %domino effect
+Algorithm to produce tree is only approximation algorithm. What's the most efficient way to get to the best tree? Correct final result, or go back through algorithm?
+
+%Open problems
+
+There are many cases where we already have cost functions, where it makes sense to come up with another. Often we come up with one by positing a probabilistic model; cost function is just the negative log-likelihood. Assumptions can be hard to swallow. Log-likelihood cost function can be a huge mess, not something we want to deal with algorithmically, just do EM or local search. There's somthing to be gained by trying to find something similar that captures similar things that we can deal with algorithmically.
+
+%construct with some density.
+

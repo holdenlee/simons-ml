@@ -1,0 +1,189 @@
+\section{Representational and Optimization Properties of Deep Residual Networks (Peter Bartlett, UC Berkeley)}
+
+Deep residual networks have been widely adopted for computer vision applications because they exhibit fast training, even for very deep networks.  The key difference between these networks and other feedforward networks is that a residual network with near-zero parameters computes a near-identity function, rather than a near-zero function. We consider mappings of this kind: compositions of near-identity functions. Rather than fixing a finite parameterization, such as fixed-size ReLU or sigmoid layers, we allow arbitrary Lipschitz deviations from the identity map; these might be Lipschitz-constrained sigmoid layers of unbounded width, for instance.  We investigate representational and optimization properties of these near-identity compositions. In particular, we show that a smooth bi-Lipschitz function can be represented exactly as a composition of functions that are Lipschitz-close to the identity, and greater depth allows a smaller Lipschitz constant.  We also consider the optimization problem that arises from regression with a composition of near-identity nonlinear maps. For functional gradients with respect to these nonlinear maps, we show that any critical point of a convex objective in the near-identity region must be a global minimizer.
+ 
+Joint work with Steve Evans and Phil Long.
+
+View deep nets as deep compositions of nonlinear functions
+$$
+h=h_m\circ \cdots \circ h_1,
+$$
+where $m$ is large.
+For example, $h_i(x) = \si(W_ix)$, where $\si(v)_i = \rc{1+\exp(-v_i)}$, or $h_i(x)=r(W_ix)$, $r(v)_i = \max\{0,v_i\}$. 
+
+
+Why deep?
+\begin{itemize}
+\item
+Representation learning: Depth provides an effective way of representating useful features.
+%Anecdotal evidence says that depth gives good representation. %
+\item
+Rich non-parametric family: Depth provides parsimonious representations. Nonlinear parametrizations provide better rates of approximation. Some functions require much more complexity for a shallow representation.
+\end{itemize}
+
+But optimization is worse as the depth increases.
+
+I'll talk about deep residual networks. 
+
+ImageNet progress: There were 2 big jumps from 
+\begin{enumerate}
+\item
+from shallow to deep (8-layer) nets (AlexNet)
+\item
+and to ResNets (152 layers).
+\end{enumerate}
+A residual network has a shortcut connection, 
+$$
+H(x) = F(x) + x.
+$$
+Advantages:
+\begin{itemize}
+\item
+with zero weights, the network computes the identity.
+\item
+identity connections provide useful feedback throughout the network.
+\end{itemize}•
+%coco common objects in context.
+
+What's behind the success of residual networks?
+
+Intuition: linear functions. 
+\begin{enumerate}
+\item
+Every invertible $A$ with $\det(A)>0$ can be written as
+$$
+A = (I+A_m)\cdots (I+A_1)
+$$
+where $\ve{A_i} = O\prc m$. (Hardt, Ma, 2016.)
+\item
+For a linear Gaussian model, $y=Ax+\ep$, $\ep\sim N(0,\si^2I)$, consider choosing $A_1,\ldots, A_m$ to minimize quadratic loss
+$$
+\E \ve{(I+A_m)\cdots (I+A_1) x - y}^2.
+$$
+If $\ve{A_i}<1$, every stationary point of the quadratic loss is a global optimum. 
+%result about landscape.
+\end{enumerate}
+We show these statements are true in the nonlinear case.
+\begin{thm*}
+Computation of smooth invertible map $h$ can be spread throughout a deep network $h_m\circ \cdots \circ h_1=h$ so that all layers compute near-identity functions
+$$
+\ve{h_i-\Id}_L = O\pf{\ln m}{m}.
+$$
+\end{thm*}
+The Lipschitz seminorm:
+$$\ve{f(x)-f(y)}\le \ve{f}_L \ve{x-y}.$$
+Think of $h_i$ as near-identity maps, ex.
+$$
+h_i(x) = x + A\si(Bx).
+$$
+As the network gets deeper, the functions $x\mapsto A\si(Bx)$ can get flatter.
+%universal approximator
+
+\begin{thm}
+Consider $h:\R^d\to \R^d$ on bounded $X\sub \R^d$. Suppose it is 
+\begin{enumerate}
+\item
+differentiable
+\item
+invertible
+\item
+smooth: for some $\al>0$, $\forall x,y,u$, $\ve{Dh(y)-Dh(x)}\le \al \ve{y-x}$.  (Here $\ve{Dh(y)}$ is the induced norm $\ve{f}:=\sup \set{\fc{\ve{f(x)}}{\ve{x}}}{\ve{x}>0}$.
+\item
+Lipschitz inverse: for some $M>0$, $\ve{h^{-1}}_L\le M$.
+\item
+Positive orientation: for some $x_0$, $\det(Dh(x_0))>0$.
+\end{enumerate}•
+Then there are $m$ functions $\R^d\to \R^d$, 
+$$
+\ve{h_i-\Id}_L = O\pf{\ln m}{m}
+$$
+and $h_m\circ\cdots h_1=h$.
+\end{thm}
+When you're close to the identity, you have an analogous behavior of the error surface that all local optimum are global.
+
+%Determinant scale.
+
+Key ideas:
+\begin{enumerate}
+\item
+Assume $h(0)=0$, $Dh(0)=\Id$ (else shift and linearly transform).
+\item
+Construct $h_i$ so that 
+\begin{align}h_1(x) &= \fc{h(a_1x)}{a_1}\\
+h_2(h_1(x)) &= \fc{h(a_2x)}{a_n}.
+\end{align}
+\item
+Pick $a_m=1$ so that $h_m\circ \cdots  \circ h_1=h$.
+\item
+Ensure $A_1$ is small so $h_1\approx Dh(0)=\Id$.
+\item
+Ensure $a_i,a_{i+1}$ are close so that $h_i\approx \Id$.
+\item
+Show $\ve{h_i-\Id}_L$ are small on small and large scales.
+\end{enumerate}
+
+Error landscape: 
+\begin{thm}
+For $(X,Y)$ with arbitrary joint distribution, let
+$$
+Q(h) = \rc 2 \E\ve{h(X)-Y}_2^2
+$$
+and define the minimizer $h^*(x) = \E[Y|X=x]$. (Ex. if $(X,Y)$ is uniform, $Q$ is empirical risk, $h^*$ is ERM.)
+
+Consider $h=h_m\circ \cdots \circ h_1$, $\ve{h_i-\Id}\le \ep<1$.
+
+Then for all $i$,
+$$
+\ve{D_{h_i} Q(h)} \ge \fc{(1-\ep)^{m-1}}{\ve{h-h^*}} (Q(h)-Q(h^*)).
+$$
+($D_{h_i}Q$ is Fr\'echet derivative, $\ve{h}$ is induced norm.)
+\end{thm}
+
+If composition $h$ is sub-optimal and each $h_i$ is near identity, theorem says there is a downhill direction in function space.
+
+The theorem does not say there are no local minima of deep residual network of ReLUs or sigmoids with a fixed architecture. The direction in function space can be orthogonal to functions that can be computed with the fixed architecture.
+
+We should expect suboptimal stationary points in the ReLU or sigmoid parameter space, but they arise solely within a layer.
+
+Proof idea: If $\ve{f-\Id}_L\le \al<1$, then
+\begin{enumerate}
+\item
+$f$ is invertible
+\item
+$\ve{f}_L\le 1+\al$ and $\ve{f^{-1}}_L \le \fc{1}{1-\al}$.
+\item
+For $F(g)=f\circ g$, $\ve{h}=\ve{h}_L$. 
+\end{enumerate}•
+%Induced and Lipschitz norm are the same.
+\begin{enumerate}
+\item
+Projection theorem implies $Q(h) = \rc 2 \E\ve{h(X) - h^*(X)}_2^2+\pat{constant}$.
+\item
+Then $$D_{h_i} Q(h) = \E[(h(X)-h^*(X))\cdot ev_X \circ D_{h_i}h].$$
+\item
+It is possible to choose a direction $\De$ such that $\ve{\De}=1$ and $D_{h_i}Q(h) (\De) = c\E\ve{h(X)-h^*(X)}_2^2$. 
+\item
+Because $h_j$s are near identities, get the inequality.
+\end{enumerate}
+
+Questions:
+\begin{itemize}
+\item
+What if the mapping is not invertible?
+
+If $h$ can be extended to bi-Lipschitz mapping to $\R^d$, it can be represented with flat functions at each layer. (Project to 1-D at the end.)
+
+What if it cannot be extended?
+\item
+Implications for optimization? Related to Polyak-Lojasiewicz function classes. Proximal algorithms for these classes converge quickly to stationary points.
+\item
+Do stochastic gradient methods produce near-identities?
+\end{itemize}
+
+%Deeper networks allow flatter functions at each layer
+%Global optimality o
+
+%what about functions throwing info away?
+
+%others besides identity
+

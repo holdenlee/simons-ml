@@ -1,0 +1,184 @@
+\section{Simons Institute Open Lecture: ``Does Computational Complexity Restrict Artificial Intelligence (AI) and Machine Learning?  (Sanjeev Arora, Princeton University)}
+
+Can machines think? Philosophy and science have long explored this question. Throughout the 20th century, attempts were made to link this question to the latest discoveries---Goedel's theorem, Quantum Mechanics, undecidability, computational complexity, cryptography etc. Starting in the 1980s, a long body of work led to the conclusion that many interesting approaches---even modest ones---towards achieving AI were computationally intractable, meaning NP-hard or similar. One could interpret this body of work as a ``complexity argument against AI."
+
+But in recent years, empirical discoveries have undermined this argument, as computational tasks hitherto considered intractable turn out to be easily solvable on very large-scale instances. Deep learning is perhaps the most famous example.
+
+This talk revisits the above-mentioned complexity argument against AI and explains why it may not be an obstacle in reality. We survey methods used in recent years to design provably efficient (polynomial-time) algorithms for a host of intractable machine learning problems under realistic assumptions on the input. Some of these can be seen as algorithms to extract semantics or meaning out of data.
+
+``The law of clickbait says that if there is a question mark at the end, the answer is no.''
+
+Let's start with the oldest question in CS: Can machines think?
+Ada Lovelace formulated the term computer. ``They don't do anything new, only do what we program them to.''
+
+Turing formulates the Imitation Game (Turing Test) in ``Can machines think?'' He includes 9 frequent objections. One, that addresses Ada's, is that you can program a computer to learn from experience. One objection is ESP.
+
+We distinguish between:
+\begin{itemize}
+\item
+Weak AI: Machine's input/output behavior is human-like (as in Turing test).
+\item
+Strong AI: Machine actually has a ``mind,'' with human-like thought processes. %(It can compose symphonies, etc.)
+\end{itemize}
+There's a lot of controversy about strong AI, less so recently.
+
+\subsection{History: Controvery over strong AI}
+
+People thought it was impossible.
+
+Simulation argument for AI: ``In principle one could just simulate the human brain.'' ($10^{40}$ atoms, etc.)
+
+Science fiction writers think of questions like: You can take a core dump, would you have 2 copies? 
+
+This is impractical even many decades into the future; we don't understand well how the brain works.
+
+We don't even have working model of C. elegans brain (connectome understood by White et al 1986; 302 neurons and 5000 synapses). 
+
+The simulation idea seems OK but is impractical.
+
+Searle attemped to show impossibility of strong AI. He flipped the simulation argument: Any computer that passes the Turing test in Chinese is simulatable by a group of English-speaking humans. But no one in the room understands Chinese.
+
+%are you john searle
+
+To me this is fallacious (it's just saying a computer is made of gates). But in the non-major class I was teaching, students found it convincing.
+
+Message passing among large groups can be quite powerful, like the ``intelligence'' of ant colony, social hierarchies, agriculture, war, etc.
+
+The ``room'' would contain $10^{10}$ and would be the size of Connecticut.
+
+There is accumulating evidence that consciousness is an emergent phenomenon.
+%currency
+
+There is the claimed impossibility of strong AI via Goedel's Theorem (Lucas 1960's, Penrose 1980's). Suppose you start off by thinking: I don't believe in AI. How do I refute it? There aren't so many mathematical ways of refuting something vague and not well-defined. Latch on whatever has happened in math in recent decades---Goedel's Theorem. The construction of Goedel's sentences, humans think it's true, but it's not provable in, say, Peano arithmetic. The computer can only recognize provable things, so cannot recognize its truth. Humans have intelligence that can't be implemented in computers.
+Quantum gravity in the brain plays an important role?
+The book caused a firestorm. You can spend a few evenings spending the back and forth on this.
+
+At best this argument says that the computer can make mistakes which a well-trained mathematician might not. It's not clear what that refutes.
+
+\subsection{History: computational complexity (P vs. NP)}
+
+Computational complexity was invented to prove limitations on computers, the next step beyond Turing and Goedel's undecideability. Goal: characterize computation time needed to solve a problem. %problems solvable with limited resources of time and space.
+
+We have no way to prove that the computer takes $\gg n\ln n$ time to solve any reasonable problem. 
+We prove hardness modulo established conjectures. 
+
+$P$ is the class of problems where a solution can be found in poly time; NP is the class of problems  with solutions which can be checked in polynomial time. Ex. you can't search through a very large tree in poly time.
+
+NP complete means every NP problem is reducible to instance of this in $n^\ep$ time. They are the hardest problems of NP: if they have a solution, you can solve any other NP problem.
+
+P=NP is often phrased as ``Can brilliance/creativity be automated?'' It takes brilliance to come up with a solution, no brilliance to check it. So P=NP means if you can check it, you can come up with a solution. 
+
+If P$\ne$NP then NP-complete problems cannot be solved in polytime.
+
+Complexity obstacle to AI: Very simple learning problems, even involving fairly low-level perception, turn out to be NP-complete.  (Kirousis, Papadimitriou 85).
+
+It is important to realize that NP-hardness only concerns difficulty of worst instance, so only relevant if we desire an algorithm that works for every input. Cf. Goedel's Theorem. 
+
+Work in last couple of decades suggests that computing even fairly weak approximations is also NP-complete for many problems (uses PCP theorems, Unique Games Conjecture, etc.). 
+
+%As a result of these few decades of work, we  now know that for most of thse problems, approximations arehard.
+
+Suppose you have an algorithm that gets within 10\% of all traveling salesman problems (TSP). Then I can leverage it so solve any NP problem. Convert boolean satisfiability ot TSP problem. Use approximation algorithm to solve satisfiability exactly.
+
+If you believe that boolean satisfiability is hard, then 10\% approximation for TSP is hard. The approximation ratio that is hard is the boundary of what known algorithms can do, so current algorithms are the best algorithms.
+
+This was a punch in the gut: I was hoping that some of these problems were easy.
+
+\subsection{Survey of machine learning approaches and why computational complexity seems to present a hurdle}
+
+This has always been our line of thought, not the philosophical problems.
+
+ML went through phases, no phases really go away.
+
+Logic-based approach rose out of logic work. ``Programs with common sense,'' McCarthy 1959. It sketched the logic-based approach: have a database of facts and system for logically deducing new facts from these. People add commonsense axioms to a database. %(still going on). 
+The hope is that once it has enough, it is complete enough, and becomes intelligent. This continues. Many programming environments were developed for symbolically expressing and solveing problems.
+
+Practical difficulty: tedious to code millions of facts.
+
+Deduction in even simple logic systems is NP-complete.
+
+A Bayesian net (Pearl 88) is a probabilistic graphical model of data. 
+Roughly speaking, this is the probabilistic analogue of logical reasoning. 
+
+Deduction: compute probablity of certain variable being 1 conditioned on the known values of some other variables. %The po
+This problem is NP-hard.
+
+This seems a relevant way of thinking about the world. Progress was made with heuristic algorithms.
+
+Kernel SVMs are an example of learning from data. Given examples of birds and animals who are not birds, give classifier separating birds and not birds. Algorithm runs in polynomial time via convex programming. 
+
+It was a reaction to NP-completeness. We will have provable algorithms in polytime! Map to feature space and come up with classifier on that space. In general you can allow it to make error; there is a nice statistical learning theory that says when you can do this. This works well on simple problems, not so much on complex problems.
+
+Anyone who's read any newspaper in the last 5 years know that deep learning is the current approach. It was originally inspired by neurons in the brain.
+
+You have simple computational units (the popular one is the ReLU gate), $RELU(\sum_i w_i x_i+\te)$.  
+Parameters are trained using backpropagation. That classical algorithm applied on large datasets and modern computers works well. There's been an explosion of work. Neural nets get better-than-human (97\%) accuracy on image classification using 100+ layers and millions of edges. (Pictures collected from Internet with labels. It's better than any individual human. Aggregated over the wisdom of crowds you get better accuracy.)
+
+
+Complexity theory says that learning even a shallow net with 1 hidden layer is intractable, Klivans-Sherstov 10.
+
+
+Computational complexity's emerging lesson: for most natural problems, the natural phrasing is computationally intractable (NP-hard).
+This need not mean the problem is intractable in practice. It may even be solvable in industrial scales.
+
+Is NP-hardness an obstacle for understanding reality? 
+
+Suppose we want to understand a text corpus. This falls under the problem of ``topic modeling.'' When people prove this is NP-hard, that means there are NP-hard instances. But this doesn't say anything about the original problems. You can define a smaller bounding box containing the original problem that is polytime.
+
+%advisor, coffee. 
+The bounding box is a human construct, depending on your advisor, your coffee that morning, etc. 
+
+I want to talk about how to draw a smaller bounding box. 
+
+\subsection{Efforts to understand one particular neural net method}
+
+People solve language processing tasks with recurrent deep nets. Ex. 
+Google is rolling out much improved translation.
+
+How does a deep net understand language?
+``Understanding'' is captured in parameters of deep net. How do you train them? Train to correctly predict next word given previous $k$ words. This is a black-box algorithm.
+
+If I give you the first half of the sentence and ask you to predict the second half, you need to understand some grammar, common sense, etc. 
+
+A simple neural net for language understanding is $\Pj(w_t) = f_\te(w_{t-1},\ldots, w_{t-k})$, 
+$$
+\Pj[w|w_1,\ldots, w_5] \propto \exp\ba{v_w\cdot\pa{\rc 5 \sum_i v_{w_i}}}.
+$$
+NN gets positive feedback if correct, negative if incorrect.
+
+Word vectors can be used to solve analogies like man:woman::king:queen by completing the parallelogram.
+
+Why does our algorithm find such vectors? What property of language does this reflect?
+
+You can do theory with it. It's possible to create representations of sentence/paragraphs, e.g. skip-thought (Kiros 16). The tiger rules this jungle, a lion hunts in a forest---similar sentences even though they don't share words.
+
+One popular question about deep nets: optimization problem is nonconvex, unclear why local improvement (backprop) finds good solutions. %Same question can be asked 
+
+More important question (IMO): What is the structure of data that deep nets are capturing and can they be captured by simpler algorithms?
+
+We have a generative model for language. Words are things in your head which associate with vectors, $\Pj(w|c_t)\propto \exp(v_w\cdot c_t)$.
+
+\begin{enumerate}
+\item
+Model validates many things in NLP, like PMI, $PMI(w,w')=v_w\cdot v_{w'}/d\pm O(\ep)$. 
+\item
+word2vec and GloVe methods are approximate inference for our model.
+\item
+Relations correspond to lines.
+\item 
+With slight modificiation, yield simple and understadndable sentence embeddings competitive with NN.
+\end{enumerate}
+\subsection{Why computational complexity may not be a hurdle going forward}
+
+Proposed agenda for theoretical ML:
+\begin{itemize}
+\item
+look beyond NP-hardness. Look beyond usual convex formulations. (matrix factorization, tensor decompositions, LVM)
+\item
+Beware ``minimum description length'' aesthetic; likely leads to hard problems. Fewest assumptions does not give best theorem.
+\item
+Combine math and modeling.
+%math in taste
+\end{itemize}•
+
+AI is elephant in the room. There are many communities looking at AI, we are like blind men with our own takes. I'm sure theory and math will play a big role in this endeavor. 

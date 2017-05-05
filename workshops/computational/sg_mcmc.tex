@@ -1,0 +1,189 @@
+\section{Stochastic Gradient MCMC for Independent and Dependent Data Sources ( 
+Emily Fox, University of Washington)}
+
+Many recent Markov chain Monte Carlo (MCMC) samplers leverage continuous dynamics to define a transition kernel that rapidly explores a target distribution. In tandem, a focus has been on devising scalable variants that use stochastic gradients in the dynamic simulations. However, such stochastic gradient MCMC (SG-MCMC) samplers have lagged behind their full-data counterparts in terms of the complexity of dynamics considered since proving convergence in the presence of the stochastic gradient noise is nontrivial.
+ 
+In this talk, we first present a general recipe for constructing SG-MCMC samplers that translates the task of finding a valid sampler into one of choosing two matrices.  Importantly, any continuous Markov process sampling from the target distribution can be written in our framework.  We then turn our attention to MCMC techniques based on jump processes, and propose an algorithm akin to Metropolis Hastings---with the same ease of implementation---but allowing for irreversible dynamics.  Finally, we describe how SG-MCMC algorithms can be applied to applications involving dependent data, where the challenge arises from the need to break the dependencies when considering minibatches of observations.  We propose an algorithm that harnesses the inherent memory decay of the process and provably leads to the correct stationary distribution.
+ 
+We demonstrate our methods on a number of large-scale applications, including a streaming Wikipedia LDA analysis and segmentation of a lengthy genome sequence and ion channel recording.
+
+I look at time series applications. 
+\begin{itemize}
+\item
+An example (with Zillow) is model a local housing index: look at value in a local region and see how it changes over time. We want to share information between locations.
+\item
+Neuroimaging datasets.
+Discover functional connectivity. Do automatic parsing of recording. Recordings are long, up to 2 weeks long.
+\end{itemize}
+
+We want to handle complex posteriors in large-data settings. Develop scalable Bayesian approaches.
+
+We focus specifically on MCMC.
+
+Posteriors can be 
+\begin{itemize}
+\item
+Complex:
+There may be multiple modes or strong correlation across dimensions. 
+\item
+Large-data: Issue is scalability.
+\end{itemize}•
+Classical approach is MCMC via jump processes. Standard method is Metropolis Hastings. Propose $\te'$ from kernel depending on past value $\te$. Accept or rejct. Often this inefficiently explores posterior.
+
+There's been interest in continuous dynamics based samplers, a.k.a, gradient MCMC. 
+
+One popular example is Hamiltonian Monte Carlo (HMC).  The target posterior of $\te$ is
+$$
+\pi(\te):= p(\te|D)\propto \exp(-U(\te)).
+$$
+Add auxiliary momentum variable $r$. These 2 terms define an energy landscape that we explore. 
+$$
+\pi(\te, r) \propto \exp\pa{-U(\te) - \rc 2 r^TM^{-1}r}.
+$$
+Use Hamiltonian dynamics to collect samples on fixed continuous-time interval.
+Walk around a given level set.
+
+Write down Hamiltonian dynamics.
+\begin{align}
+d\te &= M^{-1}r\,dt\\
+dr &= -\nb U(\te)\,dt.
+\end{align}•
+Analogy: hockey puck on frictionless ice surface. The momentum carries over hill. They leave target distribution invariant.
+
+%We're interested in adding
+We'll simulate jointly $\te$ and $r$. To get ergodicity, HMC resamples momentum. Jump between level sets and walk around. If you just want samples of $\te$, just discard samples of $r$.
+
+HMC is one set of dynamics.
+We want $\pi(\te)$ invariant under these dynamics. Simulated samples are desired posterior samples. 
+Which have property of correct stationary distribution?
+HMC, Langevin dynamics, Riemann manifold LD/HMC. A natural question is: is there a general recipe for constructing a dynamic that lives in this space? 
+
+Yi Ma: it is possible. 
+$$
+\pi(z) := p(z|D) \propto \exp(-H(z)), \quad z=\{\te,r\}.
+$$
+Define a SDE, with PSD $S$, skew-symmetric $Q$, total energy $H$, such that $\pi(z)$ is invariant. 
+$$dz=-[D+Q]\nb H \,dt + \Ga(z)\,dt + \sqrt{2D}dW(t).$$ %, $\Ga_i(z) = \sumo jd
+
+If you use this SDE, for any $D,Q$, you get a good sampler. HMC, LD lie in this space. Any valid sampler has a $D$ and $Q$ in our framework.
+You capture the space of all valid samplers.
+%not deterministic.
+
+For a practical algorithm, consider $\ep$-discretization. We can correct bias.
+
+There is a gradient computation. For each each step you have to make a pass through the entire dataset.
+
+To scale grad-MCMC, replace true gradient with stochastic gradient.
+$$
+\nb \wt H(z) = -\fc{N}{n} \sum_{j\in S} \nb \ln p(x_j|z) - \nb \ln p(z).
+$$
+For minibatches sampled uniformly at random from data,  $\E[\nb \wt H(z)] = \nb H(z)$. We assume $\nb \wt H(z) = \nb H(z) + [N(0,V(\te)),0]^T$.
+
+Does this work? There's hope that it would.
+
+Welling and Teh proposed SGLD. SGD with momentum gives significantly faster convergence. What happens to momentum-based SGLD?
+
+Random wind blows the puck. Flighty puck: this changes the distribution. Play on gravel street: add friction.
+\begin{align}
+d\te &= M^{-1}r\,dt\\
+dr &= \nb U(\te) \,dt - \rc2 \ep V(\te)M^{-1}r\,dt + N(0,\ep V(\te)dt). 
+\end{align}•
+This is SGHMC which has SGLD, SGD as special cases.
+
+Need step size going to 0 to get bias to 0. We allow for small bias and use finite $\ep$. 
+
+%you don't need to know the variance.
+
+But for more complicated dynamics what's the right correction?
+Go back to general recipe
+$$
+z_{t+1}=z_t-\ep_t[(D+Q)\nb H + \Ga] + N(0,2\ep_t D(z_t)).
+$$
+Modified: replace $\nb H$ by estimate and $2\ep_t D(z_t)$ by $2D(z_t-\ep \wh B_t)$.
+
+SGRiemannHMC.  Naive approach has wrong stationary distribution. 
+Take $D,Q$ of SGHMC and make state dependent.
+%$$
+%D(\te, r) 
+%$$
+Apply to online LDA. There's improved performance on the the Riemann version (it helps in exploring). Top performer is SGRHMC?
+
+%we don't have rate results. 
+%2 hills.
+
+%Comparison with 
+Divide and conquer parallel MCMC approaches. Divide data on different machines, run MCMC, form subposteriors and merge. 
+Examples:
+\begin{itemize}
+\item
+consensus Monte Carlo
+\item
+Kernel density estimator per subposterior.
+\end{itemize}
+
+One target distribution is multivariate $t$.
+Momentum helps explore tails.
+
+%For mulitmodal.
+KDE scales poorly with dimensionality; other methods are robust to dimensionality.
+
+Minibatch methods meet dependent data: In time series, we have dependent data. All stochastic gradient methods assume you have independent observations to form minibatches. 
+Consider a HMM with global parameter $\te$ (transition probabilities, observation parameters). Batch learning for HMMs: use current $\te$ to form local state beliefs. Propagate information forwards and them backgrounds. Combine to form smooth local state beliefs. Use to update belief about global parameters.
+
+Cost is $O(K^2T)$ per global update. 
+This is inefficient for long time series.
+
+One challenge is sequencing human chromatin segmentation. Here $T=250$ million.
+
+Can we use minibatch learning for HMMs?
+
+Look at subsequence, do local forward and backward pass. Use local state beliefs to update global parameters. This issue is that information is getting blocked: we're not properly propagating information.
+
+Do we expect $x_t$ to influence $x_{t+1000000}$? There's memory decay in this process. In most applications, probably not. 
+
+Buffering: do forward and backward on a larger subchain. 
+In practice, you only need limited buffer. Complexity is $O(K^2L_{buffer})$ per iterations. Similar idea as splash BP (parallelizing BP). Buffer size depends on $\te$.
+
+Minibatch learning for HMMs via stochastic variational inference (SVI-HMM).
+
+Previous analysis used dynamic Bayesian network. Because of complexity of inference, ad to break into chunks. We used a vanilla HMM with Gaussian emissions and apply SVI procedure. We finish in $<1$ hour compared to days.
+
+SG-MCMC is not so straightforward:
+\begin{itemize}
+\item
+assumes continuous parameter space. Typical HMM MCMC algorithms iterate on sampling latent discrete-valued state sequence.
+\item
+Minibatch examples correlated.
+\end{itemize}•
+SVI-HMM learns approximation to posterior, assumes conjugate priors, uses heuristic buffer length estimation. We want to avoid this.
+
+Marginalize latent state sequence. Everything gets connected when you do that, but observations are more correlated locally. 
+$$
+p(y|\te) = 1^T P(y_T)A \cdots P(y_1)A\pi_0.
+$$
+Rewrite in terms of specific subsequence. Group together terms corresponding to $y_{\tau-L:\tau+L}$ as $P(y_{\tau,L})$,
+$$
+q_{\tau+L+1}^T P(y_{\tau, L})\pi_{\tau - L -1}
+$$
+$U_{\te_i} = -(\ln p(y|\te))_{\te_i} - (\ln p(\te))_{\te_i}$. Rewrite $(\ln p(y|\te))_{\te_i}$ as summing over disjoint subsequences. $q,\pi$ calculations involving touching nearly all $T$ observations. Instead take stochastic gradient approach.
+$$
+-\fc TL \fc{q_{\tau+L+1}^TP_{\te_i}(y_{\tau,L})\pi_{\tau - L -1}}{q_{\tau+L+1}^TP(y_{\tau,L})\pi_{\tau - L -1}}
+$$
+How much buffering needed? Estimate Lyapunov exponent of underlying dynamical system.
+
+Enforce minimum gap $\nu$. 
+Appeal to CLT, plug into SG-MCMC theory.
+
+Ion channel analysis, segmentation. Previously studied using Bayesian nonparametrics on 2000-10000 observations (due to complexity). Our dataset uses 209,634 observations and is much faster.
+
+%We gave general recipe for continuous dynamic-based MCMC defined via matrices $D,Q$, talked about SG-MCMC, and looked at
+%Langevin dynamics,
+%minibatch 100. 
+
+Q/A:
+
+Variance of SG noise. Use control variates to reduce. 
+
+Compared to a minibatch of size 100, with 10 minibatches of size 10, in practice you can get more efficiency because you're exploring different parts of what's going on.
+
+Detailed balance sufficient but not necessary. (Ex. irreversible.)

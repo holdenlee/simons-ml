@@ -1,0 +1,141 @@
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Binary neural networks}
+\chead{} 
+\rhead{Alex Anderson} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+
+\begin{document}
+
+(Courbariaux, Hubara 2016)
+
+Two innovations:
+
+\begin{enumerate}
+\item
+Augment with continuous variable (weights). In forward propagation, take continuous weights and binarize to get binary weights.
+\end{enumerate}•
+
+Go through
+\begin{itemize}
+\item
+Matmul or conv+MP
+\item 
+batch norm (at test time, this is identity if there are only -1's and 1's),
+\item
+binarize.
+\end{itemize}
+It's more efficient at test time.
+
+Right before softmax layer, don't binarize.
+
+%stochastic rounding.
+This is a deterministic binarization. It's theoretically nicer to do stochastic binarization, but in practice it isn't better.
+
+Ternary might be better: 0 means no contribution, and can allow sparse connectivity.
+
+Backprop through binarize function is weird. 
+\begin{enumerate}
+\item[2.]
+Traditionally in backprop, take derivative. Here we replace forward function with smooth function on backward pass.
+%some people anneal slope
+%low-pass filter
+%convolve with rectangle
+\end{enumerate}•
+
+Directions are preserved by binarization.  Take a random vector (from normal distribution, which is rotationally invariant) and binarize. Angle between vector and binarization is  about $37^{\circ}$ smaller than between random vectors $90^{\circ}$. $37^{\circ}$ is small in high dimensions.
+
+%parsimonious explanation.
+
+%$\cos^{-1}
+%binary point to corners.
+
+First layer behaves a lot differently---it behaves worse. 
+
+Plot distribution between continuous and binarized weights. There's a systematic deviation towards larger angle.
+
+We convert convolution to matrix multiplication. First convolution takes 3x3 patch of 3 channel image (27 dimensions). Next is 3x3x128.
+
+If you train to completion, you get edge filters, etc. You don't get this is you stop when predictions are good enough.
+
+In lower layers you get uniform distribution of weights.
+In higher layers you get more of Gaussian distribution.
+
+Dot products are preserved. Before I was talking about weight vectors. The network is really interested in dot products. Rather than analyze weight vectors $w$ individually, compare $w\cdot a$.
+$$
+W^b\cdot A - W^c\cdot A.
+$$
+
+For a particular binary weight there's many continuous weights that correspond to it. Which continuous weight do you end up with?
+
+Imagine a network where you use the true gradients from continuous weight. Our modified gradient procedure is approximation of true gradients from continuous weights. 
+
+They are equivalent if $L'(x=f(v)) \approx L'(x=g(v))$. Specializing to our case, $u=w^b, v=w^c, f=bin, g=\id$.
+The condition is:
+$$L'(x=w^b) \approx L'(x=w^c).$$
+Here, $L(x) = M(a\cdot x)$.  We use $a\cdot w^b \approx a\cdot w^c$.
+%Theoretical justification for our procedure for why we look at 
+
+Dot products are approximately preserved. There's more correlation in later layers. %moving more into binary regime?
+All inputs to later layers are binary.
+Is lower correlation due to dimensionality or statistics of data?
+
+
+%what if you just binarize activations?
+%what if duplicate nodes to binarize existing nets?
+
+%Weight activation dot products.
+
+How is classification performance affected? For layers 2 through 6, if you remove binarization there's no affect. When you don't binarize the first layer, performance drops $3\%$.
+
+Note that only when sign of $w\cdot a$ changes do you change the classfication.
+
+Binarization can act as regularization.
+
+If you don't do binarization at the first layer, what happens?
+
+First set of convolutions is doing something different.
+
+Sparse distributed representation: Randomly dropping components of vectors:
+$$
+w \cdot a - drop_p(w)\cdot drop_p(a).
+$$
+
+Future directions:
+cottage industry of taking network and compressing it. But you want to start with a good type of representation.
+\begin{itemize}
+\item
+Something special about first layer (HD mapping)
+\item
+binary RNNs
+\item
+ternary CNNs
+\item
+analysis of other compression schemes
+\end{itemize}•
+
+$4\times 4$ patches, make attractors. Binary patterns. Save mean image patch corresponding to that. Combination of clustering and preserving mean, variance of cluster. 
+
+More states? Need more bits for RNN (forget gate). It can be possible to do a rotation. There can be some way to adjust the architecture. 
+
+Where do you want continuity or binarization? 
+
+Lower-variance estimatory of gradient?
+
+
+\printbibliography
+\end{document}

@@ -1,0 +1,130 @@
+\section{Understanding Generalization in Adaptive Data Analysis (Vitaly Feldman, IBM Almaden)}
+
+I will describe recent work on algorithms for ensuring generalization when random samples are reused to perform multiple analyses adaptively. I will also discuss connections to the problem of understanding generalization of algorithms for stochastic convex optimization and some challenging open problems.
+
+%Models of learning inspired by nature.
+
+(with Dwork, Hardt, Pitassi, Reingold, Roth 14, 15) New results (F, Steinke 17)
+
+We have a learning problem described by distribution $P$ over domain $X$. Input is dataset $S=(x_1,\ldots, x_n)\sim P^n$. Do analysis $A$, get model $f=A(S)$. 
+What is $\EE_{x\sim P}[loss(f,x)]$.
+
+%Get generalization guarantees for $f$.
+In practice data analysis is adaptive, depending on previous analyes of same dataset.
+Starting from the second analysis, the iid assumption no longer holds. %it's dependent on data.
+If we had unlimited data, we could do conservative data splitting, split into $k$ chunks, run each on separate chunk.
+In practice, data is never unlimited; can we do better than this conservative approach?
+
+``Thou shalt not test hypotheses suggested by data.''
+With exception from some limited cases, there are no good solutions. It's often ignored, causing spurious conclusions. ``Quiet scandal of statistics.'' (Leo Breiman, 1992)
+
+ML then was young. Split into training and testing. Training used to run learning algorithm, testing used to measure expected loss. If test set used only once, test error of $f$ is $\approx \E_{x\sim P}[loss(f,x)]$. But test set was used multiple times.
+
+Since then the area has grown. Split 3-ways, training, validation, and testing.
+This mitigates overfitting to the test-set but is still unsatisfying. It doesn't solve all the problem; with a lot of tuning we could overfit to validation set. The problems which are solved are solved by the same conservative data-splitting.
+
+Find a way to mitigate dependencies. Goal: given $S$ compute $v_i$'s close to running $A_i$ on fresh samples.
+Each analysis is a query. Design algorithm for answering adaptively-chosen queries. 
+
+Queries are
+$$
+A_i(S) = \rc n \sum_{x\in S} \phi_i(x), \quad \phi_i:X\to [0,1].
+$$
+Example: $\phi_i=Loss(f,x)$. $|v_i-\E_{x\sim P}[\phi_i(x)]|\le \tau$ w.p. $1-\be$.
+
+Can use to measure correlations, moments, accuracy/loss.
+%kearns 93
+
+Given $k$ non-adaptive query functions $\phi_1,\ldots, \phi_k$ and $n$ iid samples from $P$ estimate $\EE_{x\sim P}[\phi_i(x)]$. Use empirical mean $\E_S[\phi_i]=\rc n \sum_{x\in S}\phi_i(x)$. 
+
+What if we use $\E_S[\phi_i]$? There are sequences of queries where the number of samples required is $n\ge \fc{k}{\tau^2}$, the kind that would often arise in boosting, etc. This is not much better than data splitting $n=O\pf{k\ln k}{t^2}$.
+
+There exists an algorithm that can answer $k$ adaptively chosen SQ's with accuracy $\tau$ for 
+$$
+n=\wt O\pf{\sqrt k}{\tau^{2.5}}
+$$
+to estimate within $\tau$.
+Data splitting gives $\wt O\pf{k}{\tau^2}$. 
+
+BNSSSU analyze better to get $n=\wt O\pf{\sqrt k}{\tau^2}$, and generalize to low-sensitivity analyses $|A_i(S)-A_i(S')|\le \rc n$  when $S,S'$ differ in single element.
+
+Analyses rely on differential privacy. If you look at output distribution on adjacent datasets, they will be multiplicative close except $\de$, $\Pj_M[M(S)\in Z] \le e^\ep \Pj_{M}[M(S')\in Z]+\de$.
+
+Differential privacy implies generalization.
+
+Differential privacy is stability. It implies strongly uniform replace-one stability and generalization in expectation.
+
+DP composes adaptively: composition of $k$ $\ep$-DP algorithms: for every $\de>0$, is $(\ep\sqrt{k\ln \prc{\de}}, \de)$-DP. 
+
+Take any DP algorithm, it will work in this adaptive setting. Answering low-sensitivity queries ($\max_{S,S'}|A(S)-A(S')|\le \rc n$) is the most basic algorithm in DP. Answer query $A$ with $A(S)+\ze$, ex. $\ze\sim N(0,\tau)$. 
+
+Can we go beyond low-sensitivity queries? %It is maximum difference betwee
+Error scales with worst-case sensitivity, $\De \sqrt n k^{\rc 4}$ where $\De$ is worst-case sensitivity, $\max_{A,S,S'} A(S)-A(S')$.
+
+We show there exists an algorithm that for any adaptively chosen sequence $A_1,\ldots, A_k:X^t\to \R$ given $n=\wt O(\sqrt k t)$ iid samples from $P$ outputs $v_1,\ldots, v_k$ such that whp for all $i$,
+$$
+|\E_{S\sim P^t}[A_i(S)] - v_i|\le 2\si_i
+$$
+where $\si_i=\sqrt{\Var_{S\sim P^t} [A_i(S)]}$. 
+
+Get error that scales with $\fc{\Var_{S\sim P^t} [A_i(S)]}{\sqrt n}k^{\rc 4}$.
+
+Stable median algorithm: split into chunks $m$ of size $t$, $n=tm$. Find an approximate median with DP relative to $U$, value greater than bottom $\rc 3$ and smaller than top $\rc 3$ in $U$.
+
+Use a simpler algorithm based on exponential mechanism: output $v\in T$ with probability $\propto e^{-\ep \ab{|\set{u\le u}{u\in Y}| - \fc m2}}$. Uses $O\pf{\ln r}{\ep}$. Get stability and confidence amplification for price of one log factor.
+
+Key result: differential privacy approximately preserves quantiles. 
+
+Let $M$ be DP algorithm that on input $U\in Y^m$ outputs $\phi:Y\to \R$, $v\in \R$. Then whp over $U\sim D^m$, $(\phi,v)=M(U)$, 
+$$
+\Pj_{y\sim D}[v\le \phi(y)] \approx \Pj_{y\im U}[v\le \phi(y)].
+$$
+If $v$ is within $\pa{\rc 3, \fc 23}$ empirical quantiles, then $v$ within $\pa{\rc 4, \fc 34}$ quantiles, mean $\pm 2\si$. 
+If $\phi$ is well-concentrated on $D$ then easy to prove high-probability bounds.
+
+Limitations: 
+%\begin{itemize}
+%\item
+(Hardt, Ullman 14, Steinke, Ullman 15). Any algorithm for answering $k$ adaptively chosen SQ's with accuracy $\tau$ requires $n=\Om(\sqrt k/\tau)$ samples. (In high dimension or under crypto assumptions)
+%\item
+
+Verification of responses to queries: $n=O(\sqrt c \ln k)$ where $c$ is number of queries that failed verification. Get data splitting if overfitting, reusable holdout, maintain public leaderboard in competition.
+%\end{itemize}
+
+Open problems:
+\begin{itemize}
+\item
+Queries depend only on previous answers: Does there exist a SQ analyst whose queries require more than $O(\ln k)$ samples to answer withing 0.1 accuracy/confidence?
+\item
+Fixed ``natural'' analyst/learning algorithm. When does adaptivity require more samples?
+
+Ex. gradient descent for stochastic convex optimization.
+\end{itemize}
+
+Let $K=B_2^d(1)=\set{x}{\ve{x}_2\le 1}$. Let $F=\set{f\text{ convex}}{\forall x\in K\ve{\nb f(x)}_2\le 1}$ class of convex 1-Lipschitz functions. 
+
+We don't know how many samples we need for this problem to know that the solution generalizes. Sample machinery of uniform convergence gives that $O\pf{d}{\ep^2}$ examples suffices and is necessary (F16).
+But SGD solves using $O\prc{\ep^2}$ samples. 
+
+Empirical gradient is $\nb f_S(x_t) = \rc n\sum \nb f_i(x_t)$. On fresh samples, $\ve{\nb f_S(x_t)-\nb f_P(x_t)}_2\le \rc{\sqrt n}$.
+%step 2 depends on samples
+
+Overall, get $\fc{d}{\ep^2}$ statistical queries with accuracy $\ep$ in $\rc{\ep^2}$ adaptive rounds.
+How many samples do you need to answer these adaptive queries? Sample splitting gives $O\pf{\ln d}{\ep^4}$, DP gives $\wt O\pf{\sqrt d}{\ep^3}$, both incomparable and incomparable to uniform convergence bounds.
+
+(Q: Address conjecture that SGD is form of regularizer? The issue here is reuse.)
+
+Uniform convergence is not needed?
+
+Further directions:
+
+\begin{itemize}
+\item
+Going beyond tools from DP: other notions of stability for outcomes, max/mutual information.
+\item
+Generalization beyond uniform convergence. 
+\item
+Using in practice.
+\item
+Are some types of adaptivity more benign than others? %amount of dependence.  No general way to do it.
+\end{itemize}•

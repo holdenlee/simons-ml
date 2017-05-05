@@ -1,0 +1,196 @@
+\section{On Gradient-Based Optimization: Accelerated, Distributed, Asynchronous and Stochastic (Michael Jordan, UC Berkeley)}
+
+Many new theoretical challenges have arisen in the area of gradient-based optimization for large-scale statistical data analysis, driven by the needs of applications and the opportunities provided by new hardware and software platforms. I discuss several recent results in this area, including: (1) a new framework for understanding Nesterov acceleration, obtained by taking a continuous-time, Lagrangian/Hamiltonian perspective, (2) a general theory of asynchronous optimization in multi-processor systems, (3) a computationally-efficient approach to variance reduction, and (4) a primal-dual methodology for gradient-based optimization that targets communication bottlenecks in distributed systems.
+
+\footnote{I went to China and gave this talk to 3000 people. At the end, ``What do you think about deep learning?'' It's important to be empirical. In my career I want to turn over something more mathematical to the next generation. Now the field is very empirical again. For the young people in the room: there's a whole world of theory.}
+
+There's a lot of theoretical challenges in modern optimization and large-scale data analysis: a need to exploit parallelism, stochasticity, tolerating asynchrony. 
+
+Our group is working on optimization.
+
+Look for lower bounds in lower bounds and statistics---there's not that many.  Optimization has many oracle lower bounds. 
+
+Outline: 
+\begin{itemize}
+\item
+Continuous time: Variational, Hamiltonian and symplectic perspectives on Nesterov acceleration.
+Almost all our theory work has been done in discrete time. A lot of phenomenon you don't see in discrete time.
+\item
+Avoiding saddle points, efficiently.
+\item
+Stochastically-controlled stochastic gradient
+\item
+Ray, a next-generation platform for ML workloads. Stat/systems is a good collaboration.
+\end{itemize}•
+
+\subsection{Variational, Hamiltonian and Symplectic perspectives on acceleration}
+
+Talk about Nesterov acceleration in a different way. Setting: unconstrained convex optimization $\min_{x\in \R^d}f(x)$. Classical vs. gradient descent get convergence rate $O\prc k, O\prc{k^2}$.
+\begin{align}
+\text{Classical: }x_{k+1}&=x_k - \be \nb f(x_k)\\
+\text{Accelerated: }y_{k+1} &=x_k-\be \nb f(x_k)\\
+x_{k+1} &=(1-\la_k) y_{k+1} + \la_ky_k.
+\end{align}
+The lower bound if you only look at a constrained gradient oracle is $O\prc{k^2}$, which surpised people who though classical gradient descent was optimal.
+
+This looks like an implicit step, the leapfrog integrator. Most people in optimization don't think about integration very much. If you're a Bayesian frequentist, it's nice to know these can be linked. (Bayesians care about integration more.)
+
+Two classes of methods:
+\begin{enumerate}
+\item
+Gradient: 
+Gradient descent, mirror descent, cubic regularizaed Newton's method
+\item
+Accelerated: 
+Nesterov's, accelerated mirror descent, accelerated cubic-regularized Newton's method. 
+(You might go back up: Take the curves pretty quick, a little sloshing is needed.)
+\end{enumerate}•
+Look at the algebra, learn Nesterov's style.
+
+Gradient descent is discretization of gradient flow
+$$
+\dot X_t = -\nb f(X_t).
+$$
+Su, Boyd, Candes 2014: Continuous time limit of accelerated gradient descent is a second-order ODE
+$$
+\ddot X_t + \fc 3t + \nb f(X_t)=0.
+$$
+Study from point of view of applied ODE research. Bessel equations, etc. Why this differential equation? 
+
+What's the best, optimal way to optimize? If you write down a way to optimize in continuous/discrete time, it has to be for some reason.
+
+Our work: general variational approach to acceleration, a systematic discretization methodology. How do you discretize differential questions in physics? You have to discretize the right way to do real science.
+
+What does variational mean? Turn into optimization problem. Ex. eigenvalue. Write down a Rayleigh coefficient and optimize. 
+
+Define the Bregman Lagrangian.
+$$
+\cal L (x, \wh x, t) = e^{\ga_t+\al_t}(D_h(x+e^{-\al_t} \wh x, t) - e^{\be_t}f(x)).
+$$
+Is there a generative principle for differential equations? Yes, write something that I integrate, optimize that integral. It turned into the main tool for physics.
+
+Lagrangian is function of paths. First term is Bregman divergence. 
+
+Here
+$$
+D_h(y,x)=h(y)-h(x) - \an{\nb h(x),y-x}
+$$
+is Bregman divergence.
+Bregman divergence takes where you are plus a little velocity, $D_h(x+e^{-\al_t} \wh x, t) $, like an energy term. $h$ is the convex distance-generating function.
+In Euclidean setitng, simplifies to damped Lagrangian, $$e^{\ga_t-\al_t}\pa{\rc 2\ve{\dot x}^2 - e^{\be_t}f(x)}.$$ Ideal scaling conditions reduce to 1 degree of freedom.
+
+Variational problem over curves 
+$$
+\min_X\int \cal L(X_t,\dot X_t, t)dt.
+$$
+Optimal curve is characterized by Euler-Lagrange equation,
+$$
+\ddd t\ba{\pd{\cal L}{\dot x} (X_t,\dot X_t, t)} = \pd{\cal L}{x}(X_t,\dot X_t,t).
+$$
+Master ODE:
+$$
+\ddot X_t + (e^{\al_t}+ \dot \al_t)\dot X_t + e^{2\al_t + \be_t}[\nb^2 h(X_t+e^{-\al_t \dot X_t}]^{-1}\nb f(X_t)=0
+$$
+%
+You choose $h$ fitted to the problem, I can choose a different geometry. You can write a whole bunch of $h$'s and try them out.
+
+\begin{thm}
+Under ideal scaling, the EL equation has convergence $f(X_t) - f(x^*)\le O(e^{-\be_t})$. 
+\end{thm}
+Proof: exhibit Lyapunov function for dynamics. 
+
+This suggests exponentially fast algorithms, what gives?
+Let's explore what happens when we set $\be_t=p\ln t$ to get $O\prc{t^\rh}$ convergence rate.
+\begin{align}
+\al_t &=\ln p - \ln t\\
+\be_t &=p\ln t + \ln C\\
+\ga_t&=p\ln t\\
+\ddot X_t + \fc{p+1}t \dot X_t + Cp^2t^{p-2}[\nb^2 h(X_t+\fc tp \dot X_t)]^{-1}\nb f(X_t)&=0
+\end{align}
+In continuous time, the notion of rate is not deep, I changed the clock; I can go as fast as I want. The fact that it's not a mystery in continuous time is what helps me. When you go into discrete time, something will break.
+
+Now look at differential equations for different values of $p$ to see what math structure emerges. $p=2$ is accelerated gradient descent. $p=3$ is accelerated cubic-regularized Newton's method. Covariance: As $p$ changes, the path is not changing, the rate of moving changes. 
+The same is not true of gradient flow. There's something important about the path; the rate you move along it is not so important. Acceleration is changing the speed.
+
+How do we discretize to get back to discrete time, stay stable and get the fast rate?
+%runge-katta, euler
+Write EL as system of first-order equations. %, $Z_t=X_t+\fc tp
+Naive discretization is not stable!
+Runge-Katta, stiff differential equation methods also don't work.
+
+It became a conundrum, how do we discretize? We took Nesterov's equation and reverse-engineered the discretization. It's stable and achieves the fast rate. But the better way to think about this is to remember symplectic integration. In practice people do symplectic integration. Ex. I know energy is conserved; I'm on a cycle. If I try to discretize, it won't stay on the cycle. Is there a discretization that exactly conserves energy momentum? The physics would still be there.
+
+%If you go to a chemist and ask how to 
+
+Jacobi and Hamilton figured this out, conserve energy and momentum. Go to phase space. Look at Fenchel conjugate of velocity, momentum. Look at local Jacobian, preserving volume. Preserve exterior forms. Local stiffness property. This is a factor of 10 faster and  more stable. %Beautiful Springer books.
+Hamilton-Jacobi-Bellman equations, at root of RL.
+
+Nesterov blends gradient and momentum.
+
+\begin{align}
+x_{k+1} &= \fc p{k+p} z_k + \fc{k}{k+p}y_k\\
+z_k &= \amin_{z}\ba{Cpk^{(p-1)} \an{\nb f(y_k), z}+\rc \ep D_h(z,z_{k-1})}.
+\end{align}•
+%If $\an{\nb f(y_k), x_k-y_k}
+Interlace step from Euler discretization from promixal step $y_k = \amin_y \ba{f_{p-1} (y;x_k) + \rc{2\ep p}{\ve{y-x_k}^p}} \leftarrow O\prc{\ep k^{p-1}}$.
+
+If $\nb^{p-2} f$ is $\rc\ep$ Lipschitz and $h$ is uniformly convex of order $p$, then $f(y_k) - f(x^*) \le O\prc{\ep k^p}$. To get $O\prc{T^3}$, we use $f_{p-1}$ which is 2nd order Taylor approximation to $f$. Oracle gives access to higher-order derivatives (Hessian).
+
+Underlying Nesterov in continuous time is polynomial Euler-Lagrange equation.
+
+Far from the optimum, gradient flow is too slow. Use momentum. But once you get into neighborhood, momentum hurts you.
+
+Can a mixture of flows do better?
+Just adding together, get an algorithm with same worst-case rate but in practice goes faster.
+
+Move from a Lagragian to Hamiltonian formulation, to get more robust solvers. Do Fenchel/Legendre transform,
+\begin{align}
+L(q,v,t) &\to H(q,p,t,\cal E)\\
+\pa{\dd qt, \dd vt} &\to \pa{\dd q\tau, \dd p\tau, \dd t\tau, \dd{\cal E}{\tau}}.
+\end{align}
+%Bregman divergence plus $f$.
+Geometric functional analysis, Harer et al. Throw it into machinery and get faster algorithms. 
+
+Symplectic-mix captured spirit of Nesterov: fast progress early on, and still dive into optimum later.
+I thought Nesterov is just symplectic integration, but it's  convex combination which is not dynamics, some rotation. We're still trying to find a principled way of thinking about it.
+
+Nonconvex, stochastic optimization? Get SDEs. Is there an optimal way to diffuse, some Fokker-Planck equation? Hybrid/Hamiltonian Monte Carlo: integrate with symplectic integrator like leapfrog integrator. It's the best algorithm for Monte Carlo. 
+Integration is behind optimization and Bayesian inference.
+
+%I see how gradient descent combines with integration. 
+%tie knowing what answer should be.
+\subsection{Avoiding saddlepoints efficiently}
+
+Efficient means good dimension dependence.
+
+Originally when I was running neural nets, loss comes down fast and plateaus. Other problems: tensor completion: there's a ring of saddle points around the optimum. Number of iterations for gradient descent is dimension-free. 
+
+Analyze perturbed gradient descent (PGD): For $t=0,1,\ldots,$, do
+\begin{enumerate}
+\item
+If perturbation condition holds then $x_{t}\lar x_t + \xi_t$, $\xi_t\sim B_0(r)$.
+\item
+Gradient step.
+\end{enumerate}•
+To analyze, add more conditions: $\rh$-Hessian Lipschitz.
+For $l$-gradient Lipschitz  and $\rh$-Hessian Lipschitz, 
+PGD converges to $\ep$-second-order stationary point. 
+Dimension dependence is polylog, $O(\ln^4(d)/\ep^2)$.
+
+There is a little differential geometry in the analysis: look at stuck region around saddle point. If you are in the stuck region, a perturbation will get you out; if you are out, flow will take you out.
+
+%folk sgd
+When gradient is small, add noise and wait a while before adding it again.
+
+
+\subsection{Stochastically-controlled stochastic gradient}
+
+SVRG has favoriable rates in terms of $\ep$ but has a $n$ factor. Compute full gradient, use it as control to get variance down. Computational cost is too high because you have to take full gradient.
+%Do gradient descent, 
+What if you take a small subset to use as reference gradient?
+
+Stochastically controlled SG: General convex $\rc{\ep^2}\wedge \fc n\ep$, strongly convex $\pa{\rc \ep \wedge n + \ka} \ln \prc{\ep}$. 
+
+Algorithm: randomly pick $I$ with size $B$, generate $N\sim Geo(\ga)$, for $k=1:N$ do SGD with reference gradient.
+
+SCSG fixes $B_j=B(\ep)$, other  version increases it.

@@ -1,0 +1,135 @@
+\section{Robust Estimation of Mean and Covariance (Anup Rao, Georgia Institute of Technology)}
+
+
+We consider the fundamental statistical problem of robustly estimating the mean and covariance of a distribution from i.i.d. samples in n-dimensional space, i.e. in the presence of arbitrary (malicious) noise, with no assumption on the noise. Classical solutions (Tukey point, geometric median) are either intractable to compute efficiently or produce estimates whose error scales as a power of the dimension. In this talk, we present efficient and practical algorithms to compute estimates for the mean, covariance and operator norm of the covariance matrix, for a wide class of distributions. We show that the estimate of the algorithm is higher than the information-theoretic lower bound by a factor of at most the square-root of the logarithm of the dimension. This gives polynomial-time solutions to some basic questions studied in robust statistics. One of the applications is agnostic SVD.
+
+Suppose we are given samples from an unknown distribution in come class---ex. 1-D Gaussian. We can accurately estimate mean and variance. 
+Fisher: MLE are optimal in a certain sense. Tukey: what about errors in the model? This gave rise to robust statistics.
+
+How do estimators behave in a neighborhood around the model? 
+
+Suppose we have gaussian samples with noise. We need to constrain noise. Let an adversary add $\eta$ fraction of points. (Huber)
+\begin{enumerate}
+\item
+iid samples $x_1,\ldots, x_{(1-\eta)m}\sim D$.
+\item
+adversary adds $\eta m$ points after seeing the samples.
+\end{enumerate}•
+We want to minimize $\ve{\wh \mu-\mu}_2$ and $\ve{\wh \Si - \Si}_2$. 
+
+PCA: $2k$ points can completely destroy top $k$ components.
+
+Does empirical mean and variance work? No. A single corrupted sample can arbitrarily corrupt the estimates. 
+But the median and median absolute deviation do work. This is optimal.
+$$
+MAD = \text{median}[|X_i -\text{ median}(X)|].
+$$
+Several approaches have been suggested in high dimensions, ex. generalization of median. 
+%Either error has poly factor in dimension $n$, or estimator is NP-hard /exponential-time to compute in general.
+All known estimators are hard to compute or lose poly factors in the dimension.
+\begin{itemize}
+\item
+Tukey median: error guarantee, but NP-hard
+\item
+Geometric median: bad error guarantee, good running time.
+\end{itemize}
+
+Results (FOCS 2016). We need assumptions on the distribution, bounded 4th moments:
+$$
+\EE_D((x-\mu)^Tv)^4 \le C_4 (\EE_D ((x-\mu)^Tv)^2)^2.
+$$
+(Ex. subgaussian, subexponential).
+\begin{thm}
+\begin{enumerate}
+\item
+(Known covariance)
+With 
+$m=O\pf{(n\ln n + n\ln \prc{\eta} )\ln n}{\eta^2}$ samples
+, can find $\ve{\wh \mu - \mu}_2 = O(\eta^{\fc 34}\si \sqrt{\ln n})$, lower bound $\Om(\eta^{\fc 34}\si)$. 
+\item
+(Unknown covariance)
+With 
+$m=O\pf{(n\ln n + n\ln \prc{\eta} )\ln n}{\eta^{4/3}}$ samples
+, can find $\ve{\wh \mu - \mu}_2 = O(\eta^{\fc 12}\si \sqrt{\ln n})$.
+\end{enumerate}•
+\end{thm}
+For gaussian we can improve $\fc 34$ to 1.
+
+For covariance estimation, apply mean estimation to $xx^T$.  Since we're applying to 2nd order, we need bounded 8th moments and 8-wise independence. 
+
+For the rest of the talk, I assume gaussian with known covariance. 
+For bounded 4th moments, even median doesn't work. Fix: find the smallest interval that contains $1-\eta$ fraction of the points and compute sample mean. This is the main switch one has to make to make this work for general  (nongaussian) distributions.
+
+Multiple extensions of median: coordinate-wise median, geometric median $\amin_y\sum_i \ve{x_i-y}_2$. Both have $\ve{\wh \mu - \mu} = \Om(\eta \si\sqrt n)$ error in worst case. (Ex. for coordinate-wise, sum errors from coordinates.)
+
+Bad case for medians is to have $\eta$ fraction concentrated far away. 
+
+Let's consider easy case in high-dimensions. Suppose we are given mean shift direction, the direction from true mean to sample mean. Then this is an easy problem; reduce to 1-D problem. Project all points onto $n-1$ dimension perpendicular space. There is no mean shift in this space;  compute sample mean as estimator. Remaining is 1-D problem. 
+
+It's sufficient to know direction of mean shift vector. We can't take the top principal component.
+
+Algorithm alternates between two steps.
+\begin{enumerate}
+\item
+Weak outlier-removal step
+\begin{enumerate}
+\item
+If dimension is 1, return median.
+\item
+Remove all points in $S$ at distance $>C\si \sqrt n$ from coordinatewise median. 
+\end{enumerate}•
+\item
+Project to top $\fc n2$ principal components and recurse.
+\begin{enumerate}
+\item
+Identify good subspace (high-dimensional subspace where coincide with true mean). Let $V$ be span of top $n/2$ eigenvectors of covar matrix, $W$ span of bottom. \item
+Recursively compute mean of $\Proj_V(S)$.
+\item
+ Append mean of $W$, $mean(\Proj_W(S))$. 
+\end{enumerate}•
+\end{enumerate}•
+Projection of mean shift vector onto bottom $n/2$ space is small.
+
+Covariance matrix of $S=\Si_S$ is
+$$
+\Si_S = (1-\eta)\si^2 I + \ub{\eta \Si_N + \fc{1-\eta}{\eta} \de_{\text{shift}}\de_{\text{shift}}^T}A.
+$$
+Outlier removal ensures noise can increase $n/2$'th eigenvalue by small amount. 
+From outlier removal, $\Tr(A)=O(\eta\si^2n)$.
+Weyl's inequality from robust statistics says
+$$
+\la_{\fc n2}(\Si_S) \le (1-\eta)\si^2 + \la_{n/2}(A)
+\le (1+O(\eta))\si^2.
+$$
+%If you have a set of points all within $L$, error $Ln$
+$\Tr(\Si_N) = O(\si^2n)$, so $\Tr(\eta\Si_N) = O(\eta\si^2n)$. 
+
+Second step: once we have control of $n/2$th eigenvalue, we know projection onto bottom $n/2$ eigenspace is small. Rayleigh quotient is small because we have upper bound on eigenvalue. 
+$$
+\ve{P_W\de_{\text{shift}}}^2 = O(\eta^2\si^2).
+$$
+Error independent of dimension. Get $\sqrt{\ln n}$ because we recurse $\ln n$ times. 
+$$
+\ve{\wh\mu-\mu}^2 = O(\eta^2\si^2\ln n)
+$$
+It's a simple algorithm to code. 
+
+%How does it do in practice?
+For covariance estimation, we need to compute huge matrices $d^2$, and covariances of those $d^2\times d^2$. It would be very good to get rid of this!
+
+There is a case where we can get rid of this. If the problem were to estimate the 2-norm of the covariance, we don't need to construct the $d^2\times d^2$ matrix.  Compute sample covar matrix and top principal component. We can estimate variance in this direction. If they are close, we are done. If they differ by lot, threshold by 2 hyperplanes and throw out outliers. This converges in $O(n)$ iterations. This constructs only $d\times d$ covariance matrices. %though we are estimation 
+
+Summary: 
+Algorithm for robust estimation of mean and covariance, works for wide class of distributions, needs only linear number of samples for mean estimation, simple and practical.
+
+Open:
+\begin{itemize}
+\item
+algorithm matching lower bounds for general distribution?
+\item
+better time complexity for covariance estimation in operator norm?
+\item
+robust estimation in other problems, like Gaussian mixture models?
+\end{itemize}•
+
+Algorithm also computes the Tukey median approximately.

@@ -1,0 +1,59 @@
+%PDF at
+%
+
+\def\filepath{C:/Users/oldhe/Dropbox/Math/templates}
+%https://github.com/holdenlee/templates
+
+\input{\filepath/packages_article.tex}
+\input{\filepath/theorems_with_boxes.tex}
+\input{\filepath/macros.tex}
+\input{\filepath/formatting.tex}
+
+\pagestyle{fancy}
+\lhead{Computational Challenges in Machine Learning}
+\chead{} 
+\rhead{Simons Institute, Spring 2017} 
+\lfoot{} 
+\cfoot{\thepage} 
+\rfoot{} 
+\renewcommand{\headrulewidth}{.3pt} 
+\setlength\voffset{0in}
+\setlength\textheight{648pt}
+
+\addbibresource{bib.bib}
+
+\begin{document}
+\tableofcontents
+
+Workshop website (with videos): \url{https://simons.berkeley.edu/workshops/schedule/3751}
+
+%Day 1 Probabilistic (inference) methods
+\input{var_inf.tex}
+\input{deep_resnet.tex}
+\input{composing.tex}
+\input{scaling.tex}
+\input{matrices.tex}
+\input{sg_mcmc.tex}
+%Day 2 Optimization
+\input{gradient.tex}
+\input{polytope.tex}
+\input{adaptive.tex}
+\input{dynamical.tex}
+\input{your_net.tex}
+%Day 3 Applications
+\input{healthcare.tex}
+\input{comb.tex}
+\input{hier_cluster.tex}
+\input{complexity.tex}
+%Day 4  High dimensions
+\input{embedding.tex}
+\input{robust.tex}
+\input{robust2.tex}
+\input{distributed.tex}
+\input{polytope_learning.tex}
+\input{panel.tex}
+%Day 5 Other
+\input{experiments.tex}
+%INSERT_HERE
+
+\end{document}

@@ -1,0 +1,149 @@
+\section{Computational Challenges and the Future of ML Panel}
+
+Panelists: Maryam Fazel (University of Washington), Yoav Freund (UC San Diego), Michael Jordan (UC Berkeley), Richard Karp (UC Berkeley), and Marina Meila (University of Washington)
+
+What are one or two important computational challenges? What might the future bring?
+
+YF: Communication is at least as important as computation. When we think about distributed algorithms---the only way to work with very large datsets---what is the least amount we can communicate and still achieve our task. Usually we think of it as something in the background, but if you think about the barrier model (work in parallel, send back to master), communication scales with number of workers, if you have too many workers, time to communicate documents. I know this from experiments on my Spark cluster. Average load on CPU's is 5\%. Something else is blocking it.
+
+MF: Background in optimization. From the POV of optimization, we understand convex very well, but people now talk about nonconvex. Saying nonconvex is not saying anything. We need to say how we're moving away from convexity. On certain problems with strict assumptions we can say a lot, ex. local optima are global, can reach from certain starting point. What if I don't have those assumptions? You might have lots of local minima, but they may be good. You may not want global minima if it is very deep. This also relates to what you do with model afterwards (generalization).
+
+Setting the step size is not obvious anymore. Stopping criteria is not obvious.
+
+What classes of nonconvex optimization problems can we say something specific?
+
+RK: A few impressions of an outsider to the area. The usual model of supervised learning is general and simple. It's the problem of inferring a function from values at sample points. In complete form you specify the training data, its representation, space of possible hypothesis (possibly with a probability distribution), action based on function value, optimization algorithm. 
+
+Deep learning seems to have decisive advantages over regression, SVM, Bayesian  networks. There have been successes in translation, self-driving cars, etc. Some places of concern: very large datasets are needed. Not clear what function is being inferred---different experts may disagree on training data. Choosing most probable function in a deep net is nonconvex. Another issue is that of comprehensibility: a deep net with huge number of neurons, layers, when it's succeeded, what has it learned, how can you get your mind around what it's doing? If you can't compactly certify, you're weak against adversarial attacks. Safety: If you don't have specification of what it's doing, how do you know it won't go wild and mess up your nuclear reactor, etc.? Rigidity: people learn concepts over time with many environments and examples. Here the format is frozen. It's a static model without a ot of autonomy or plasticity. It doesn't correspond to how humans or biological systems learn. Call from proposals from DARPA: next gen ML tech that can learn from new situations, learning on the fly. We need flexibility and adaptability.
+
+MM: Computational challenges seem to always come with statistical challenges. If the data is so big and divided on so many computers, can we believe that it's iid? 
+
+This is not just a curse but a blessing: accumulating evidence that easy data implies easy computation and vice versa. Data fits algorithm (ex. separating hyperplane). When data fits task, learning rates are fast. 
+It doesn't seem to be a time to think of easy data when there is hard data as well.
+
+There are 2 tasks: prediction and explanation. In prediction, a value is satisfactory. I see that prediction from certain POV is solved but explanation is much further behind. A related question you might ask: why do we need explanation? 
+
+A big challenge from statistics and computational POV is validation. 
+
+Where is ML most successful, pervasive, where is it not?  YES: speech recognition, image captioning, self-driving cars, translation, playing chess. 
+Results easy to validate.  (Middle: finance, health)
+Neuroscience, biology, chemistry, astronomy, physics: Hard to validate. ML generates hypothesis fast, but when it's expensive to give labeled data, then ML is not doing such a good job. How to both generate hypotheses and validate them. Do the human job of testing hypotheses and explanations. I think of this as computational challenge because it is harder to apply models, algorithms for smaller data. 
+
+We can't expect classic model selection and validation to work. We have to find methods that tell whether predictions are trustworthy.
+
+MJ: I don't think it's so much a computation issue. I think deep neural nets are not hard to optimize. Folk wisdom: from every point there's a downhill path to optimal. I think it's all statistics. We've borrowed math of statistics, but we still don't think like statisticians. There's lots of problems with data, like how is data sampled?  You may find out too late. Error is debt, chaos. We're not ready for the future world, with confidence interval on our predictions; we have black boxes. 
+
+In the future, doctor will take your genome, put through ML systems, using all previous data. ``Neural netoutputs 0.62, greater than 0.6. You need a liver operation.'' What's the confidence interval? Build a system that quantifies uncertainty. What about when all decisions are related? 
+
+This is inference and decision-making. %You have to look at dat. 
+You have to look at where did data come from in the world? Don't just borrow the techniques. 
+Also differentiate between correlation and causation. In real life, a policy planner doesn't know what variables to change. You have to reason and do causal inference. Control requires causal inference. Worry about stability in  time-critical, death-critical systems. We're way unprepared. How to talk about the work without all the hype. How to not take on projects not like AlphaGo which causes a storm, people talking about robots taking over the world which have nothing to do with ML. Take on projects having to do with water, health, times, don't make it into NYT but make world a better place, not glorious wave of computer scientists making superhumans. I don't recognize this. 
+
+MT: What role should theory have in role of empirical ML?
+
+MJ: Most cool problems are theory problems. Communication is a theory problem. How to get causes?  Look at the formal structure, see that you've pieced things apart. 
+
+MT: The empirical wave is not paying attention to theory, they are content running SGD for everything, increasing size of nets, adding band-aids...
+
+YF: A lot of the hype is driven by companies like google. Companies are treating it as a playground. It is not what they sell, what they depend on. They will vary something here and there. A lot of it has to do with expectations. One of acronyms I like least is AI. We have no idea what intelligence is. I like IA: intelligence amplification: the idea that we use computers to enhance our ability to do dredge work for us, at the end it's our decision. It's hard to excite young people about it, but it's a valid thing. Ex.  How to estimate mean with a large fraction of outliers?
+
+ Now everything is AI. People are not changing what they did but are clling it AI.
+ 
+MF:  Justify heuristics in practice Why do they work? What is it about the class of problems, then we can improve heuristics and apply more robustly.
+
+MM: Before we wanted to understand other data sources. NN is new data source. Understand this new process we have created. 
+
+RK: When you start dealing with safety-critical applications, controlling robots, health systems, driving a car you better have firm theoretical guarantees to know that system won't go wild.
+
+LR: Is there need from theory to come up with new definitions? 
+
+MF: In optimization we need to formulate properties better. Properties of functions, problem instances? What do we mean by finding solution---what solutions are of interest?
+
+YF: Advice on coming up with new models: work on applications. This has been my approach: work with people on sciences applications. Some problems are easy, just understand regression. Quickly you get into problems, how do I analyze data so huge, which examples to train on. In many cases you cannot think of ML as independent entitty. You have process in lab involving decision-making, finding micro-crystal in droplets. You want to make decision-making process. But the more important thing: how do we change process going on in lab, many small decisions in lab, to give them benefit. Go back to interactive learning.
+
+RK: Smoothed analysis, might possibly be adapted to validate supervised learning schemes. Even though may have errors, correct almost everywhere. Take any datapoint, perturb slightly, whp will get modified datapoint where solution will be correct. 
+
+Q: Great danger if we use these models and don't understand, like in healthcare, sentencing (racially biased). Putting out these models we don't fully understand, others are using them without understanding. What's our obligations in creating these models to ensure they are used appropriately.
+
+YF: Be very careful about data selection process, labeling process, evaluation process. You and potential users should agree on. When you go forward, use those processes, so statement at the end of the day that it works is justified statistically.
+
+MM: This is a greater research question. Online learning can have something to say about it. How to continue exploring to estimate error while it is in use?
+
+Q: In terms of progress made in field. In other fields Physicists, impact of bomb. Impact of gene editing. This community might be at edge of star-turn. Who has responsibilities of consequences. 
+
+MJ: They could track forward consequences. Admit it's a research problem. Fake news epidemic is shocking and real.  Mark Zuckerberg: it's not our problem. No. We have to think it through. We have to partner with lawyers, sociologists, take responsibility, not just be computer scientists. %, think about how to make world better. 
+Don't say, consequences be damned. 
+
+There's no imminent danger, but let's be clear about uncertainty---we don't get that from people talking about ML. We have young people overexcited already. People think AI is solved and everywhere, and just want to cash in. Take machine translation. That problem's ``nearly solved''. From copying what humans can do, it's not solved but useful, you can build companies of it. But I know I didn't take a trillion sentences and built a neural net. Building a neural net isn't understanding language. We're not doing intelligent things. Translations, dialogue is not rotation. It should be called statistics, but then became ML, AI. It should be IA. 
+
+MM: It's an interesting paradox, large nets trained on Wikipedia, it seems there's a model of large companies using a small number of humans' free work to make profits. Where is this going? 
+
+RK: Biologists set up guidelines, which genetic manipulations are too dangerous to perform. It's hard to establish that in this field because of diversity of applications. When used to control cars, physical systems, etc. it might be necessary to take field to agree on standards of safety. 
+
+JW: No inteligence going on, not the point. Technology could affect society, like how manufacturing affected workers. People rioting. Uber exploiting drivers so they can use them to train self-driving cars, these people who are bedrock of profits  will be redundant, and drivers not developing own skills. %working decades on something redundand
+Confidence intervals in statistics. Suppose you understand that. That doesn't affect social acceptance of algorithm. You can blame your doctor from diagnosing you incorrectly. When you have algorithms makind that decision... Is there any way of formulating this from a math perspective? Beyond ability to discuss mathematically?
+
+YF: I give an example, where you can do that.  Biopsies are huge, 20000 times 60000. A pathologists look at in half minute and decide whether there is cancer, they use heuristics. We can use system to point them in places to look. In a lot of cases. 
+
+In many decisions which have to do with analyzing medical records, people are doing it now as best as they can, computer can do it better, point out the phenomena that human can agree, that's the right phenomena. In an IA approach, humans are in control. You continue to do it, but I make your work more efficient, accurate. There are less alarmist ways to think about this things that can produce useful products for the world.
+
+Facebook is a great thing, but then it also gives bad actors new opportunities to exploit people. It's a complicated decision: should we disallow, regulate? These are not technical questions.
+
+MJ: This needs a big dialogue beyond our room. The speed has changed. In industrial revolution people had 30 years. A lot of jobs are lost really quickly. Truck drivers can go into call centers. In five years dialogue systems are still crappy, but they can replace call centers. I'm not as alarmist in the long run because people have adapted. Massage therapists make a lot of money now, 100 years ago they did not exist. Brand new jobs will be created. Sitting in a piece of metal hurtling on a road is weird for people a long time ago. 
+
+JB: Science fiction is different from social unrest. 
+
+MJ: Be slower, more social, less greedy, I don't know how we'll do that.
+
+SV: This wave of ML successes is exciting. Has it revealed to you anything new about nature of computation?
+
+JB: Computational complexity hasn't delivered something interesting for this field yet: average-case, specialized to certain cases. Optimization has lower-bound oracles which match upper-bound rates. Computation emerged in an era of logic. Poly-exp barrier. We're not in that world, we need new models, average-case doesn't do justice. 
+
+RK: CC has focused on worst-case analysis, which makes it irrelevant, NP-hardness doesn't matter in practical situations. Nothing has replaced worst-case analysis. Average-case models are too simplistic to be useful in applications. There's a challenge to find more optimistic models, not overly trivial. This is open question not just for computational learning theory but combo optimization.
+
+MJ: Nemirovskii-Yudin was good. But now there's more problems. 
+
+DD: The practice of the community has been to come up with regularity conditions.  Deep learning: throw things against the wall and it sticks, even if in difficult complexity class. We can make fewer assumptions about the world, ex. translation invariance. Is there any hope for theory about data itself across different domains? ``Theory of data''? 
+
+MJ: Theory of group actions, equivariant. Put constraints on estimator.
+
+RK: $d$-dimensional Euclidean. What about, ex. language?
+
+MM: Good old Bayes nets. It's hard to do inference.  What progress has been made in other fields?  Look at success in SAT solvers, solve NP-hard problems, and build models based on other fields of computation. 
+
+Q: In what way has ML been excessive? Are deep nets too complex a model? Come up with more reasonable models?
+
+RK: Deep nets used successfully don't have much explanatory power. We have no idea what they're doing, what they're representing, whether they can be simplified without losing effectiveness?
+
+MM: I see it as problem for future to measure how much overparametrization. In stats it's known that to predict well is not to understand the distribution of the model. To predict well you have to overparametrize unless you have sufficiently large sample. Interesting paradox. One cannot explain and predict with the same model.
+
+YF: One way to think is in terms of scaling. Trivial way to learn is nearest neighbors, store all data and it works well. The problem is that the size of the representation  is the size of the data. For neural nets, I'm convinced it learns if the number of parameters you need stops increasing as the amount of data increases. It should not need to increase. It's a hard question to do tractably. 
+Can you find a low-dimensional representation, something that does not increase, size of model does not increase linearly with size of data?
+
+SA: A learned neural net can be sparsified dramatically.
+
+YF: How many nonzero parameters do you need?
+
+SA: You can make it binary.
+
+YF: It's a question about scaling.
+
+SD: Many of us are in academia, we have this common experience, there are hordes of students who just want to learn about deep learning. As responsible scholars we make sure they learn the fundamentals, all the aspects of ML before we arrive at that lecture about backprop. That's good but I can't help feeling in this context, there's other stuff we also need to teach: societal impacts, etc., not part of standard ML class. 
+Any thoughts about what those things should be, what form it should take?
+
+MJ: Causal inference, we don't teach that. For medical domain, that's what it's all about. Does drug have causal effect? You can do nearest-neighbor. It's not a gradient descent. You can't give both treatment and control. If you have a twin... if you do NN you can find a doppelganger, they got treatment, you got control. We can teach that to freshman, and we're not making them excited about that. They want to classify cats in images.  You don't have imagination to think about that other class of problems. Get people oriented into these sci deep unsolved problems. 
+
+Teach AB test. We designed data science class in Berkeley. In industry, on first day, learn to do AB test. Give users 2 versions of website. Most people in ML don't teach that! 
+
+There's the permutation test: aggregate 2 columns, permute randomly, break into 2 new columns. Is original in tail or middle?
+
+Ex. social makeup of juries. 
+
+Not just be in AI subworld. We're in social world, etc.  I wish journals would go back to using ML instead of AI.
+
+MJ: Cultural divide, statistics vs. ML.
+
+JB: You had a great paper on algorithmic weakening...
+%Deep model class, bring in many people... 
+ 
+MJ: CS, statistics was originally 1 field that happened to get broken apart.  Combine the pessimism of statisticians, optimism of computer scientists, blend, and work together. 

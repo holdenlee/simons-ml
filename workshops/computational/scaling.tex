@@ -1,0 +1,132 @@
+\section{Scaling Up Bayesian Inference for Big and Complex Data (David Dunson, Duke University)}
+
+For scientific applications involving large and complex data, it is useful to develop probability models and inference methods but issues arise in terms of computing speed and stability. In such settings accurate uncertainty quantification is critical and common fast approximations often do a poor job of UQ. In this talk, I discuss recent developments in scaling up sampling algorithms to big problems - considering broad classes of approximate and parallelizable MCMC algorithms with corresponding theory guarantees. A particular focus will be on data augmentation approaches. A variety of applications will be provided as motivation.
+
+Usually we focus on optimization, but we care about uncertainty quantification because we're doing scientific inference. We can't do  deep learning and point optimization because uncertainty is everything. A black box for pattern classification, prediction is not enough. We want to learn the structure. For example, data is brain structure in humans and we want to relate it to autism, genes and relation to disease, etc.
+
+Machine has been taken over by deep learning because everyone is focused on industry-type problem where you have huge sample sizes. Deep learning methods  are not  designed for the setting where the data is small and the dimensionality is large. %scientific inference
+
+%A point estimate does not 
+
+Let the likelihood be $L(y|\te)$ where $y$ is data and $\te$ is parameter.
+The posterior is
+$$
+\pi(\te|y) = \fc{\pi(\te) L(y|\te)}{\int \pi(\te)L(y|\te)\,d\te}
+$$
+This is hard to approximate, usually doesn't have closed form. Often we don't know how well they do. They can do well in industry applications, not necessarily in scientific applications.
+There's MCMC. We can bypass calculating the integral, define some sampling that converges to the right distribution, do inferences based on samples.
+%ryan adams for gaussian processes and nonparametrics.
+Some problems arise in big and high-dimensional data,
+\begin{itemize}
+\item
+computational bottleneck. (Calculate matrices, invert matrices, etc.) Get per-iteration slowdowns.
+\item
+Mixing rate problems: In an ideal world we generate independent samples, but in reality they are autocorrelated. You have to collect a lot of samples to get the same MC error.
+\end{itemize}
+Study properties of MCMC algorithms and try to address these problems to make it competitive with variational inference. 
+%Use parallel processing
+Three directions:
+\begin{enumerate}
+\item
+Embarrassingly parallel MCMC algorithms. (EPMCMC)
+\item
+Approximate MCMC. Until recently people have been religiously defining a Markov chain with kernel converging to exactly the desired distribution. You can get orders of magnitudes speedup if you relax this. 
+(Annals of statistics paper.)
+Comp-minimax: broad class of MCMC algorithms, $\ep$ error probability in kernel, as $\ep$ larger, can evaluate faster. If you have a certain computational budget, I can use this.
+\item
+Data augmentation (for discrete and unbalanced data). It might be hard to define a MC for the posterior, so introduce latent variable $z$, $\pi(\te, z|y)$. This looks more complicated but maybe you made all the operations easier. This is like EM for sampling.
+
+We have strong results on this.
+\end{enumerate}
+%I'm most interested in Problems, but let's start with:
+
+\subsection{EP MCMC}
+$$L(y|\te) = \prodo in L(y_i|\te).$$
+%the boards slide to reveal more boards
+As the sample size increases, it becomes harder to do MCMC efficiently. What can we do? We would like to put data on different machines. 
+Let $K$ is the number of machines/processors, and $y[j]$ is a shard/chunk of data on machine $j$. MCMC hasn't been so good on GPU because of communication costs.
+
+The $j$th subset posterior distribution is
+$$
+\pi(\te|y[j]) = \fc{\pi(\te)L(y[j]|\te)^k}{d}
+$$
+We have a bunch of noisy posterior distributions. Maybe we can take some appropriate notion of mean or median to give an estimate of the true posterior distribution. Think of a Banach space where each point is a probability measure (posterior), and we get close to the true distribution by taking some notion of mean.
+
+Use the (WASP) Wasserstein barycenter posterior. Minimize sum of squares of Wasserstein-2 distance to point. %(Ex. Wasserstein-2 distan
+If each was atomic, get $\rc T \sumo tT \de_{\te[j]}(t)$.
+
+In general, solve using a sparse linear program; this is fast. Throw data on different machines. Run with likelihood raised to power. 
+We get
+$$
+\wh \pi(\te|y) = \rc T\sumo tT \pi_t\de_{\te_t}.
+$$
+(From a frequentist perspective we can study the properties of this. 
+%Parametric model in that class. KL 
+True posterior generates around that point.
+%Concentrate at same rate.
+Get nice bounds between the estimate and the exact posterior depending on $k$, $m$.) %We can grow the data on each machine slowly (log rate) and increase the number of machines.)
+
+%biometrica
+
+We're really interested in functionals of the parameters $f_j(\te)$. (Ex. probability of a disease.) Almost always you're interested in 1-dimensional functionals. The Wasserstein barycenter in the 1-dimensional case can be calculated analytically. Our algorithm only has to do the following: run MCMC in parallel, calculate percentile of interest. Feed back to central machine and average. Build theoretically strong approximation to true posterior. On each machine run your chunk of data. 
+%broad class of algorithms.
+
+\subsection{aMCMC}
+We want to sample from $\pi(\te|y)$. 
+
+We have a transition kernel $K$, obey MCMC rules so it converges the right thing. Design $K$'s that are good, solve general problems, etc.
+
+$K_t$ could be faster to approximate. Use stochastic approximation. %If $\ep$ is small, this subset is big.
+
+Assumptions 
+\begin{enumerate}
+\item
+exact MCMC mixes well. %It satisfies a doubling condition.
+\item
+$K_\te$ is close to $K$.
+\end{enumerate}
+This converges to $\pi_t(\te|y)$ which is close to $\pi(\te|y)$. But what are we actually calculating? $f_j(\te)$. We want the Monte Carlo error to be small, decreasing in clock time as fast as possible. %We want the MC
+There are 2 parts to the error.
+\begin{enumerate}
+\item
+asymptotic bias
+\item
+pure MC error
+\end{enumerate}
+%Generate 1000 times as many samples, but get more biase.
+For a given computational budget and loss function there is an optimal choice of $\ep$.
+Study several classes of algorithms people use and get practical insights into use.
+
+We looked at...
+\begin{itemize}
+\item
+logistic regression with stochastic approximation.
+%large sample size: what's optimal.
+This doesn't work very well because the $\ep$ is big unless the subset sample size is huge, when we don't get much speedup. This was a surprising results. In practice, this minibatch things don't work very well.
+\item
+adaptive Gaussian approximation %: works well
+\item
+Gaussian process models: for small $\ep$ you can get huge computational savings
+\end{itemize}
+
+\subsection{Data augmentation MCMC}
+
+Existing algorithms: 
+Albert-Cho, Polya-Gamma.
+
+But if $n$ is huge,...
+
+The mixing rate for these algorithms as $n$ gets large for unbalanced data goes to 0, $\sqrt{\pat{sample size}}$ or faster.
+
+We were modified by computational advertising: $n$ is enormous. Data is very imbalanced. Most of the data is 0. 
+
+Even in a simple problem, samples are very autocorrelated. %looking at autocorrelation graph, you have to 
+
+Deep thing going on theoretically: The reason these algorithms fail is there's a mismatch. %Update $\te$, then $Z$'s given $\te$...
+%As $n$ increases, distribution gets narrower. 
+What if the rate of concentration of $\pi(\te|y)$ is not the same as $\pi(\te|z,y)$? If there's a big mismatch, mixing becomes slow.
+%You can calibrate
+We calibrate the data augmentation algorithm to adjust for the mismatch. 
+
+
+

@@ -1,0 +1,111 @@
+\section{Machine Learning for Healthcare Data (Katherine Heller, Duke University)}
+
+We will review multiple ways of acquiring healthcare data and the machine learning methods which are currently being used for analysis. These include: 1) Disease trends and other predictions from electronic health record (EHR) data 2) Mobile apps and devices for improving the granularity of recorded health data and 3) The combination of mobile app and social network information. Current work in these areas will be presented and the future of machine learning contributions to the field will be discussed.
+
+\subsection{Electronic health record}
+
+We make gaussian process-based models for chronic kidney diease and sepsis.
+
+eGFR is a measure of kidney function. 
+
+An age 47 patient has untreated diabetes and high blood pressure, normal kidney function; at age 51 patient goes to ER for kidney failure.
+
+The first few years is a missed opportunity to prevent or delay kidney failure.
+
+%42\% starting dialysis
+$<10\%$ with moderate CKD (chronic kidney disease) and $<50\%$ with severe CKD are even aware of illness.
+
+We want to create ML methods to predict what will happen to someone in the future, ex. whether they are likely to have kidney failure. 
+
+We want to look at a bunch of lab values and predict whether someone is at risk. Schulam and Saria, 2015: Use a Gaussian process model. There are population effects, latent subpopulation curve, individual long-term deviations, and individual transient deviations (GP).
+
+We want to correlate trajectories from different labs.
+%Subtypes should 
+We look at eGFR and 5+ other measurements. 
+Use data earlier in time to predict future lab values. For most lab values we do better by introducing correlation.
+
+CKD is correlated with heart disease and diabetes.
+
+Goal: jointly model risk of future loss of kidney function and cardiac events. Use a conditional independent joint likelihood model. 
+Use a Poisson process model with conditional likelihood on events.
+
+%UAI, MLHC
+
+There's a lot of red tape and bureaucracy in getting these into actual healthcare. We use with someone in user interface.
+
+We haven't looked at how treatment affects . How does presenting this info to providers make a difference?
+
+Sepsis (infection contracted, usually in hospital, often through some line put in, serious).
+
+People use Early Warning Scores. Get points for being above/below certain thresholds. What's currently being used is threshold-y. Can we move away from that into a more probabilistic setting and do better? The answer is almost always yes.
+
+We introduce a temporal component. Fall back on gaussian process regression with 0 mean and certain kernel and noise parameters.
+%We need a way of relating time series
+
+At the end you want a classification system. Take the output from expected trajectory and feed it into classifier. Minimize expected loss wrt gaussian process parameters. 
+Use conjugate gradient (Lanczos).
+
+Time series are variable in length. Use RNN classifier.
+
+Use to flag people who are at risk for sepsis.
+
+The current system if very interpretable (ex. blood pressure $\le90$ is bad).
+
+\subsection{National surgery quality improvement program}
+
+%CALYPSO
+
+15/100 surgical procedures result in complications.  
+
+We use NSQIP (national surgery quality improvement program) data.
+
+Our goal is to take the data and use it to improve outcomes for patients. 
+
+First thing we tried is sparse logistic regression model. Look at complications, AUC (there's a fair amount of signal---you can predict risk for these complications). 
+%I think you're good.
+We're trying to do a better than a surgeon assessing by sight.
+
+There are some things we can't do much about, ex. esophageal cancer. Some things we can intervene in, ex. nutritional deficiency.
+%interven suggested by clinicians.
+
+App gives risks of complications.
+
+Clustering of procedural codes: now is done by hand. We're interested in using a (hierarchical) clustering methodology to find procedural codes that go together.
+This leads to modest improvement in 7/8 outcomes.
+
+Transfer learning: Patients at Duke probably not in national database. Transfer between national and local data. Downweight national data, upweight local data. Normal factor analysis. 
+
+Hierarchical infinite factor model improves our ability to make predictions. One downside is that it uses standard sampling methods, up to 100,000 people now. We're looking at speeding this up using stochastic gradient, Nose-Hoover Thermostats Sampling.
+
+Everything I talked about was post-operative. My goal is to create a prediction model that goes from the first to last visit, in real time during surgery. We're working on pre-operative end now. There's more leeway for intervention now. Separate people depending on whether people are at low or high risk (if low risk, do pscreen by phone; if high risk, refer to clinic).
+
+\subsection{Infectious disease}
+Model the spread of infection (influenza) in student dorms.
+How to use new sensors (cell phones, mobile apps), what challenges they bring.
+
+I was loosely involved in several studies, in MIT and UMichigan. Track how sick people are and who they interact with. Can we predict someone's likelihood of getting sick with their symptoms?
+
+We use a graph-coupled HMM model. Have a HMM associated with every person in a social network. Look at people interacting over time. Whether are sick/healthy in the future depends on whether they interacted with people who are sick/healthy. 
+Inference in coupled HMM is very hard. 
+(Can we predict if we have 10\% of links missing?)
+
+Did I get infected by someone in social network, or someone outside social network? We compare to standard epidemiology models. 
+%time, students.
+%black dots reflect how many symptoms.
+%no ground truth
+When someone becomes sick, they stop filling out their surveys, and you get empty boxes. Our algorithm can infer than that they are sick.
+
+University of Michigan: 
+Individual students have covariates (sleeping, washing hands, etc.). Incorporate into model. 
+
+For inference, do Gibbs-EM. There's a lot of use of stochastic variational Bayes. 
+
+Look at multiple sclerosis patients, but no data is being collected. It's a complicated disease. How can we monitor it more continuously? We developed an app with embedded consent, disease history survey, daily symptom and medication survey, and 5 activities. There's a pairing with fitness tracker. We try to make it low work. If nothing changed, they can just say nothing changed and repopulate. They can see what symptoms and task performance has been like.
+
+Initial analyses: develop sparse logistic regression for likelihood of each symptom experience, hierarchical layer based on GP for time series, discover hidden subpopulations, evaluate efficiency of intervention.
+
+%institutional review board (IRB),
+%store data on Amazon. Go through 3rd party.
+%startups
+
+QA: Share with doctors. Are doctors sharing with patients? Ex. tell them they're at high risk. You should evaluate whether you want the surgery.  We are just starting to introduce this to clinicians.
